@@ -1,0 +1,19 @@
+.dropzoneContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  height: 700px;
+  width: 700px;
+  background-color: gray;
+}
+
+.dropzoneLabel {
+  color: purple;
+}
+
+.dragging {
+  background-color: rgba(168, 85, 247, 0.3);
+  border: 2px dashed #c084fc;
+}
