@@ -7,10 +7,14 @@ type UploadAreaProps = {
   multiple?: boolean;
 };
 
-export function UploadArea({ onFilesSelected, accept, multiple }: UploadAreaProps) {
+export function UploadArea({
+  onFilesSelected,
+  accept,
+  multiple,
+}: UploadAreaProps) {
   const [isDragging, setIsDragging] = useState(false);
 
-  function handleOnDrop(e: React.DragEvent<HTMLDivElement>): void {
+  function handleOnDrop(e: React.DragEvent<HTMLLabelElement>): void {
     e.preventDefault();
     setIsDragging(false);
     const files = Array.from(e.dataTransfer.files).filter((f) =>
@@ -28,17 +32,21 @@ export function UploadArea({ onFilesSelected, accept, multiple }: UploadAreaProp
   }
 
   return (
-    <div
+    <label
       className={`${styles.dropzoneContainer} ${isDragging ? styles.dragging : ""}`}
       onDragEnter={() => setIsDragging(true)}
       onDragLeave={() => setIsDragging(false)}
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleOnDrop}
     >
-      <label className={styles.dropzoneLabel}>
-        Drop here your files...
-        <input type="file" onChange={handleOnChange} multiple={multiple ?? true} accept={accept ?? 'image/*'} hidden></input>
-      </label>
-    </div>
+      <span>Drop here your files...</span>
+      <input
+        type="file"
+        onChange={handleOnChange}
+        multiple={multiple ?? true}
+        accept={accept ?? "image/*"}
+        hidden
+      ></input>
+    </label>
   );
 }
