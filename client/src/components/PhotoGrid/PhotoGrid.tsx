@@ -1,28 +1,18 @@
-import { useEffect, useState } from "react";
 import styles from "./PhotoGrid.module.css";
+import { Photo } from '../../api/upload';
 
 type PhotoGridProps = {
-  files: File[];
+  files: Photo[];
 };
 
+const API_BASE = "http://localhost:3000";
+
 export function PhotoGrid({ files }: PhotoGridProps) {
-  const [urls, setUrls] = useState<string[]>([]);
-
-  useEffect(() => {
-    const newUrls = files.map((f) => URL.createObjectURL(f));
-    setUrls(newUrls);
-
-    return () => {
-      newUrls.forEach((u) => {
-        URL.revokeObjectURL(u);
-      });
-    };
-  }, [files]);
 
   return (
     <div className={styles.gridContainer}>
-      {urls.map((u, i) => (
-        <img key={u} className={styles.thumbnail} src={u} alt={files[i].name} />
+      {files.map((u, i) => (
+        <img key={u.id} className={styles.thumbnail} src={`${API_BASE}${u.url}`} alt={files[i].id} />
       ))}
     </div>
   );
