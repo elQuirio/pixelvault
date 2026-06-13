@@ -1,9 +1,10 @@
 import Fastify from "fastify";
 import multipart from "@fastify/multipart";
 import cors from "@fastify/cors";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
+import staticPlugin from "@fastify/static";
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
 await mkdir(UPLOAD_DIR, { recursive: true });
@@ -17,7 +18,7 @@ const app = Fastify({
   },
 });
 
-await app.register(cors, { origin: "http://localhost:5173/" });
+await app.register(cors, { origin: "http://localhost:5173" });
 
 await app.register(multipart, {
   limits: {
@@ -26,15 +27,34 @@ await app.register(multipart, {
   },
 });
 
+await app.register(staticPlugin, {
+  root: UPLOAD_DIR,
+  prefix: "/uploads/",
+});
+
 /////////////////////////////////////////////////////////////////////////////
 
 app.get("/health", async () => {
   return { status: "ok" };
 });
 
+app.get("/photos", async (req) => {
+  const files = await readdir(UPLOAD_DIR);
+  return {
+    photos: files
+      .filter((fName) => !fName.startsWith("."))
+      .map((f) => ({ id: f, url: `/uploads/${f}` })),
+  };
+});
+
 app.post("/upload", async (req) => {
   const parts = req.files();
-  const saved: { id: string; originalName: string; size: number }[] = [];
+  const saved: {
+    id: string;
+    originalName: string;
+    size: number;
+    url: string;
+  }[] = [];
 
   for await (const part of parts) {
     const id = randomUUID();
@@ -45,9 +65,10 @@ app.post("/upload", async (req) => {
     await writeFile(filepath, buffer);
 
     saved.push({
-      id,
+      id: `${id}.${ext}`,
       originalName: part.filename,
       size: buffer.length,
+      url: `/uploads/${id}.${ext}`,
     });
   }
 

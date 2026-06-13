@@ -1,19 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { UploadArea } from "./components/UploadArea/UploadArea";
 import { PhotoGrid } from "./components/PhotoGrid/PhotoGrid";
-import { uploadFiles } from './api/upload';
+import { uploadFiles, getPhotos } from './api/upload';
+import { Photo } from "./api/upload";
 
 function App() {
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<Photo[]>([]);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+
+  useEffect(() => {
+    getPhotos().then((res) => {
+      setFiles(res.photos);
+    })
+
+  }, [])
+
+
 
   async function handleUploadFiles(newFiles: File[]) {
     setIsUploading(true);
-    setFiles((prev) => [...prev, ...newFiles]);
-
     try{
-      const res = await uploadFiles(newFiles);
+      await uploadFiles(newFiles);
+      const res = await getPhotos()
       console.log('Uploaded:', res);
+      setFiles(res.photos);
     }
     catch (err) {
       console.error('Upload failed:', err);
