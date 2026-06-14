@@ -15,7 +15,7 @@ export function PhotoGrid({ files }: PhotoGridProps) {
   return (
     <div className={styles.gridContainer}>
       {files.map((u, i) => (
-        <img key={u.id} className={styles.thumbnail} src={`${API_BASE}${u.url}`} alt={files[i].id} onClick={() => setSelected(u)} />
+        <img key={u.id} className={styles.thumbnail} src={`${API_BASE}${u.thumbnail}`} alt={files[i].id} onClick={() => setSelected(u)} />
       ))}
       {selected && <LightBox photo={selected} onClose={() => setSelected(null)}/>}
     </div>

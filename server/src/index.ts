@@ -5,9 +5,13 @@ import { mkdir, writeFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import staticPlugin from "@fastify/static";
+import sharp from "sharp";
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
-await mkdir(UPLOAD_DIR, { recursive: true });
+const ORIGINAL_DIR = join(UPLOAD_DIR, "originals");
+const THUMBNAIL_DIR = join(UPLOAD_DIR, "thumbnails");
+await mkdir(ORIGINAL_DIR, { recursive: true });
+await mkdir(THUMBNAIL_DIR, { recursive: true });
 
 const app = Fastify({
   logger: {
@@ -39,11 +43,13 @@ app.get("/health", async () => {
 });
 
 app.get("/photos", async (req) => {
-  const files = await readdir(UPLOAD_DIR);
+  const files = await readdir(ORIGINAL_DIR);
   return {
     photos: files
       .filter((fName) => !fName.startsWith("."))
-      .map((f) => ({ id: f, url: `/uploads/${f}` })),
+      .map((f) => ({ id: f, 
+        url: `/uploads/originals/${f}`, 
+        thumbnail: `/uploads/thumbnails/${f.split(".")[0]}.webp` })),
   };
 });
 
@@ -54,21 +60,24 @@ app.post("/upload", async (req) => {
     originalName: string;
     size: number;
     url: string;
+    thumbnail: string;
   }[] = [];
 
   for await (const part of parts) {
     const id = randomUUID();
     const ext = part.filename.split(".").pop() ?? "bin";
-    const filepath = join(UPLOAD_DIR, `${id}.${ext}`);
+    const filepath = join(ORIGINAL_DIR, `${id}.${ext}`);
 
     const buffer = await part.toBuffer();
     await writeFile(filepath, buffer);
+    await sharp(buffer).resize(200, 200, { fit: "cover" }).webp({ quality: 80 }).toFile(join(THUMBNAIL_DIR, `${id}.webp`));
 
     saved.push({
       id: `${id}.${ext}`,
       originalName: part.filename,
       size: buffer.length,
-      url: `/uploads/${id}.${ext}`,
+      url: `/uploads/originals/${id}.${ext}`,
+      thumbnail: `/uploads/thumbnails/${id}.webp`,
     });
   }
 

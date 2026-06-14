@@ -14,6 +14,7 @@ type UploadResponse = {
 export type Photo = {
   id: string;
   url: string;
+  thumbnail: string;
 };
 
 export type PhotosResponse = {
