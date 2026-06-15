@@ -5,11 +5,12 @@ import { LightBox } from "../LightBox/LightBox";
 
 type PhotoGridProps = {
   files: Photo[];
+  handleDeletePhoto: () => {};
 };
 
 const API_BASE = "http://localhost:3000";
 
-export function PhotoGrid({ files }: PhotoGridProps) {
+export function PhotoGrid({ files, handleDeletePhoto }: PhotoGridProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   return (
@@ -31,6 +32,7 @@ export function PhotoGrid({ files }: PhotoGridProps) {
           selectedIndex={selectedIndex}
           setSelectedIndex={setSelectedIndex}
           onClose={() => setSelectedIndex(null)}
+          handleDeletePhoto={handleDeletePhoto}
         />
       )}
     </div>

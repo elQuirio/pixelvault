@@ -48,3 +48,14 @@ export async function getPhotos() {
 
   return res.json() as Promise<PhotosResponse>;
 }
+
+export async function deletePhoto(id: string) {
+  const res = await fetch(`${API_BASE}/photos/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!res.ok) {
+    throw new Error(`Error deleting id: ${id}`);
+  }
+  return;
+}
