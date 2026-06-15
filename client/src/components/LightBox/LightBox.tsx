@@ -3,24 +3,42 @@ import styles from "./LightBox.module.css";
 import { useEffect } from "react";
 
 type LightBoxTypes = {
-  photo: Photo;
+  photos: Photo[];
+  selectedIndex: number;
+  setSelectedIndex: (i: number) => void;
   onClose: () => void;
 };
 
 const API_BASE = "http://localhost:3000";
 
-export function LightBox({ photo, onClose }: LightBoxTypes) {
-  useEffect(() => {
+export function LightBox({ photos, selectedIndex, setSelectedIndex, onClose }: LightBoxTypes) {
+  const photo = photos[selectedIndex];
+
+    useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
+      }
+      else if (e.key === 'ArrowLeft') {
+        if (selectedIndex === 0) {
+          onClose()
+        } else {
+          setSelectedIndex(selectedIndex-1);
+        }
+      } else if (e.key === 'ArrowRight') {
+        if (selectedIndex === photos.length-1) {
+          onClose();
+        } else {
+          setSelectedIndex(selectedIndex+1);
+        }
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  }, [onClose, setSelectedIndex, selectedIndex]);
 
+  
   return (
     <div className={styles.overlay} onClick={onClose}>
       <img

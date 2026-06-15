@@ -1,5 +1,5 @@
 import styles from "./PhotoGrid.module.css";
-import { Photo } from '../../api/upload';
+import { Photo } from "../../api/upload";
 import { useState } from "react";
 import { LightBox } from "../LightBox/LightBox";
 
@@ -10,14 +10,29 @@ type PhotoGridProps = {
 const API_BASE = "http://localhost:3000";
 
 export function PhotoGrid({ files }: PhotoGridProps) {
-  const [selected, setSelected] = useState<Photo | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   return (
     <div className={styles.gridContainer}>
       {files.map((u, i) => (
-        <img key={u.id} className={styles.thumbnail} src={`${API_BASE}${u.thumbnail}`} alt={files[i].id} onClick={() => setSelected(u)} />
+        <img
+          key={u.id}
+          className={styles.thumbnail}
+          src={`${API_BASE}${u.thumbnail}`}
+          alt={files[i].id}
+          onClick={() => {
+            setSelectedIndex(i)
+          console.log(i)}}
+        />
       ))}
-      {selected && <LightBox photo={selected} onClose={() => setSelected(null)}/>}
+      {(selectedIndex !== null) && (
+        <LightBox
+          photos={files}
+          selectedIndex={selectedIndex}
+          setSelectedIndex={setSelectedIndex}
+          onClose={() => setSelectedIndex(null)}
+        />
+      )}
     </div>
   );
 }
