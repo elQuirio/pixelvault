@@ -1,6 +1,7 @@
 import { Photo } from "../../api/upload";
 import styles from "./LightBox.module.css";
 import { useEffect } from "react";
+import { deletePhoto } from '../../api/upload';
 
 type LightBoxTypes = {
   photos: Photo[];
@@ -11,7 +12,7 @@ type LightBoxTypes = {
 
 const API_BASE = "http://localhost:3000";
 
-export function LightBox({ photos, selectedIndex, setSelectedIndex, onClose }: LightBoxTypes) {
+export function LightBox({ photos, selectedIndex, setSelectedIndex, onClose, handleDeletePhoto }: LightBoxTypes) {
   const photo = photos[selectedIndex];
 
     useEffect(() => {
@@ -47,6 +48,7 @@ export function LightBox({ photos, selectedIndex, setSelectedIndex, onClose }: L
         alt={photo.id}
         onClick={(e) => e.stopPropagation()}
       />
+      <button className={styles.deleteButton} onClick={() => handleDeletePhoto(photo.id)} >Delete</button>
     </div>
   );
 }

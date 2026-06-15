@@ -3,6 +3,7 @@ import { UploadArea } from "./components/UploadArea/UploadArea";
 import { PhotoGrid } from "./components/PhotoGrid/PhotoGrid";
 import { uploadFiles, getPhotos } from './api/upload';
 import { Photo } from "./api/upload";
+import { deletePhoto } from "./api/upload";
 
 function App() {
   const [files, setFiles] = useState<Photo[]>([]);
@@ -33,12 +34,17 @@ function App() {
     }
   }
 
+  async function handleDeletePhoto(id: string) {
+    await deletePhoto(id);
+    setFiles(files.filter(f => f.id !== id));
+  }
+
   return (
     <main className="main-container">
       <h1>PixelVault</h1>
       <UploadArea onFilesSelected={handleUploadFiles} />
       {isUploading && <p className="status">Uploading...</p>}
-      <PhotoGrid files={files}/>
+      <PhotoGrid files={files} handleDeletePhoto={handleDeletePhoto} />
     </main>
   );
 }

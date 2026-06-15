@@ -5,6 +5,7 @@ import { mkdir, writeFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import staticPlugin from "@fastify/static";
+import { unlink } from "node:fs/promises";
 import sharp from "sharp";
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
@@ -22,7 +23,7 @@ const app = Fastify({
   },
 });
 
-await app.register(cors, { origin: "http://localhost:5173" });
+await app.register(cors, { origin: "http://localhost:5173", methods: '*' });
 
 await app.register(multipart, {
   limits: {
@@ -47,9 +48,11 @@ app.get("/photos", async (req) => {
   return {
     photos: files
       .filter((fName) => !fName.startsWith("."))
-      .map((f) => ({ id: f, 
-        url: `/uploads/originals/${f}`, 
-        thumbnail: `/uploads/thumbnails/${f.split(".")[0]}.webp` })),
+      .map((f) => ({
+        id: f,
+        url: `/uploads/originals/${f}`,
+        thumbnail: `/uploads/thumbnails/${f.split(".")[0]}.webp`,
+      })),
   };
 });
 
@@ -70,7 +73,10 @@ app.post("/upload", async (req) => {
 
     const buffer = await part.toBuffer();
     await writeFile(filepath, buffer);
-    await sharp(buffer).resize(200, 200, { fit: "cover" }).webp({ quality: 80 }).toFile(join(THUMBNAIL_DIR, `${id}.webp`));
+    await sharp(buffer)
+      .resize(200, 200, { fit: "cover" })
+      .webp({ quality: 80 })
+      .toFile(join(THUMBNAIL_DIR, `${id}.webp`));
 
     saved.push({
       id: `${id}.${ext}`,
@@ -82,6 +88,31 @@ app.post("/upload", async (req) => {
   }
 
   return { uploaded: saved };
+});
+
+
+
+app.delete('/photos/:id', async (req, reply) => {
+  const { id } = req.params as {id: string};
+
+  if (!id) {
+    return reply.code(400).send();
+  }
+
+  try {
+    //original
+    await unlink(join(ORIGINAL_DIR, id));
+    //thumbnail
+    await unlink(join(THUMBNAIL_DIR, `${id.split('.')[0]}.webp`));
+    return reply.code(204).send();
+  } catch (err) {
+    const e = err as NodeJS.ErrnoException;
+    if (e.code === "ENOENT") {
+      return reply.code(404).send( {message: 'Resource not found'} );
+    } else {
+      return reply.code(500).send( {message: 'Internal server error'} );
+    }
+  }
 });
 
 //////////////////////////////////////////////////////////////////
