@@ -1,11 +1,11 @@
 import styles from "./PhotoGrid.module.css";
-import { Photo } from "../../api/upload";
+import type { Photo } from "../../api/upload";
 import { useState } from "react";
 import { LightBox } from "../LightBox/LightBox";
 
 type PhotoGridProps = {
   files: Photo[];
-  handleDeletePhoto: () => {};
+  handleDeletePhoto: (id: string) => void;
 };
 
 const API_BASE = "http://localhost:3000";
