@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { UploadArea } from "./components/UploadArea/UploadArea";
 import { PhotoGrid } from "./components/PhotoGrid/PhotoGrid";
 import { uploadFiles, getPhotos } from './api/upload';
-import { Photo } from "./api/upload";
+import type { Photo } from "./api/upload";
 import { deletePhoto } from "./api/upload";
 
 function App() {

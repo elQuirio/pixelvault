@@ -1,12 +1,12 @@
-import { Photo } from "../../api/upload";
+import type { Photo } from "../../api/upload";
 import styles from "./LightBox.module.css";
 import { useEffect } from "react";
-import { deletePhoto } from '../../api/upload';
 
 type LightBoxTypes = {
   photos: Photo[];
   selectedIndex: number;
   setSelectedIndex: (i: number) => void;
+  handleDeletePhoto: (id: string) => void;
   onClose: () => void;
 };
 
