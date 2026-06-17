@@ -15,6 +15,7 @@ const API_BASE = "http://localhost:3000";
 export function LightBox({ photos, selectedIndex, setSelectedIndex, onClose, handleDeletePhoto }: LightBoxTypes) {
   const photo = photos[selectedIndex];
 
+
     useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
