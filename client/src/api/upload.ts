@@ -51,11 +51,25 @@ export async function getPhotos() {
 
 export async function deletePhoto(id: string) {
   const res = await fetch(`${API_BASE}/photos/${id}`, {
-    method: 'DELETE',
+    method: "DELETE",
   });
 
   if (!res.ok) {
     throw new Error(`Error deleting id: ${id}`);
   }
+  return;
+}
+
+export async function deletePhotosBulk(ids: string[]) {
+  const res = await fetch(`${API_BASE}/photos`, {
+    method: "DELETE",
+    headers: {'Content-type': 'application/json'},
+    body: JSON.stringify({ ids: ids }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Error deleting ids`);
+  }
+
   return;
 }
