@@ -7,7 +7,7 @@ import { deletePhoto, deletePhotosBulk } from "./api/upload";
 
 function App() {
   const [files, setFiles] = useState<Photo[]>([]);
-  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     getPhotos().then((res) => {
