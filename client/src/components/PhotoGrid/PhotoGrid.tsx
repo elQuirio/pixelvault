@@ -2,6 +2,7 @@ import styles from "./PhotoGrid.module.css";
 import type { Photo } from "../../api/upload";
 import { useState } from "react";
 import { LightBox } from "../LightBox/LightBox";
+import { API_BASE } from "../../config/api";
 
 
 type PhotoGridProps = {
@@ -10,11 +11,9 @@ type PhotoGridProps = {
   handleDeleteBulkClick: (ids: string[]) => void;
 };
 
-const API_BASE = "http://localhost:3000";
-
 export function PhotoGrid({ files, handleDeletePhoto, handleDeleteBulkClick }: PhotoGridProps) {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [isSelectMode, setIsSelectMode] = useState<boolean>(false);
+  const [lightBoxIndex, setLightBoxIndex] = useState<number | null>(null);
+  const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const toggleSelectMode = () => {
@@ -37,7 +36,7 @@ export function PhotoGrid({ files, handleDeletePhoto, handleDeleteBulkClick }: P
       {isSelectMode && <button className="" onClick={() => handleDeleteBulkClick(selectedIds)}>Delete</button>}
       <div className={styles.gridContainer}>
         {files.map((u, i) => (
-          <div>
+          <div key={u.id}>
             {isSelectMode && (
               <input
                 type="checkbox"
@@ -46,23 +45,21 @@ export function PhotoGrid({ files, handleDeletePhoto, handleDeleteBulkClick }: P
               />
             )}
             <img
-              key={u.id}
               className={styles.thumbnail}
               src={`${API_BASE}${u.thumbnail}`}
               alt={files[i].id}
               onClick={() => {
-                setSelectedIndex(i);
-                console.log(i);
+                setLightBoxIndex(i);
               }}
             />
           </div>
         ))}
-        {selectedIndex !== null && (
+        {lightBoxIndex !== null && (
           <LightBox
             photos={files}
-            selectedIndex={selectedIndex}
-            setSelectedIndex={setSelectedIndex}
-            onClose={() => setSelectedIndex(null)}
+            lightBoxIndex={lightBoxIndex}
+            setLightBoxIndex={setLightBoxIndex}
+            onClose={() => setLightBoxIndex(null)}
             handleDeletePhoto={handleDeletePhoto}
           />
         )}

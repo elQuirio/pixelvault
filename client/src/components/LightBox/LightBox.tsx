@@ -1,19 +1,19 @@
 import type { Photo } from "../../api/upload";
 import styles from "./LightBox.module.css";
 import { useEffect } from "react";
+import { API_BASE } from "../../config/api";
 
 type LightBoxTypes = {
   photos: Photo[];
-  selectedIndex: number;
-  setSelectedIndex: (i: number) => void;
+  lightBoxIndex: number;
+  setLightBoxIndex: (i: number) => void;
   handleDeletePhoto: (id: string) => void;
   onClose: () => void;
 };
 
-const API_BASE = "http://localhost:3000";
 
-export function LightBox({ photos, selectedIndex, setSelectedIndex, onClose, handleDeletePhoto }: LightBoxTypes) {
-  const photo = photos[selectedIndex];
+export function LightBox({ photos, lightBoxIndex, setLightBoxIndex, onClose, handleDeletePhoto }: LightBoxTypes) {
+  const photo = photos[lightBoxIndex];
 
 
     useEffect(() => {
@@ -22,23 +22,23 @@ export function LightBox({ photos, selectedIndex, setSelectedIndex, onClose, han
         onClose();
       }
       else if (e.key === 'ArrowLeft') {
-        if (selectedIndex === 0) {
+        if (lightBoxIndex === 0) {
           onClose()
         } else {
-          setSelectedIndex(selectedIndex-1);
+          setLightBoxIndex(lightBoxIndex-1);
         }
       } else if (e.key === 'ArrowRight') {
-        if (selectedIndex === photos.length-1) {
+        if (lightBoxIndex === photos.length-1) {
           onClose();
         } else {
-          setSelectedIndex(selectedIndex+1);
+          setLightBoxIndex(lightBoxIndex+1);
         }
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose, setSelectedIndex, selectedIndex]);
+  }, [onClose, setLightBoxIndex, lightBoxIndex]);
 
   
   return (
