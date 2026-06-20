@@ -2,15 +2,14 @@ import "dotenv/config";
 import Fastify from "fastify";
 import multipart from "@fastify/multipart";
 import cors from "@fastify/cors";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, unlink } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import staticPlugin from "@fastify/static";
-import { unlink } from "node:fs/promises";
 import sharp from "sharp";
-import { sql } from "drizzle-orm";
 import { db } from "./db";
 import { photos } from "./schema";
+import { eq } from "drizzle-orm";
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
 const ORIGINAL_DIR = join(UPLOAD_DIR, "originals");
@@ -50,12 +49,11 @@ app.get("/health", () => {
 app.get("/photos", async () => {
   const rows = await db.select().from(photos);
   return {
-    photos: rows
-      .map((f) => ({
-        id: `${f.fileUuid}.${f.ext}`,
-        url: `/uploads/originals/${f.fileUuid}.${f.ext}`,
-        thumbnail: `/uploads/thumbnails/${f.fileUuid}.webp`,
-      })),
+    photos: rows.map((f) => ({
+      id: f.fileUuid,
+      url: `/uploads/originals/${f.fileUuid}.${f.ext}`,
+      thumbnail: `/uploads/thumbnails/${f.fileUuid}.webp`,
+    })),
   };
 });
 
@@ -70,23 +68,28 @@ app.post("/upload", async (req) => {
   }[] = [];
 
   for await (const part of parts) {
-    const id = randomUUID();
+    const fileUuid = randomUUID();
     const ext = part.filename.split(".").pop() ?? "bin";
-    const filepath = join(ORIGINAL_DIR, `${id}.${ext}`);
+    const filepath = join(ORIGINAL_DIR, `${fileUuid}.${ext}`);
+    const originalName = part.filename;
 
     const buffer = await part.toBuffer();
     await writeFile(filepath, buffer);
     await sharp(buffer)
       .resize(200, 200, { fit: "cover" })
       .webp({ quality: 80 })
-      .toFile(join(THUMBNAIL_DIR, `${id}.webp`));
+      .toFile(join(THUMBNAIL_DIR, `${fileUuid}.webp`));
+
+    await db
+      .insert(photos)
+      .values({ fileUuid, ext, originalName, size: buffer.length });
 
     saved.push({
-      id: `${id}.${ext}`,
-      originalName: part.filename,
+      id: fileUuid,
+      originalName,
       size: buffer.length,
-      url: `/uploads/originals/${id}.${ext}`,
-      thumbnail: `/uploads/thumbnails/${id}.webp`,
+      url: `/uploads/originals/${fileUuid}.${ext}`,
+      thumbnail: `/uploads/thumbnails/${fileUuid}.webp`,
     });
   }
 
@@ -100,20 +103,18 @@ app.delete("/photos/:id", async (req, reply) => {
     return reply.code(400).send();
   }
 
-  try {
-    //original
-    await unlink(join(ORIGINAL_DIR, id));
-    //thumbnail
-    await unlink(join(THUMBNAIL_DIR, `${id.split(".")[0]}.webp`));
-    return reply.code(204).send();
-  } catch (err) {
-    const e = err as NodeJS.ErrnoException;
-    if (e.code === "ENOENT") {
-      return reply.code(404).send({ message: "Resource not found" });
-    } else {
-      return reply.code(500).send({ message: "Internal server error" });
-    }
+  const [photo] = await db.select().from(photos).where(eq(photos.fileUuid, id));
+  if (!photo) {
+    return reply.code(404).send({ message: "Resource not found" });
   }
+  //db
+  await db.delete(photos).where(eq(photos.fileUuid, id));
+  //original
+  await safeUnlink(join(ORIGINAL_DIR, `${id}.${photo.ext}`));
+  //thumbnail
+  await safeUnlink(join(THUMBNAIL_DIR, `${id}.webp`));
+
+  return reply.code(204).send();
 });
 
 app.delete("/photos", async (req, reply) => {
@@ -124,12 +125,17 @@ app.delete("/photos", async (req, reply) => {
   }
 
   for (const id of ids) {
-      await safeUnlink(join(ORIGINAL_DIR, id));
-      await safeUnlink(join(THUMBNAIL_DIR, `${id.split(".")[0]}.webp`));
-    }
+    const [photo] = await db
+      .select()
+      .from(photos)
+      .where(eq(photos.fileUuid, id));
+    if (!photo) continue;
+    await db.delete(photos).where(eq(photos.fileUuid, id));
+    await safeUnlink(join(ORIGINAL_DIR, `${id}.${photo.ext}`));
+    await safeUnlink(join(THUMBNAIL_DIR, `${id}.webp`));
+  }
   return reply.code(204).send();
 });
-
 
 async function safeUnlink(path: string) {
   try {
@@ -144,8 +150,8 @@ async function safeUnlink(path: string) {
 
 const start = async () => {
   try {
-    await db.execute('select 1');
-    app.log.info('db connected');
+    await db.execute("select 1");
+    app.log.info("db connected");
     await app.listen({ port: 3000, host: "0.0.0.0" });
   } catch (err) {
     app.log.error(err);
