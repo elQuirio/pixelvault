@@ -1,3 +1,4 @@
+import "dotenv/config";
 import Fastify from "fastify";
 import multipart from "@fastify/multipart";
 import cors from "@fastify/cors";
@@ -7,6 +8,8 @@ import { randomUUID } from "node:crypto";
 import staticPlugin from "@fastify/static";
 import { unlink } from "node:fs/promises";
 import sharp from "sharp";
+import { sql } from "drizzle-orm";
+import { db } from "./db";
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
 const ORIGINAL_DIR = join(UPLOAD_DIR, "originals");
@@ -141,6 +144,8 @@ async function safeUnlink(path: string) {
 
 const start = async () => {
   try {
+    await db.execute('select 1');
+    app.log.info('db connected');
     await app.listen({ port: 3000, host: "0.0.0.0" });
   } catch (err) {
     app.log.error(err);

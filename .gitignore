@@ -15,6 +15,7 @@ dist-ssr
 /server/uploads/*
 !server/uploads/.gitkeep
 
+.env
 
 # Editor directories and files
 .vscode/*
