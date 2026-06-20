@@ -10,7 +10,7 @@ import {
 export const photos = pgTable("photos", {
   id: serial("id").primaryKey(),
   fileUuid: uuid("file_uuid").defaultRandom().notNull().unique(),
-  filename: text("filename").notNull(),
+  ext: text("ext").notNull(),
   originalName: text("original_name"),
   size: integer("size"),
   createdAt: timestamp("created_at").defaultNow(),

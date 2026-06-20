@@ -2,7 +2,7 @@ import "dotenv/config";
 import Fastify from "fastify";
 import multipart from "@fastify/multipart";
 import cors from "@fastify/cors";
-import { mkdir, writeFile, readdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import staticPlugin from "@fastify/static";
@@ -10,6 +10,7 @@ import { unlink } from "node:fs/promises";
 import sharp from "sharp";
 import { sql } from "drizzle-orm";
 import { db } from "./db";
+import { photos } from "./schema";
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
 const ORIGINAL_DIR = join(UPLOAD_DIR, "originals");
@@ -47,14 +48,13 @@ app.get("/health", () => {
 });
 
 app.get("/photos", async () => {
-  const files = await readdir(ORIGINAL_DIR);
+  const rows = await db.select().from(photos);
   return {
-    photos: files
-      .filter((fName) => !fName.startsWith("."))
+    photos: rows
       .map((f) => ({
-        id: f,
-        url: `/uploads/originals/${f}`,
-        thumbnail: `/uploads/thumbnails/${f.split(".")[0]}.webp`,
+        id: `${f.fileUuid}.${f.ext}`,
+        url: `/uploads/originals/${f.fileUuid}.${f.ext}`,
+        thumbnail: `/uploads/thumbnails/${f.fileUuid}.webp`,
       })),
   };
 });
