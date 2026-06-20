@@ -1,0 +1,21 @@
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: pixelvault-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pixelvault_user
+      POSTGRES_PASSWORD: pixelvault_password
+      POSTGRES_DB: pixelvault_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pixelvault"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
