@@ -2,6 +2,7 @@ import type { Photo } from "../../api/upload";
 import styles from "./LightBox.module.css";
 import { useEffect } from "react";
 import { API_BASE } from "../../config/api";
+import { formatSize } from "../../helpers/helpers";
 
 type LightBoxTypes = {
   photos: Photo[];
@@ -11,27 +12,30 @@ type LightBoxTypes = {
   onClose: () => void;
 };
 
-
-export function LightBox({ photos, lightBoxIndex, setLightBoxIndex, onClose, handleDeletePhoto }: LightBoxTypes) {
+export function LightBox({
+  photos,
+  lightBoxIndex,
+  setLightBoxIndex,
+  onClose,
+  handleDeletePhoto,
+}: LightBoxTypes) {
   const photo = photos[lightBoxIndex];
 
-
-    useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
-      }
-      else if (e.key === 'ArrowLeft') {
+      } else if (e.key === "ArrowLeft") {
         if (lightBoxIndex === 0) {
-          onClose()
-        } else {
-          setLightBoxIndex(lightBoxIndex-1);
-        }
-      } else if (e.key === 'ArrowRight') {
-        if (lightBoxIndex === photos.length-1) {
           onClose();
         } else {
-          setLightBoxIndex(lightBoxIndex+1);
+          setLightBoxIndex(lightBoxIndex - 1);
+        }
+      } else if (e.key === "ArrowRight") {
+        if (lightBoxIndex === photos.length - 1) {
+          onClose();
+        } else {
+          setLightBoxIndex(lightBoxIndex + 1);
         }
       }
     };
@@ -40,16 +44,36 @@ export function LightBox({ photos, lightBoxIndex, setLightBoxIndex, onClose, han
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose, setLightBoxIndex, lightBoxIndex]);
 
-  
   return (
     <div className={styles.overlay} onClick={onClose}>
+      <p>{photo.originalName}</p>
+      <p>{formatSize(photo.size)}</p>
+      <p>
+        {new Date(photo.createdAt).toLocaleDateString("it-IT", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })}
+        ,{" "}
+        {new Date(photo.createdAt).toLocaleTimeString("it-IT", {
+          hour12: false,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })}
+      </p>
       <img
         className={styles.image}
         src={`${API_BASE}${photo.url}`}
         alt={photo.id}
         onClick={(e) => e.stopPropagation()}
       />
-      <button className={styles.deleteButton} onClick={() => handleDeletePhoto(photo.id)} >Delete</button>
+      <button
+        className={styles.deleteButton}
+        onClick={() => handleDeletePhoto(photo.id)}
+      >
+        Delete
+      </button>
     </div>
   );
 }
