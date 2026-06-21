@@ -9,7 +9,7 @@ import staticPlugin from "@fastify/static";
 import sharp from "sharp";
 import { db } from "./db";
 import { photos } from "./schema";
-import { eq } from "drizzle-orm";
+import { eq, asc, desc } from "drizzle-orm";
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
 const ORIGINAL_DIR = join(UPLOAD_DIR, "originals");
@@ -46,8 +46,17 @@ app.get("/health", () => {
   return { status: "ok" };
 });
 
-app.get("/photos", async () => {
-  const rows = await db.select().from(photos);
+const sortMap = {
+  'creationDateDesc': desc(photos.createdAt),
+  'creationDateAsc': asc(photos.createdAt),
+};
+
+type SortKey = keyof typeof sortMap;
+
+app.get("/photos", async (req) => {
+  const {sortBy} = req.query as {sortBy?: SortKey};
+  const orderBy = (sortBy && sortBy in sortMap) ? sortMap[sortBy] : desc(photos.createdAt);
+  const rows = (await db.select().from(photos).orderBy(orderBy));
   return {
     photos: rows.map((f) => ({
       id: f.fileUuid,

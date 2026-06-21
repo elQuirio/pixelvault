@@ -9,12 +9,15 @@ type PhotoGridProps = {
   files: Photo[];
   handleDeletePhoto: (id: string) => void;
   handleDeleteBulkClick: (ids: string[]) => void;
+  sortBy: string;
+  setSortBy: (sortBy: string) => void; 
 };
 
-export function PhotoGrid({ files, handleDeletePhoto, handleDeleteBulkClick }: PhotoGridProps) {
+export function PhotoGrid({ files, handleDeletePhoto, handleDeleteBulkClick, sortBy, setSortBy }: PhotoGridProps) {
   const [lightBoxIndex, setLightBoxIndex] = useState<number | null>(null);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
 
   const toggleSelectMode = () => {
     setIsSelectMode((prev: boolean) => !prev);
@@ -28,11 +31,23 @@ export function PhotoGrid({ files, handleDeletePhoto, handleDeleteBulkClick }: P
     }
   };
 
+  const sortMap = [
+    { sortkey: 'creationDateDesc',
+      label: 'New first'
+    },
+    { sortkey: 'creationDateAsc',
+      label: 'Old first'
+    }
+  ]
+
   return (
     <div>
       <button className="" onClick={toggleSelectMode}>
         toggle select mode
       </button>
+      <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}> 
+        {sortMap.map((s) => <option key={s.sortkey} value={s.sortkey}>{s.label}</option>)}
+      </select>
       {isSelectMode && <button className="" onClick={() => handleDeleteBulkClick(selectedIds)}>Delete</button>}
       <div className={styles.gridContainer}>
         {files.map((u, i) => (
