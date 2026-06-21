@@ -37,8 +37,8 @@ export async function uploadFiles(files: File[]) {
   return res.json() as Promise<UploadResponse>;
 }
 
-export async function getPhotos() {
-  const res = await fetch(`${API_BASE}/photos`, {
+export async function getPhotos(sortBy: string) {
+  const res = await fetch(`${API_BASE}/photos?sortBy=${sortBy}`, {
     method: "GET",
   });
 

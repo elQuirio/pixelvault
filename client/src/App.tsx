@@ -8,18 +8,19 @@ import { deletePhoto, deletePhotosBulk } from "./api/upload";
 function App() {
   const [files, setFiles] = useState<Photo[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [sortBy, setSortBy] = useState('creationDateDesc');
 
   useEffect(() => {
-    getPhotos().then((res) => {
+    getPhotos(sortBy).then((res) => {
       setFiles(res.photos);
     });
-  }, []);
+  }, [sortBy]);
 
   async function handleUploadFiles(newFiles: File[]) {
     setIsUploading(true);
     try {
       await uploadFiles(newFiles);
-      const res = await getPhotos();
+      const res = await getPhotos(sortBy);
       console.log("Uploaded:", res);
       setFiles(res.photos);
     } catch (err) {
@@ -44,7 +45,7 @@ function App() {
       <h1>PixelVault</h1>
       <UploadArea onFilesSelected={handleUploadFiles} />
       {isUploading && <p className="status">Uploading...</p>}
-      <PhotoGrid files={files} handleDeletePhoto={handleDeletePhoto} handleDeleteBulkClick={handleDeleteBulkClick}/>
+      <PhotoGrid files={files} handleDeletePhoto={handleDeletePhoto} handleDeleteBulkClick={handleDeleteBulkClick} sortBy={sortBy} setSortBy={setSortBy} />
     </main>
   );
 }
