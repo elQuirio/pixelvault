@@ -62,6 +62,9 @@ app.get("/photos", async (req) => {
       id: f.fileUuid,
       url: `/uploads/originals/${f.fileUuid}.${f.ext}`,
       thumbnail: `/uploads/thumbnails/${f.fileUuid}.webp`,
+      originalName: f.originalName,
+      size: f.size,
+      createdAt: f.createdAt,
     })),
   };
 });

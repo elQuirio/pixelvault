@@ -15,6 +15,9 @@ export type Photo = {
   id: string;
   url: string;
   thumbnail: string;
+  originalName: string;
+  size: number;
+  createdAt: string;
 };
 
 export type PhotosResponse = {
