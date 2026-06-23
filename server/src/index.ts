@@ -8,8 +8,9 @@ import { randomUUID } from "node:crypto";
 import staticPlugin from "@fastify/static";
 import sharp from "sharp";
 import { db } from "./db";
-import { photos } from "./schema";
+import { photos, users } from "./schema";
 import { eq, asc, desc } from "drizzle-orm";
+import argon2 from 'argon2';
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
 const ORIGINAL_DIR = join(UPLOAD_DIR, "originals");
@@ -157,6 +158,31 @@ async function safeUnlink(path: string) {
     if (e.code !== "ENOENT") throw err;
   }
 }
+
+
+//////////////////////////// AUTH ////////////////////////////////
+
+app.post('/auth/register', async (req, reply) => {
+  const { name, email, password } = req.body as {name?: string, email?: string, password?: string};
+
+  if (!name || !email || !password) {
+    return reply.code(400).send({ message: 'Missing mandatory data'});
+  }
+
+  const passwordHash = await argon2.hash(password, {type: argon2.argon2id});
+  try {
+    await db.insert(users).values({name, email, passwordHash});
+  } catch (err) {
+    const e = err as {code?: string, cause?: {code?: string}};
+    if (e.code === '23505' || e.cause?.code === '23505') {
+      return reply.status(409).send({message: 'Username already taken'});
+    }
+    throw err;
+  }
+  
+  return reply.status(201).send({payload: name});
+})
+
 
 //////////////////////////////////////////////////////////////////
 
