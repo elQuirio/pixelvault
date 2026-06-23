@@ -183,6 +183,27 @@ app.post('/auth/register', async (req, reply) => {
   return reply.status(201).send({payload: name});
 })
 
+app.post('/auth/login', async (req, reply) => {
+  const {name, password} = req.body as {name?: string, password?: string};
+
+  if (!name || !password) {
+    return reply.code(400).send({message: 'Missing mandatory data'});
+  }
+
+  const [user] = await db.select({id: users.id, passwordHash: users.passwordHash}).from(users).where(eq(users.name, name));
+
+  if (!user) {
+    return reply.code(401).send({message: 'Invalid credentials'});
+  }
+  const ok = await argon2.verify(user.passwordHash, password);
+  if (!ok) {
+    return reply.code(401).send({message: 'Invalid credentials'});
+  }
+
+  return reply.code(200).send({message: 'ok'});
+
+})
+
 
 //////////////////////////////////////////////////////////////////
 
