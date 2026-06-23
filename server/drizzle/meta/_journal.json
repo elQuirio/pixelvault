@@ -15,6 +15,20 @@
       "when": 1781978116699,
       "tag": "0001_quick_fixer",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782233591021,
+      "tag": "0002_regular_kitty_pryde",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1782233635306,
+      "tag": "0003_loud_shockwave",
+      "breakpoints": true
     }
   ]
 }

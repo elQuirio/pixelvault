@@ -18,3 +18,15 @@ export const photos = pgTable("photos", {
     .defaultNow()
     .$onUpdate(() => new Date()),
 });
+
+
+export const users = pgTable('users', {
+  id: serial("id").primaryKey(),
+  name: text('name').notNull().unique(),
+  email: text('email').notNull(),
+  passwordHash: text('password_hash').notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+})
