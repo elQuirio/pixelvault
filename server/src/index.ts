@@ -29,7 +29,7 @@ const app = Fastify({
   },
 });
 
-await app.register(cors, { origin: "http://localhost:5173", methods: "*" });
+await app.register(cors, { origin: "http://localhost:5173", methods: "*", credentials: true });
 
 await app.register(multipart, {
   limits: {
@@ -210,6 +210,16 @@ app.post('/auth/login', async (req, reply) => {
   return reply.setCookie('token', token, {httpOnly: true, sameSite: 'lax', secure: false, path: '/'}).code(200).send({message: 'ok'});
 
 })
+
+
+app.get('/auth/me', async (req, reply) => {
+  try {
+    await req.jwtVerify();
+    return reply.code(200).send({ id: (req.user as {id: number}).id})
+  } catch {
+    return reply.code(401).send({message: 'Not authenticated'});
+  }
+});
 
 
 //////////////////////////////////////////////////////////////////
