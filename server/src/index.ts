@@ -11,6 +11,8 @@ import { db } from "./db";
 import { photos, users } from "./schema";
 import { eq, asc, desc } from "drizzle-orm";
 import argon2 from 'argon2';
+import cookie from '@fastify/cookie';
+import jwt from '@fastify/jwt';
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
 const ORIGINAL_DIR = join(UPLOAD_DIR, "originals");
@@ -40,6 +42,11 @@ await app.register(staticPlugin, {
   root: UPLOAD_DIR,
   prefix: "/uploads/",
 });
+
+await app.register(cookie);
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) throw new Error('JWT_SECRET is missing')
+await app.register(jwt, {secret: JWT_SECRET, cookie: {cookieName: 'token', signed: false}} );
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -199,8 +206,8 @@ app.post('/auth/login', async (req, reply) => {
   if (!ok) {
     return reply.code(401).send({message: 'Invalid credentials'});
   }
-
-  return reply.code(200).send({message: 'ok'});
+  const token = app.jwt.sign({id: user.id});
+  return reply.setCookie('token', token, {httpOnly: true, sameSite: 'lax', secure: false, path: '/'}).code(200).send({message: 'ok'});
 
 })
 
