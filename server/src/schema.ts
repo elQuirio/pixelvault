@@ -13,6 +13,7 @@ export const photos = pgTable("photos", {
   ext: text("ext").notNull(),
   originalName: text("original_name"),
   size: integer("size"),
+  userId: integer('user_id').notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
