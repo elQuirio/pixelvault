@@ -9,10 +9,11 @@ import staticPlugin from "@fastify/static";
 import sharp from "sharp";
 import { db } from "./db";
 import { photos, users } from "./schema";
-import { eq, asc, desc } from "drizzle-orm";
+import { eq, asc, desc, and } from "drizzle-orm";
 import argon2 from 'argon2';
 import cookie from '@fastify/cookie';
 import jwt from '@fastify/jwt';
+import type { FastifyRequest, FastifyReply } from 'fastify';
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
 const ORIGINAL_DIR = join(UPLOAD_DIR, "originals");
@@ -28,6 +29,20 @@ const app = Fastify({
     },
   },
 });
+
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+  }
+}
+
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
+    payload: { id: number };
+    user: { id: number };
+  }
+}
 
 await app.register(cors, { origin: "http://localhost:5173", methods: "*", credentials: true });
 
@@ -48,6 +63,14 @@ const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) throw new Error('JWT_SECRET is missing')
 await app.register(jwt, {secret: JWT_SECRET, cookie: {cookieName: 'token', signed: false}} );
 
+app.decorate('authenticate', async (req, reply) => {
+  try {
+    await req.jwtVerify();
+  } catch {
+    return reply.code(401).send({message: 'Not authenticated'});
+  }
+} )
+
 /////////////////////////////////////////////////////////////////////////////
 
 app.get("/health", () => {
@@ -61,10 +84,11 @@ const sortMap = {
 
 type SortKey = keyof typeof sortMap;
 
-app.get("/photos", async (req) => {
+app.get("/photos", {preHandler: [app.authenticate]},  async (req) => {
+  const userId = req.user.id;
   const {sortBy} = req.query as {sortBy?: SortKey};
   const orderBy = (sortBy && sortBy in sortMap) ? sortMap[sortBy] : desc(photos.createdAt);
-  const rows = (await db.select().from(photos).orderBy(orderBy));
+  const rows = (await db.select().from(photos).where(eq(photos.userId, userId)).orderBy(orderBy));
   return {
     photos: rows.map((f) => ({
       id: f.fileUuid,
@@ -77,7 +101,8 @@ app.get("/photos", async (req) => {
   };
 });
 
-app.post("/upload", async (req) => {
+app.post("/upload", {preHandler: [app.authenticate]}, async (req) => {
+  const userId = req.user.id;
   const parts = req.files();
   const saved: {
     id: string;
@@ -102,7 +127,7 @@ app.post("/upload", async (req) => {
 
     await db
       .insert(photos)
-      .values({ fileUuid, ext, originalName, size: buffer.length });
+      .values({ fileUuid, ext, originalName, size: buffer.length, userId });
 
     saved.push({
       id: fileUuid,
@@ -116,19 +141,20 @@ app.post("/upload", async (req) => {
   return { uploaded: saved };
 });
 
-app.delete("/photos/:id", async (req, reply) => {
+app.delete("/photos/:id", {preHandler: [app.authenticate]}, async (req, reply) => {
   const { id } = req.params as { id: string };
+  const userId = req.user.id;
 
   if (!id) {
     return reply.code(400).send();
   }
 
-  const [photo] = await db.select().from(photos).where(eq(photos.fileUuid, id));
+  const [photo] = await db.select().from(photos).where(and(eq(photos.fileUuid, id), eq(photos.userId, userId)));
   if (!photo) {
     return reply.code(404).send({ message: "Resource not found" });
   }
   //db
-  await db.delete(photos).where(eq(photos.fileUuid, id));
+  await db.delete(photos).where(and(eq(photos.fileUuid, id), eq(photos.userId, userId)));
   //original
   await safeUnlink(join(ORIGINAL_DIR, `${id}.${photo.ext}`));
   //thumbnail
@@ -137,8 +163,9 @@ app.delete("/photos/:id", async (req, reply) => {
   return reply.code(204).send();
 });
 
-app.delete("/photos", async (req, reply) => {
+app.delete("/photos", {preHandler: [app.authenticate]}, async (req, reply) => {
   const { ids } = req.body as { ids: string[] };
+  const userId = req.user.id;
 
   if (!ids || ids.length === 0) {
     return reply.code(400).send();
@@ -148,9 +175,9 @@ app.delete("/photos", async (req, reply) => {
     const [photo] = await db
       .select()
       .from(photos)
-      .where(eq(photos.fileUuid, id));
+      .where(and(eq(photos.fileUuid, id), eq(photos.userId, userId)));
     if (!photo) continue;
-    await db.delete(photos).where(eq(photos.fileUuid, id));
+    await db.delete(photos).where(and(eq(photos.fileUuid, id), eq(photos.userId, userId)));
     await safeUnlink(join(ORIGINAL_DIR, `${id}.${photo.ext}`));
     await safeUnlink(join(THUMBNAIL_DIR, `${id}.webp`));
   }
@@ -215,7 +242,7 @@ app.post('/auth/login', async (req, reply) => {
 app.get('/auth/me', async (req, reply) => {
   try {
     await req.jwtVerify();
-    return reply.code(200).send({ id: (req.user as {id: number}).id})
+    return reply.code(200).send({ id: req.user.id});
   } catch {
     return reply.code(401).send({message: 'Not authenticated'});
   }

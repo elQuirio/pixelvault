@@ -29,6 +29,13 @@
       "when": 1782233635306,
       "tag": "0003_loud_shockwave",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1782407752534,
+      "tag": "0004_strong_catseye",
+      "breakpoints": true
     }
   ]
 }
