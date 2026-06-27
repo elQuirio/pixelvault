@@ -1,4 +1,5 @@
 import { API_BASE } from "../config/api";
+import type { Result } from "./result";
 
 type RegisterBodyType = {
     name: string, 
@@ -7,11 +8,15 @@ type RegisterBodyType = {
 };
 
 type LoginBodyType = {
-    name: string, 
+    name: string,
     password: string
 }
 
-export async function register(bodyContent: RegisterBodyType) {
+type RegisterError = 'name_taken' | 'invalid_input';
+
+type LoginError = 'wrong_credentials' | 'invalid_input';
+
+export async function register(bodyContent: RegisterBodyType): Promise<Result<void, RegisterError>> {
 
     const resp = await fetch(`${API_BASE}/auth/register`, {
         method: 'POST',
@@ -19,17 +24,21 @@ export async function register(bodyContent: RegisterBodyType) {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(bodyContent)
     })
-
-    if (!resp.ok) {
-        throw new Error(`Error: ${resp.status} ${resp.statusText}`)
+    if (resp.ok) {
+        return {ok: true, data: undefined};
     }
-
-    return resp;
+    if (resp.status === 400) {
+        return {ok: false, error: 'invalid_input'};
+    }
+    if (resp.status === 409) {
+        return {ok: false, error: 'name_taken'};
+    }
+    throw new Error(`Unexpected error: ${resp.status} ${resp.statusText}`);
 }
 
 
 
-export async function login(bodyContent: LoginBodyType) {
+export async function login(bodyContent: LoginBodyType): Promise<Result<void, LoginError>> {
     
     const resp = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
@@ -38,12 +47,17 @@ export async function login(bodyContent: LoginBodyType) {
         body: JSON.stringify(bodyContent)
     })
 
-    if (!resp.ok) {
-        throw new Error(`Error: ${resp.status} ${resp.statusText}`)
+    if (resp.ok) {
+        return {ok: true, data: undefined};
+    }
+    if (resp.status === 400) {
+        return {ok: false, error: 'invalid_input'};
+    }
+    if (resp.status === 401) {
+        return {ok: false, error: 'wrong_credentials'};
     }
 
-    return resp;
-
+    throw new Error(`Unexpected error: ${resp.status} ${resp.statusText}`)
 }
 
 
@@ -61,5 +75,4 @@ export async function me() {
     else {
         throw new Error(`Error: ${resp.status} ${resp.statusText}`);
     }
-
 }
