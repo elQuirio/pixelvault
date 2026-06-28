@@ -8,7 +8,9 @@ type UploadedFile = {
 };
 
 type UploadResponse = {
-  uploaded: UploadedFile[];
+  data: {
+    uploaded: UploadedFile[];
+  };
 };
 
 export type Photo = {
@@ -21,7 +23,9 @@ export type Photo = {
 };
 
 export type PhotosResponse = {
-  photos: Photo[];
+  data: {
+    photos: Photo[];
+  };
 };
 
 export async function uploadFiles(files: File[]) {
@@ -30,7 +34,7 @@ export async function uploadFiles(files: File[]) {
 
   const res = await fetch(`${API_BASE}/upload`, {
     method: "POST",
-    credentials: 'include',
+    credentials: "include",
     body: formData,
   });
 
@@ -44,7 +48,7 @@ export async function uploadFiles(files: File[]) {
 export async function getPhotos(sortBy: string) {
   const res = await fetch(`${API_BASE}/photos?sortBy=${sortBy}`, {
     method: "GET",
-    credentials: 'include',
+    credentials: "include",
   });
 
   if (!res.ok) {
@@ -57,7 +61,7 @@ export async function getPhotos(sortBy: string) {
 export async function deletePhoto(id: string) {
   const res = await fetch(`${API_BASE}/photos/${id}`, {
     method: "DELETE",
-    credentials: 'include',
+    credentials: "include",
   });
 
   if (!res.ok) {
@@ -69,8 +73,8 @@ export async function deletePhoto(id: string) {
 export async function deletePhotosBulk(ids: string[]) {
   const res = await fetch(`${API_BASE}/photos`, {
     method: "DELETE",
-    headers: {'Content-type': 'application/json'},
-    credentials: 'include',
+    headers: { "Content-type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({ ids: ids }),
   });
 
