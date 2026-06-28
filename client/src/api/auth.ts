@@ -16,7 +16,11 @@ type RegisterError = 'name_taken' | 'invalid_input';
 
 type LoginError = 'wrong_credentials' | 'invalid_input';
 
-export async function register(bodyContent: RegisterBodyType): Promise<Result<void, RegisterError>> {
+type RegisterBody = {id: number};
+
+type LoginBody = {id: number};
+
+export async function register(bodyContent: RegisterBodyType): Promise<Result<RegisterBody, RegisterError>> {
 
     const resp = await fetch(`${API_BASE}/auth/register`, {
         method: 'POST',
@@ -25,7 +29,8 @@ export async function register(bodyContent: RegisterBodyType): Promise<Result<vo
         body: JSON.stringify(bodyContent)
     })
     if (resp.ok) {
-        return {ok: true, data: undefined};
+        const body = await resp.json() as {data: {id: number}};
+        return {ok: true, data: body.data};
     }
     if (resp.status === 400) {
         return {ok: false, error: 'invalid_input'};
@@ -38,7 +43,7 @@ export async function register(bodyContent: RegisterBodyType): Promise<Result<vo
 
 
 
-export async function login(bodyContent: LoginBodyType): Promise<Result<void, LoginError>> {
+export async function login(bodyContent: LoginBodyType): Promise<Result<LoginBody, LoginError>> {
     
     const resp = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
@@ -48,7 +53,8 @@ export async function login(bodyContent: LoginBodyType): Promise<Result<void, Lo
     })
 
     if (resp.ok) {
-        return {ok: true, data: undefined};
+        const body = await resp.json() as {data: {id: number}};
+        return {ok: true, data: body.data};
     }
     if (resp.status === 400) {
         return {ok: false, error: 'invalid_input'};

@@ -12,7 +12,7 @@ export function Gallery() {
 
   useEffect(() => {
     getPhotos(sortBy).then((res) => {
-      setFiles(res.photos);
+      setFiles(res.data.photos);
     });
   }, [sortBy]);
 
@@ -21,8 +21,7 @@ export function Gallery() {
     try {
       await uploadFiles(newFiles);
       const res = await getPhotos(sortBy);
-      console.log("Uploaded:", res);
-      setFiles(res.photos);
+      setFiles(res.data.photos);
     } catch (err) {
       console.error("Upload failed:", err);
     } finally {

@@ -6,6 +6,7 @@ type User = { id: number };
 type AuthContextValue = { 
     user: User | null,
     loading: boolean,
+    setUser: (u: User|null) => void,
 };
 
 
@@ -26,7 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     return (
-        <AuthContext.Provider value={{user, loading}}>
+        <AuthContext.Provider value={{user, loading, setUser}}>
         {children}
         </AuthContext.Provider>
     )
