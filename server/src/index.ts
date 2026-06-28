@@ -234,9 +234,12 @@ app.post('/auth/login', async (req, reply) => {
   }
   const token = app.jwt.sign({id: user.id});
   return reply.setCookie('token', token, {httpOnly: true, sameSite: 'lax', secure: false, path: '/'}).code(200).send({data: {id: user.id}});
-
 })
 
+
+app.post('/auth/logout', async (_, reply) => {
+    return reply.clearCookie('token', {path: '/'}).code(200).send();
+});
 
 app.get('/auth/me', async (req, reply) => {
   try {
@@ -246,6 +249,8 @@ app.get('/auth/me', async (req, reply) => {
     return reply.code(401).send({message: 'Not authenticated'});
   }
 });
+
+
 
 
 //////////////////////////////////////////////////////////////////
