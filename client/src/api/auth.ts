@@ -20,6 +20,8 @@ type RegisterBody = {id: number};
 
 type LoginBody = {id: number};
 
+type MeBody = {id: number};
+
 export async function register(bodyContent: RegisterBodyType): Promise<Result<RegisterBody, RegisterError>> {
 
     const resp = await fetch(`${API_BASE}/auth/register`, {
@@ -67,18 +69,34 @@ export async function login(bodyContent: LoginBodyType): Promise<Result<LoginBod
 }
 
 
-export async function me() {
+export async function me(): Promise<null|MeBody> {
 
     const resp = await fetch(`${API_BASE}/auth/me`, {
         method: 'GET',
         credentials: 'include'
     })
 
-    if (resp.status === 200) return await resp.json() as {id: number};
+    if (resp.status === 200) {
+        const body = await resp.json() as {data: {id: number}};
+        return body.data;
+    }
+
 
     else if (resp.status === 401) return null;
 
     else {
+        throw new Error(`Error: ${resp.status} ${resp.statusText}`);
+    }
+}
+
+
+export async function logout(): Promise<void> {
+    const resp = await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+    });
+
+    if(!resp.ok) {
         throw new Error(`Error: ${resp.status} ${resp.statusText}`);
     }
 }
