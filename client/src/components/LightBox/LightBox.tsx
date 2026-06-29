@@ -9,6 +9,7 @@ type LightBoxTypes = {
   lightBoxIndex: number;
   setLightBoxIndex: (i: number) => void;
   handleDeletePhoto: (id: string) => void;
+  handleRestore?: (id: string) => void;
   onClose: () => void;
 };
 
@@ -18,6 +19,7 @@ export function LightBox({
   setLightBoxIndex,
   onClose,
   handleDeletePhoto,
+  handleRestore,
 }: LightBoxTypes) {
   const photo = photos[lightBoxIndex];
 
@@ -74,6 +76,7 @@ export function LightBox({
       >
         Delete
       </button>
+      {handleRestore && <button onClick={() => handleRestore(photo.id)}>Restore</button>}
     </div>
   );
 }
