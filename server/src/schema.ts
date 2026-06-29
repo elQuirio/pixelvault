@@ -15,6 +15,7 @@ export const photos = pgTable("photos", {
   size: integer("size"),
   userId: integer('user_id').notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
+  deletedAt: timestamp('deleted_at'),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => new Date()),
