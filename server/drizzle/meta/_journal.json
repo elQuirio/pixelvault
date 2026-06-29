@@ -36,6 +36,13 @@
       "when": 1782407752534,
       "tag": "0004_strong_catseye",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1782746483645,
+      "tag": "0005_windy_lifeguard",
+      "breakpoints": true
     }
   ]
 }
