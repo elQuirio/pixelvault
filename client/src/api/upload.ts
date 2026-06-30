@@ -45,6 +45,25 @@ export async function uploadFiles(files: File[]) {
   return res.json() as Promise<UploadResponse>;
 }
 
+
+export async function uploadOne(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(`${API_BASE}/upload`, {
+    method: "POST",
+    credentials: "include",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    throw new Error(`Upload failed: ${res.status} ${res.statusText}`);
+  }
+
+  return res.json() as Promise<UploadResponse>;
+}
+
+
 export async function getPhotos(sortBy: string) {
   const res = await fetch(`${API_BASE}/photos?sortBy=${sortBy}`, {
     method: "GET",

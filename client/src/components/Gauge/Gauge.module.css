@@ -1,0 +1,22 @@
+
+.baseCircle {
+    fill: none; 
+    stroke: grey; 
+    stroke-width: 10;
+}
+
+
+.fillingCircle {
+    fill: none; 
+    stroke: dodgerblue;
+    stroke-width: 10;
+    transform: rotate(-90deg);
+    transform-origin: 60px 60px;
+    transition: stroke-dashoffset 0.3s ease;
+}
+
+.innerText {
+    text-anchor: middle;
+    dominant-baseline: central;
+    fill:white
+}
