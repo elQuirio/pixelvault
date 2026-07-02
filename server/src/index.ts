@@ -9,7 +9,7 @@ import staticPlugin from "@fastify/static";
 import sharp from "sharp";
 import { db } from "./db";
 import { photos, users } from "./schema";
-import { eq, asc, desc, and, isNull, isNotNull } from "drizzle-orm";
+import { eq, asc, desc, and, isNull, isNotNull, sum } from "drizzle-orm";
 import argon2 from 'argon2';
 import cookie from '@fastify/cookie';
 import jwt from '@fastify/jwt';
@@ -348,6 +348,17 @@ app.get('/auth/me', async (req, reply) => {
 });
 
 
+
+
+///////////////////////////// UTILS //////////////////////////////
+
+app.get('/storage', {preHandler: [app.authenticate]}, async (req, reply) => {
+  const userId = req.user.id;
+
+  const [row] = await db.select({sizeTotal: sum(photos.size)}).from(photos).where(eq(photos.userId, userId));
+
+  return reply.code(200).send({data: {used: Number(row.sizeTotal ?? 0)}});
+});
 
 
 //////////////////////////////////////////////////////////////////
