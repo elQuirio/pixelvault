@@ -7,7 +7,11 @@ import { deletePhoto, deletePhotosBulk } from "../../api/upload.ts";
 import { uploadOne } from "../..//api/upload.ts";
 import { Gauge } from "../Gauge/Gauge.tsx";
 
-export function Gallery() {
+type GalleryProps = {
+  getSpaceUsed: () => void;
+}
+
+export function Gallery({getSpaceUsed}: GalleryProps) {
   const [files, setFiles] = useState<Photo[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [done, setDone] = useState(0);
@@ -36,6 +40,7 @@ export function Gallery() {
       await Promise.allSettled(promises);
       const res = await getPhotos(sortBy);
       setFiles(res.data.photos);
+      getSpaceUsed();
     } catch (err) {
       console.error("Upload failed:", err);
     } finally {

@@ -4,7 +4,11 @@ import { getTrash } from "../../api/upload.ts";
 import type { Photo } from "../..//api/upload.ts";
 import { permanentDelete, permanentDeleteBulk, restorePhoto, restorePhotoBulk } from "../../api/upload.ts";
 
-export function Trash() {
+type TrashProps = {
+  getSpaceUsed: () => void;
+}
+
+export function Trash({getSpaceUsed}: TrashProps) {
   const [files, setFiles] = useState<Photo[]>([]);
   const [sortBy, setSortBy] = useState("creationDateDesc");
 
@@ -17,11 +21,13 @@ export function Trash() {
   async function handlePermanentDelete(id: string) {
     await permanentDelete(id);
     setFiles(files.filter((f) => f.id !== id));
+    getSpaceUsed();
   }
 
   async function handlePermanentDeleteBulk(ids: string[]) {
     await permanentDeleteBulk(ids);
     setFiles(files.filter((f) => !ids.includes(f.id)));
+    getSpaceUsed();
   }
 
   async function handleRestore(id: string) {
