@@ -43,6 +43,13 @@
       "when": 1782746483645,
       "tag": "0005_windy_lifeguard",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783103953687,
+      "tag": "0006_light_riptide",
+      "breakpoints": true
     }
   ]
 }

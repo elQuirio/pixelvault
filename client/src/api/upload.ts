@@ -20,6 +20,7 @@ export type Photo = {
   originalName: string;
   size: number;
   createdAt: string;
+  metadata: Record<string, unknown | null>;
 };
 
 export type PhotosResponse = {

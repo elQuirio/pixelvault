@@ -64,6 +64,7 @@ export function LightBox({
           second: "2-digit",
         })}
       </p>
+      <p>{JSON.stringify(photo.metadata)}</p>
       <img
         className={styles.image}
         src={`${API_BASE}${photo.url}`}
