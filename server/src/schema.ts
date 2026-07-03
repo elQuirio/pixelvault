@@ -5,6 +5,7 @@ import {
   integer,
   serial,
   timestamp,
+  jsonb
 } from "drizzle-orm/pg-core";
 
 export const photos = pgTable("photos", {
@@ -14,6 +15,7 @@ export const photos = pgTable("photos", {
   originalName: text("original_name"),
   size: integer("size"),
   userId: integer('user_id').notNull().references(() => users.id),
+  metadata: jsonb('metadata'),
   createdAt: timestamp("created_at").defaultNow(),
   deletedAt: timestamp('deleted_at'),
   updatedAt: timestamp("updated_at")

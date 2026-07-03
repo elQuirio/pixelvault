@@ -13,7 +13,7 @@ import { eq, asc, desc, and, isNull, isNotNull, sum } from "drizzle-orm";
 import argon2 from 'argon2';
 import cookie from '@fastify/cookie';
 import jwt from '@fastify/jwt';
-import type { FastifyRequest, FastifyReply } from 'fastify';
+import exifr from 'exifr';
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
 const ORIGINAL_DIR = join(UPLOAD_DIR, "originals");
@@ -97,6 +97,7 @@ app.get("/photos", {preHandler: [app.authenticate]},  async (req) => {
       originalName: f.originalName,
       size: f.size,
       createdAt: f.createdAt,
+      metadata: f.metadata,
     })),
   }};
 });
@@ -114,6 +115,7 @@ app.get("/photos/trash", {preHandler: [app.authenticate]},  async (req) => {
       originalName: f.originalName,
       size: f.size,
       createdAt: f.createdAt,
+      metadata: f.metadata,
     })),
   }};
 });
@@ -135,25 +137,30 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req) => {
     const ext = part.filename.split(".").pop() ?? "bin";
     const filepath = join(ORIGINAL_DIR, `${fileUuid}.${ext}`);
     const originalName = part.filename;
+    try {
+      const buffer = await part.toBuffer();
+      const metadata = await exifr.parse(buffer, {gps: true}) ?? null;
+      await writeFile(filepath, buffer);
+      await sharp(buffer)
+        .resize(200, 200, { fit: "cover" })
+        .webp({ quality: 80 })
+        .toFile(join(THUMBNAIL_DIR, `${fileUuid}.webp`));
 
-    const buffer = await part.toBuffer();
-    await writeFile(filepath, buffer);
-    await sharp(buffer)
-      .resize(200, 200, { fit: "cover" })
-      .webp({ quality: 80 })
-      .toFile(join(THUMBNAIL_DIR, `${fileUuid}.webp`));
+      await db
+        .insert(photos)
+        .values({ fileUuid, ext, originalName, size: buffer.length, userId, metadata });
 
-    await db
-      .insert(photos)
-      .values({ fileUuid, ext, originalName, size: buffer.length, userId });
-
-    saved.push({
-      id: fileUuid,
-      originalName,
-      size: buffer.length,
-      url: `/uploads/originals/${fileUuid}.${ext}`,
-      thumbnail: `/uploads/thumbnails/${fileUuid}.webp`,
-    });
+      saved.push({
+        id: fileUuid,
+        originalName,
+        size: buffer.length,
+        url: `/uploads/originals/${fileUuid}.${ext}`,
+        thumbnail: `/uploads/thumbnails/${fileUuid}.webp`,
+      });
+    } catch (err) {
+      req.log.error({ err, file: part.filename }, 'skipping failed file');
+      continue;
+    }
   }
 
   return { data: {uploaded: saved }};
