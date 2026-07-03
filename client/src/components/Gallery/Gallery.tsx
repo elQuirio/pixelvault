@@ -17,6 +17,9 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
   const [done, setDone] = useState(0);
   const [total, setTotal] = useState(0);
   const [sortBy, setSortBy] = useState("creationDateDesc");
+  const [search, setSearch] = useState('');
+
+  const filtered = files.filter((f) => f.originalName?.toLowerCase().includes(search.toLowerCase()));
 
   useEffect(() => {
     getPhotos(sortBy).then((res) => {
@@ -63,8 +66,9 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
       <UploadArea onFilesSelected={handleUploadFiles} />
       {isUploading && <p className="status">Uploading...{done}/{total}</p>}
       {isUploading && <Gauge done={done} total={total}/>}
+      <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}/>
       <PhotoGrid
-        files={files}
+        files={filtered}
         handleDeletePhoto={handleDeletePhoto}
         handleDeleteBulkClick={handleDeleteBulkClick}
         sortBy={sortBy}
