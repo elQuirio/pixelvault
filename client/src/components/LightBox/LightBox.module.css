@@ -10,11 +10,23 @@
 }
 
 .image {
-  max-width: 90vw;
-  max-height: 90vh;
+  max-width: 86vw;
+  max-height: 86vh;
   object-fit: contain;
 }
 
 .deleteButton {
+  margin: 15px;
+}
 
+
+.detailsContainer {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 12px;
+  padding: 12px;
+  margin: 10px;
+  width: 60%;
 }

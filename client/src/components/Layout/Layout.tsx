@@ -1,23 +1,18 @@
-import { useAuth } from "../../context/AuthContext";
-import { logout } from "../../api/auth";
+
 import styles from "./Layout.module.css";
 import { useState } from "react";
 import { Gallery } from "../Gallery/Gallery";
 import { Trash } from "../Trash/Trash";
-import { useEffect } from "react";
 import { formatSize } from "../../helpers/helpers";
 import { getStorage } from "../../api/upload";
+import { SidePanel } from "../SidePanel/SidePanel";
+
+export type ViewType = "gallery" | "trash";
 
 export function Layout() {
-  const [view, setView] = useState<"gallery" | "trash">("gallery");
-  const [isOpen, setIsOpen] = useState(false);
-  const [spaceUsed, setSpaceUsed] = useState('');
-  const { setUser } = useAuth();
+  const [spaceUsed, setSpaceUsed] = useState("");
+  const [view, setView] = useState<ViewType>("gallery");
 
-  async function handleLogout() {
-    await logout();
-    setUser(null);
-  };
 
   async function getSpaceUsed() {
     const resp = await getStorage();
@@ -25,24 +20,11 @@ export function Layout() {
     setSpaceUsed(spaceString);
   }
 
-  useEffect(() => {
-    getSpaceUsed();
-  }, [])
-
-
 
   return (
-    <div className={styles.LayoutContainer}>
-      <button onClick={() => setIsOpen((prev) => !prev)}>☰</button>
-      {isOpen && (
-        <aside>
-          <button onClick={handleLogout}>Logout</button>
-          <button onClick={() => setView("gallery")}>Gallery</button>
-          <button onClick={() => setView("trash")}>Bin</button>
-          <div>{spaceUsed}</div>
-        </aside>
-      )}
-      <main>{view === 'gallery' ? <Gallery getSpaceUsed={getSpaceUsed}/> : <Trash getSpaceUsed={getSpaceUsed}/> }</main>
+    <div className={styles.layoutContainer}>
+      <SidePanel setView={setView} spaceUsed={spaceUsed} getSpaceUsed={getSpaceUsed}/>
+      <main className={styles.mainContainer}>{view === 'gallery' ? <Gallery getSpaceUsed={getSpaceUsed}/> : <Trash getSpaceUsed={getSpaceUsed}/> }</main>
     </div>
   );
 }

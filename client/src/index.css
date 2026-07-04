@@ -30,3 +30,17 @@ h1 {
   flex-direction: column;
   gap: 2rem;
 }
+
+
+:root {
+  --bg: #0a0a0a;
+  --surface: #18181b;
+  --surface-hover: #27272a;
+  --border: #2e2e35;
+  --text: #fafafa;
+  --muted: #a1a1aa;
+  --accent: #a855f7;
+  --accent-hover: #9333ea;
+  --accent-soft: rgba(168, 85, 247, 0.15);
+  --radius: 12px;
+}

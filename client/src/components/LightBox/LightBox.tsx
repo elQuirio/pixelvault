@@ -48,23 +48,25 @@ export function LightBox({
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <p>{photo.originalName}</p>
-      <p>{formatSize(photo.size)}</p>
-      <p>
-        {new Date(photo.createdAt).toLocaleDateString("it-IT", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        })}
-        ,{" "}
-        {new Date(photo.createdAt).toLocaleTimeString("it-IT", {
-          hour12: false,
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        })}
-      </p>
-      <p>{JSON.stringify(photo.metadata)}</p>
+      <div className={styles.detailsContainer}>
+        <p>Photo name: {photo.originalName}</p>
+        <p>Weight: {formatSize(photo.size)} - {!! photo.metadata?.ExifImageHeight && `Resolution: ${String(photo.metadata.ExifImageWidth)} x ${String(photo.metadata?.ExifImageHeight)}`}</p>
+        <p>Created at: {new Date(photo.createdAt).toLocaleDateString("it-IT", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })}
+          ,{" "}
+          {new Date(photo.createdAt).toLocaleTimeString("it-IT", {
+            hour12: false,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          })}
+        </p>
+
+        {!! photo.metadata?.Make && <p>{String(photo.metadata.Make)} {String(photo.metadata?.Model)}</p>}
+      </div>
       <img
         className={styles.image}
         src={`${API_BASE}${photo.url}`}
@@ -77,7 +79,9 @@ export function LightBox({
       >
         Delete
       </button>
-      {handleRestore && <button onClick={() => handleRestore(photo.id)}>Restore</button>}
+      {handleRestore && (
+        <button onClick={() => handleRestore(photo.id)}>Restore</button>
+      )}
     </div>
   );
 }
