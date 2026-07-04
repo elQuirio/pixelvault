@@ -6,6 +6,7 @@ import type { Photo } from "../..//api/upload.ts";
 import { deletePhoto, deletePhotosBulk } from "../../api/upload.ts";
 import { uploadOne } from "../..//api/upload.ts";
 import { Gauge } from "../Gauge/Gauge.tsx";
+import styles from './Gallery.module.css';
 
 type GalleryProps = {
   getSpaceUsed: () => void;
@@ -66,7 +67,7 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
       <UploadArea onFilesSelected={handleUploadFiles} />
       {isUploading && <p className="status">Uploading...{done}/{total}</p>}
       {isUploading && <Gauge done={done} total={total}/>}
-      <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}/>
+      <div className={styles.searchBarWrapper}><input className={styles.searchBarInput} type="text" value={search} placeholder= 'Search...' onChange={(e) => setSearch(e.target.value)}/></div>
       <PhotoGrid
         files={filtered}
         handleDeletePhoto={handleDeletePhoto}

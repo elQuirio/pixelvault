@@ -44,10 +44,10 @@ export function PhotoGrid({ files, handleDeletePhoto, handleDeleteBulkClick, sor
 
   return (
     <div>
-      <button className="" onClick={toggleSelectMode}>
-        toggle select mode
+      <button className={`${styles.selectModeBtn} ${isSelectMode ? styles.active : ''}`} onClick={toggleSelectMode}>
+        Select...
       </button>
-      <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}> 
+      <select className={styles.select} value={sortBy} onChange={(e) => setSortBy(e.target.value)}> 
         {sortMap.map((s) => <option key={s.sortkey} value={s.sortkey}>{s.label}</option>)}
       </select>
       {isSelectMode && (<>
@@ -56,10 +56,11 @@ export function PhotoGrid({ files, handleDeletePhoto, handleDeleteBulkClick, sor
                       </>)}
       <div className={styles.gridContainer}>
         {files.map((u, i) => (
-          <div key={u.id}>
+          <div key={u.id} className={styles.thumbnailContainer}>
             {isSelectMode && (
               <input
                 type="checkbox"
+                className={styles.selectionCheckbox}
                 checked={selectedIds.includes(u.id)}
                 onChange={() => handleCheckboxOnChange(u.id)}
               />
@@ -69,7 +70,11 @@ export function PhotoGrid({ files, handleDeletePhoto, handleDeleteBulkClick, sor
               src={`${API_BASE}${u.thumbnail}`}
               alt={files[i].id}
               onClick={() => {
-                setLightBoxIndex(i);
+                if (isSelectMode) {
+                  handleCheckboxOnChange(u.id)
+                } else {
+                  setLightBoxIndex(i);
+                }
               }}
             />
           </div>
