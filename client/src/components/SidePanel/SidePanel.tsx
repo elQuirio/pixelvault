@@ -3,6 +3,7 @@ import { logout } from "../../api/auth";
 import { useEffect, useState } from "react";
 import type { ViewType } from "../Layout/Layout";
 import styles from "./SidePanel.module.css";
+import { Trash2, CirclePower, Image } from "lucide-react";
 
 type SidePanelProps = {
   setView: (viewType: ViewType) => void;
@@ -35,12 +36,12 @@ export function SidePanel({
         <button onClick={() => {
             setView("gallery");
             setIsOpen((prev) => !prev);
-            }}>Gallery</button>
+            }}><Image/><div>Gallery</div></button>
         <button onClick={() => {
             setView("trash");
             setIsOpen((prev) => !prev);
-            }}>Bin</button>
-        <button className={styles.logoutButton} onClick={handleLogout}>Logout</button>
+            }}><Trash2/><div>Bin</div></button>
+        <button className={styles.logoutButton} onClick={handleLogout}><CirclePower/><div>Logout</div></button>
       </div>
 
 

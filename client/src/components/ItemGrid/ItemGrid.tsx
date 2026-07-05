@@ -3,6 +3,7 @@ import type { Item } from "../../api/upload";
 import { useState } from "react";
 import { LightBox } from "../LightBox/LightBox";
 import { API_BASE } from "../../config/api";
+import { TypeIcon } from "../TypeIcon/TypeIcon";
 
 
 type ItemGridProps = {
@@ -32,6 +33,14 @@ export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortB
       setSelectedIds((prev) => [...prev, id]);
     }
   };
+
+  const handleOnClick = (u: Item, i: number) => {
+    if (isSelectMode) {
+      handleCheckboxOnChange(u.id)
+    } else {
+      setLightBoxIndex(i);
+    }
+  }
 
   const sortMap = [
     { sortkey: 'creationDateDesc',
@@ -65,18 +74,8 @@ export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortB
                 onChange={() => handleCheckboxOnChange(u.id)}
               />
             )}
-            <img
-              className={styles.thumbnail}
-              src={`${API_BASE}${u.thumbnail}`}
-              alt={files[i].id}
-              onClick={() => {
-                if (isSelectMode) {
-                  handleCheckboxOnChange(u.id)
-                } else {
-                  setLightBoxIndex(i);
-                }
-              }}
-            />
+            {u.thumbnail ? <img className={styles.thumbnail} src={`${API_BASE}${u.thumbnail}`} alt={files[i].id}
+              onClick={() => handleOnClick(u, i)}/> : <TypeIcon itemType={u.itemType} onClick={() => handleOnClick(u, i)}/>}
           </div>
         ))}
         {lightBoxIndex !== null && (
