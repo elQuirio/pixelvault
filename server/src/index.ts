@@ -8,7 +8,7 @@ import { randomUUID } from "node:crypto";
 import staticPlugin from "@fastify/static";
 import sharp from "sharp";
 import { db } from "./db";
-import { photos, users } from "./schema";
+import { items, users } from "./schema";
 import { eq, asc, desc, and, isNull, isNotNull, sum } from "drizzle-orm";
 import argon2 from 'argon2';
 import cookie from '@fastify/cookie';
@@ -78,8 +78,8 @@ app.get("/health", () => {
 });
 
 const sortMap = {
-  'creationDateDesc': desc(photos.createdAt),
-  'creationDateAsc': asc(photos.createdAt),
+  'creationDateDesc': desc(items.createdAt),
+  'creationDateAsc': asc(items.createdAt),
 };
 
 type SortKey = keyof typeof sortMap;
@@ -87,8 +87,8 @@ type SortKey = keyof typeof sortMap;
 app.get("/photos", {preHandler: [app.authenticate]},  async (req) => {
   const userId = req.user.id;
   const {sortBy} = req.query as {sortBy?: SortKey};
-  const orderBy = (sortBy && sortBy in sortMap) ? sortMap[sortBy] : desc(photos.createdAt);
-  const rows = (await db.select().from(photos).where(and(eq(photos.userId, userId), isNull(photos.deletedAt))).orderBy(orderBy));
+  const orderBy = (sortBy && sortBy in sortMap) ? sortMap[sortBy] : desc(items.createdAt);
+  const rows = (await db.select().from(items).where(and(eq(items.userId, userId), isNull(items.deletedAt))).orderBy(orderBy));
   return {data: { 
     photos: rows.map((f) => ({
       id: f.fileUuid,
@@ -105,8 +105,8 @@ app.get("/photos", {preHandler: [app.authenticate]},  async (req) => {
 app.get("/photos/trash", {preHandler: [app.authenticate]},  async (req) => {
   const userId = req.user.id;
   const {sortBy} = req.query as {sortBy?: SortKey};
-  const orderBy = (sortBy && sortBy in sortMap) ? sortMap[sortBy] : desc(photos.createdAt);
-  const rows = (await db.select().from(photos).where(and(eq(photos.userId, userId), isNotNull(photos.deletedAt))).orderBy(orderBy));
+  const orderBy = (sortBy && sortBy in sortMap) ? sortMap[sortBy] : desc(items.createdAt);
+  const rows = (await db.select().from(items).where(and(eq(items.userId, userId), isNotNull(items.deletedAt))).orderBy(orderBy));
   return {data: { 
     photos: rows.map((f) => ({
       id: f.fileUuid,
@@ -147,7 +147,7 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req) => {
         .toFile(join(THUMBNAIL_DIR, `${fileUuid}.webp`));
 
       await db
-        .insert(photos)
+        .insert(items)
         .values({ fileUuid, ext, originalName, size: buffer.length, userId, metadata });
 
       saved.push({
@@ -174,12 +174,12 @@ app.delete("/photos/:id", {preHandler: [app.authenticate]}, async (req, reply) =
     return reply.code(400).send();
   }
 
-  const [photo] = await db.select().from(photos).where(and(eq(photos.fileUuid, id), eq(photos.userId, userId)));
+  const [photo] = await db.select().from(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId)));
   if (!photo) {
     return reply.code(404).send({ message: "Resource not found" });
   }
   //db
-  await db.update(photos).set({deletedAt: new Date()}).where(and(eq(photos.fileUuid, id), eq(photos.userId, userId)));
+  await db.update(items).set({deletedAt: new Date()}).where(and(eq(items.fileUuid, id), eq(items.userId, userId)));
 
   return reply.code(204).send();
 });
@@ -195,10 +195,10 @@ app.delete("/photos", {preHandler: [app.authenticate]}, async (req, reply) => {
   for (const id of ids) {
     const [photo] = await db
       .select()
-      .from(photos)
-      .where(and(eq(photos.fileUuid, id), eq(photos.userId, userId)));
+      .from(items)
+      .where(and(eq(items.fileUuid, id), eq(items.userId, userId)));
     if (!photo) continue;
-    await db.update(photos).set({deletedAt: new Date()}).where(and(eq(photos.fileUuid, id), eq(photos.userId, userId)));
+    await db.update(items).set({deletedAt: new Date()}).where(and(eq(items.fileUuid, id), eq(items.userId, userId)));
   }
   return reply.code(204).send();
 });
@@ -219,7 +219,7 @@ app.post('/photos/:id/restore', {preHandler: [app.authenticate]}, async (req, re
     return reply.code(400).send();
   }
   const userId = req.user.id;
-  const restored = await db.update(photos).set({deletedAt: null}).where(and(eq(photos.fileUuid, id), eq(photos.userId, userId), isNotNull(photos.deletedAt) )).returning({id: photos.fileUuid});
+  const restored = await db.update(items).set({deletedAt: null}).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt) )).returning({id: items.fileUuid});
 
   if (restored.length === 0) {
     return reply.code(404).send({message: 'Resource not found'});
@@ -240,10 +240,10 @@ app.post('/photos/restore', {preHandler: [app.authenticate]}, async (req, reply)
   for (const id of ids) {
     const [photo] = await db
       .select()
-      .from(photos)
-      .where(and(eq(photos.fileUuid, id), eq(photos.userId, userId), isNotNull(photos.deletedAt)));
+      .from(items)
+      .where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
     if (!photo) continue;
-    await db.update(photos).set({deletedAt: null}).where(and(eq(photos.fileUuid, id), eq(photos.userId, userId), isNotNull(photos.deletedAt)));
+    await db.update(items).set({deletedAt: null}).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
   }
   return reply.code(200).send();
 
@@ -260,12 +260,12 @@ app.delete('/photos/:id/permanent', {preHandler: [app.authenticate]}, async (req
 
   const userId = req.user.id;
   
-  const [photo] = await db.select().from(photos).where(and(eq(photos.fileUuid, id), eq(photos.userId, userId), isNotNull(photos.deletedAt)));
+  const [photo] = await db.select().from(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
   if (!photo) {
     return reply.code(404).send({ message: "Resource not found" });
   }
   //db
-  await db.delete(photos).where(and(eq(photos.fileUuid, id), eq(photos.userId, userId), isNotNull(photos.deletedAt)));
+  await db.delete(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
   //original
   await safeUnlink(join(ORIGINAL_DIR, `${id}.${photo.ext}`));
   //thumbnail
@@ -287,10 +287,10 @@ app.delete('/photos/permanent', {preHandler: [app.authenticate]}, async (req, re
   for (const id of ids) {
     const [photo] = await db
       .select()
-      .from(photos)
-      .where(and(eq(photos.fileUuid, id), eq(photos.userId, userId), isNotNull(photos.deletedAt)));
+      .from(items)
+      .where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
     if (!photo) continue;
-    await db.delete(photos).where(and(eq(photos.fileUuid, id), eq(photos.userId, userId), isNotNull(photos.deletedAt)));
+    await db.delete(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
     await safeUnlink(join(ORIGINAL_DIR, `${id}.${photo.ext}`));
     await safeUnlink(join(THUMBNAIL_DIR, `${id}.webp`));
   }
@@ -362,7 +362,7 @@ app.get('/auth/me', async (req, reply) => {
 app.get('/storage', {preHandler: [app.authenticate]}, async (req, reply) => {
   const userId = req.user.id;
 
-  const [row] = await db.select({sizeTotal: sum(photos.size)}).from(photos).where(eq(photos.userId, userId));
+  const [row] = await db.select({sizeTotal: sum(items.size)}).from(items).where(eq(items.userId, userId));
 
   return reply.code(200).send({data: {used: Number(row.sizeTotal ?? 0)}});
 });

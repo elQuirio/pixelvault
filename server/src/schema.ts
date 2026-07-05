@@ -5,14 +5,18 @@ import {
   integer,
   serial,
   timestamp,
-  jsonb
+  jsonb,
+  AnyPgColumn
 } from "drizzle-orm/pg-core";
 
-export const photos = pgTable("photos", {
+export const items = pgTable("items", {
   id: serial("id").primaryKey(),
   fileUuid: uuid("file_uuid").defaultRandom().notNull().unique(),
-  ext: text("ext").notNull(),
+  parentId: integer('parent_id').references((): AnyPgColumn => items.id),
+  itemType: text('item_type').notNull().default('image'),
+  ext: text("ext"),
   originalName: text("original_name"),
+  visibleName: text('visible_name'),
   size: integer("size"),
   userId: integer('user_id').notNull().references(() => users.id),
   metadata: jsonb('metadata'),
