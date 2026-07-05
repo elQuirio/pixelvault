@@ -19,8 +19,10 @@ export type Item = {
   thumbnail: string | null;
   originalName: string;
   size: number;
+  itemType: string;
   createdAt: string;
   metadata: Record<string, unknown | null>;
+
 };
 
 export type ItemsResponse = {

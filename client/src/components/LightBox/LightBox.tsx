@@ -43,7 +43,7 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, hand
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.detailsContainer} onClick={(e) => e.stopPropagation()}>
         <p>Item name: {item.originalName}</p>
-        <p>Weight: {formatSize(item.size)} - {!! item.metadata?.ExifImageHeight && `Resolution: ${String(item.metadata.ExifImageWidth)} x ${String(item.metadata?.ExifImageHeight)}`}</p>
+        <p>Weight: {formatSize(item.size)}{!! item.metadata?.ExifImageHeight && ` - Resolution: ${String(item.metadata.ExifImageWidth)} x ${String(item.metadata?.ExifImageHeight)}`}</p>
         <p>Created at: {new Date(item.createdAt).toLocaleDateString("it-IT", {
             day: "numeric",
             month: "long",
