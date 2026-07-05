@@ -13,14 +13,7 @@ type LightBoxTypes = {
   onClose: () => void;
 };
 
-export function LightBox({
-  photos,
-  lightBoxIndex,
-  setLightBoxIndex,
-  onClose,
-  handleDeletePhoto,
-  handleRestore,
-}: LightBoxTypes) {
+export function LightBox({ photos, lightBoxIndex, setLightBoxIndex, onClose, handleDeletePhoto, handleRestore }: LightBoxTypes) {
   const photo = photos[lightBoxIndex];
 
   useEffect(() => {
@@ -48,7 +41,7 @@ export function LightBox({
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.detailsContainer}>
+      <div className={styles.detailsContainer} onClick={(e) => e.stopPropagation()}>
         <p>Photo name: {photo.originalName}</p>
         <p>Weight: {formatSize(photo.size)} - {!! photo.metadata?.ExifImageHeight && `Resolution: ${String(photo.metadata.ExifImageWidth)} x ${String(photo.metadata?.ExifImageHeight)}`}</p>
         <p>Created at: {new Date(photo.createdAt).toLocaleDateString("it-IT", {
@@ -67,21 +60,11 @@ export function LightBox({
 
         {!! photo.metadata?.Make && <p>{String(photo.metadata.Make)} {String(photo.metadata?.Model)}</p>}
       </div>
-      <img
-        className={styles.image}
-        src={`${API_BASE}${photo.url}`}
-        alt={photo.id}
-        onClick={(e) => e.stopPropagation()}
-      />
-      <button
-        className={styles.deleteButton}
-        onClick={() => handleDeletePhoto(photo.id)}
-      >
-        Delete
-      </button>
-      {handleRestore && (
-        <button onClick={() => handleRestore(photo.id)}>Restore</button>
-      )}
+      <img className={styles.image} src={`${API_BASE}${photo.url}`} alt={photo.id} onClick={(e) => e.stopPropagation()} />
+      <div>
+          <button className={styles.deleteButton} onClick={() => handleDeletePhoto(photo.id)} >Delete</button>
+          {handleRestore && (<button onClick={() => handleRestore(photo.id)}>Restore</button>)}
+      </div>
     </div>
   );
 }

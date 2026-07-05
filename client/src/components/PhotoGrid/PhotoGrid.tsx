@@ -51,8 +51,8 @@ export function PhotoGrid({ files, handleDeletePhoto, handleDeleteBulkClick, sor
         {sortMap.map((s) => <option key={s.sortkey} value={s.sortkey}>{s.label}</option>)}
       </select>
       {isSelectMode && (<>
-          <button className="" onClick={() => handleDeleteBulkClick(selectedIds)}>Delete</button>
-          {handleBulkRestore && <button className="" onClick={() => handleBulkRestore(selectedIds)}>Restore</button>}
+          <button onClick={() => handleDeleteBulkClick(selectedIds)}>Delete</button>
+          {handleBulkRestore && <button onClick={() => handleBulkRestore(selectedIds)}>Restore</button>}
                       </>)}
       <div className={styles.gridContainer}>
         {files.map((u, i) => (

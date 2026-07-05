@@ -1,5 +1,5 @@
 
-import { useAuth } from './context/AuthContext.tsx';
+import { useAuth } from './context/useAuth.tsx';
 import { AuthScreen } from "./components/auth/AuthScreen";
 import { Layout } from './components/Layout/Layout.tsx';
 

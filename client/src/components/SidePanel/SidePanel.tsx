@@ -1,4 +1,4 @@
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import { logout } from "../../api/auth";
 import { useEffect, useState } from "react";
 import type { ViewType } from "../Layout/Layout";
@@ -27,8 +27,10 @@ export function SidePanel({
     getSpaceUsed();
   }, []);
 
-  const openContent = (
-    <div className={styles.content}>
+  return (
+    <aside className={`${styles.wrapper} ${isOpen ? styles.open : ''}`}>
+      <button className={styles.hamburger} onClick={() => setIsOpen((prev) => !prev)}>☰</button>
+      <div className={`${styles.content} ${isOpen ? styles.open : ''}`}>
         <div>Space used: {spaceUsed}</div>
         <button onClick={() => {
             setView("gallery");
@@ -39,13 +41,9 @@ export function SidePanel({
             setIsOpen((prev) => !prev);
             }}>Bin</button>
         <button className={styles.logoutButton} onClick={handleLogout}>Logout</button>
-    </div>
-  );
+      </div>
 
-  return (
-    <aside className={`${styles.wrapper} ${isOpen ? styles.open : ''}`}>
-      <button className={styles.hamburger} onClick={() => setIsOpen((prev) => !prev)}>☰</button>
-      {isOpen && openContent}
+
     </aside>
   );
 }
