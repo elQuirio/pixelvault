@@ -1,20 +1,20 @@
 import { useState, useEffect } from "react";
-import { PhotoGrid } from "../PhotoGrid/PhotoGrid.tsx";
+import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
 import { getTrash } from "../../api/upload.ts";
-import type { Photo } from "../..//api/upload.ts";
-import { permanentDelete, permanentDeleteBulk, restorePhoto, restorePhotoBulk } from "../../api/upload.ts";
+import type { Item } from "../..//api/upload.ts";
+import { permanentDelete, permanentDeleteBulk, restoreItem, restoreItemsBulk } from "../../api/upload.ts";
 
 type TrashProps = {
   getSpaceUsed: () => void;
 }
 
 export function Trash({getSpaceUsed}: TrashProps) {
-  const [files, setFiles] = useState<Photo[]>([]);
+  const [files, setFiles] = useState<Item[]>([]);
   const [sortBy, setSortBy] = useState("creationDateDesc");
 
   useEffect(() => {
     getTrash(sortBy).then((res) => {
-      setFiles(res.data.photos);
+      setFiles(res.data.items);
     });
   }, [sortBy]);
 
@@ -31,20 +31,20 @@ export function Trash({getSpaceUsed}: TrashProps) {
   }
 
   async function handleRestore(id: string) {
-    await restorePhoto(id);
+    await restoreItem(id);
     setFiles(files.filter((f) => f.id !== id));
   }
 
   async function handleBulkRestore(ids: string[]) {
-    await restorePhotoBulk(ids);
+    await restoreItemsBulk(ids);
     setFiles(files.filter((f) => !ids.includes(f.id)));
   }
 
   return (
     <>
-      <PhotoGrid
+      <ItemGrid
         files={files}
-        handleDeletePhoto={handlePermanentDelete}
+        handleDeleteItem={handlePermanentDelete}
         handleDeleteBulkClick={handlePermanentDeleteBulk}
         handleRestore={handleRestore}
         handleBulkRestore={handleBulkRestore}

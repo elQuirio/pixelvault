@@ -1,13 +1,13 @@
-import styles from "./PhotoGrid.module.css";
-import type { Photo } from "../../api/upload";
+import styles from "./ItemGrid.module.css";
+import type { Item } from "../../api/upload";
 import { useState } from "react";
 import { LightBox } from "../LightBox/LightBox";
 import { API_BASE } from "../../config/api";
 
 
-type PhotoGridProps = {
-  files: Photo[];
-  handleDeletePhoto: (id: string) => void;
+type ItemGridProps = {
+  files: Item[];
+  handleDeleteItem: (id: string) => void;
   handleDeleteBulkClick: (ids: string[]) => void;
   handleRestore?: (id: string) => void;
   handleBulkRestore?: (ids: string[]) => void;
@@ -15,7 +15,7 @@ type PhotoGridProps = {
   setSortBy: (sortBy: string) => void; 
 };
 
-export function PhotoGrid({ files, handleDeletePhoto, handleDeleteBulkClick, sortBy, setSortBy, handleRestore, handleBulkRestore}: PhotoGridProps) {
+export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortBy, setSortBy, handleRestore, handleBulkRestore}: ItemGridProps) {
   const [lightBoxIndex, setLightBoxIndex] = useState<number | null>(null);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -81,11 +81,11 @@ export function PhotoGrid({ files, handleDeletePhoto, handleDeleteBulkClick, sor
         ))}
         {lightBoxIndex !== null && (
           <LightBox
-            photos={files}
+            items={files}
             lightBoxIndex={lightBoxIndex}
             setLightBoxIndex={setLightBoxIndex}
             onClose={() => setLightBoxIndex(null)}
-            handleDeletePhoto={handleDeletePhoto}
+            handleDeleteItem={handleDeleteItem}
             handleRestore={handleRestore}
           />
         )}
