@@ -126,10 +126,11 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req) => {
   const parts = req.files();
   const saved: {
     id: string;
+    itemType: string;
     originalName: string;
     size: number;
     url: string;
-    thumbnail: string;
+    thumbnail: string | null;
   }[] = [];
 
   for await (const part of parts) {
@@ -137,25 +138,32 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req) => {
     const ext = part.filename.split(".").pop() ?? "bin";
     const filepath = join(ORIGINAL_DIR, `${fileUuid}.${ext}`);
     const originalName = part.filename;
+    const isPhoto = part.mimetype.startsWith('image/');
+    const itemType = isPhoto ? 'image' : 'file';
     try {
       const buffer = await part.toBuffer();
-      const metadata = await exifr.parse(buffer, {gps: true}) ?? null;
       await writeFile(filepath, buffer);
-      await sharp(buffer)
-        .resize(200, 200, { fit: "cover" })
-        .webp({ quality: 80 })
-        .toFile(join(THUMBNAIL_DIR, `${fileUuid}.webp`));
+      let metadata = null;
+
+      if (isPhoto) {
+        metadata = await exifr.parse(buffer, {gps: true}) ?? null;
+        await sharp(buffer)
+          .resize(200, 200, { fit: "cover" })
+          .webp({ quality: 80 })
+          .toFile(join(THUMBNAIL_DIR, `${fileUuid}.webp`));
+      }
 
       await db
         .insert(items)
-        .values({ fileUuid, ext, originalName, size: buffer.length, userId, metadata });
+        .values({ fileUuid, ext, originalName, visibleName: originalName, size: buffer.length, userId, metadata, itemType });
 
       saved.push({
         id: fileUuid,
+        itemType,
         originalName,
         size: buffer.length,
         url: `/uploads/originals/${fileUuid}.${ext}`,
-        thumbnail: `/uploads/thumbnails/${fileUuid}.webp`,
+        thumbnail: isPhoto ? `/uploads/thumbnails/${fileUuid}.webp` : null,
       });
     } catch (err) {
       req.log.error({ err, file: part.filename }, 'skipping failed file');
