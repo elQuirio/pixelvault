@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { login } from "../../api/auth";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import styles from './LoginForm.module.css';
 import { useErrorToast } from "../../hooks/useErrorToast";
 
@@ -37,16 +37,21 @@ export function LoginForm({ setIsRegistration }: LoginFormProps) {
 
     
   return (
-    <form onSubmit={handleSubmit}>
-      <p>Login</p>
+    <form className={styles.formContainer} onSubmit={handleSubmit}>
+      <div className={styles.loginFormLabel}>Login</div>
       {error &&<p className={styles.errorToast}>{error}</p>}
-      <label htmlFor="login-username">Username</label>
-      <input id="login-username" type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
-      <label htmlFor="login-password">Password</label>
-      <input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}/>
-      <button type='submit' >Confirm</button>
-
-      <button type='button' onClick={() => setIsRegistration(true)}>Register</button>
+      <div className={styles.inputWrapper}>
+        <label htmlFor="login-username">Username</label>
+        <input id="login-username" type="text" className={styles.input} value={username} onChange={(e) => setUsername(e.target.value)} />
+      </div>
+      <div className={styles.inputWrapper}>
+        <label htmlFor="login-password">Password</label>
+        <input id="login-password" type="password" className={styles.input} value={password} onChange={(e) => setPassword(e.target.value)}/>
+      </div>
+      <div>
+        <button className={styles.formButton} type='submit' >Confirm</button>
+        <button className={styles.formButton} type='button' onClick={() => setIsRegistration(true)}>Register</button>
+      </div>
     </form>
   );
 }

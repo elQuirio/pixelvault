@@ -1,5 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { me } from "../api/auth";
+import { createContext } from "react";
 
 type User = { id: number };
 
@@ -11,30 +10,4 @@ type AuthContextValue = {
 
 
 
-const AuthContext = createContext<AuthContextValue | null> (null);
-
-export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        async function load() {
-            const user = await me();
-            setUser(user);
-            setLoading(false);
-        };
-        load();
-    }, []);
-
-    return (
-        <AuthContext.Provider value={{user, loading, setUser}}>
-        {children}
-        </AuthContext.Provider>
-    )
-}
-
-export function useAuth() {
-    const ctx = useContext(AuthContext);
-    if(!ctx) throw new Error('UseAuth must be inside AuthProvider');
-    return ctx;
-}
+export const AuthContext = createContext<AuthContextValue | null> (null);

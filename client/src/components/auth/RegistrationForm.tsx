@@ -35,18 +35,25 @@ export function RegistrationForm({ setIsRegistration }: RegistrationFormProps) {
 
 
   return (
-    <form onSubmit={handleSubmit}>
-      <p>Registration</p>
+    <form className={styles.formContainer} onSubmit={handleSubmit}>
+      <div className={styles.registrationFormLabel}>Registration</div>
       {error && <p className={styles.errorToast}>{error}</p>}
-      <label htmlFor="registration-username">Username</label>
-      <input id="registration-username" type="text" value={username} onChange={(e) => setUsername(e.target.value)}/>
-      <label htmlFor="registration-email">Email</label>
-      <input id="registration-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}/>
-      <label htmlFor="registration-password">Password</label>
-      <input id="registration-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}/>
-      <button type='submit'>Confirm</button>
-
-      <button type='button' onClick={() => setIsRegistration(false)}>Login</button>
+      <div className={styles.inputWrapper}>
+        <label htmlFor="registration-username">Username</label>
+        <input id="registration-username" type="text" className={styles.input} value={username} onChange={(e) => setUsername(e.target.value)}/>
+      </div>
+      <div className={styles.inputWrapper}>
+        <label htmlFor="registration-email">Email</label>
+        <input id="registration-email" type="email" className={styles.input} value={email} onChange={(e) => setEmail(e.target.value)}/>
+      </div>
+      <div className={styles.inputWrapper}>
+        <label htmlFor="registration-password">Password</label>
+        <input id="registration-password" type="password" className={styles.input} value={password} onChange={(e) => setPassword(e.target.value)}/>
+      </div>
+      <div>
+        <button className={styles.formButton} type='submit'>Confirm</button>
+        <button className={styles.formButton} type='button' onClick={() => setIsRegistration(false)}>Login</button>
+      </div>
     </form>
   );
 }

@@ -9,6 +9,7 @@
     background: black;
     overflow: hidden;
     transition: width 0.3s ease;
+    z-index: 101;
 }
 
 .wrapper .hamburger {
@@ -34,6 +35,13 @@
     flex-direction: column;
     gap: 30px;
     margin-top: 50px;
+    text-wrap:  nowrap;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.content.open {
+    opacity: 1;
 }
 
 .content button {

@@ -1,0 +1,8 @@
+
+.authScreenContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding-top: 30vh;
+}

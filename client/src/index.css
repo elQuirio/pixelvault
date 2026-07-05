@@ -4,6 +4,19 @@
   padding: 0;
 }
 
+:root {
+  --bg: #0a0a0a;
+  --surface: #18181b;
+  --surface-hover: #27272a;
+  --border: #2e2e35;
+  --text: #fafafa;
+  --muted: #a1a1aa;
+  --accent: #a855f7;
+  --accent-hover: #9333ea;
+  --accent-soft: rgba(168, 85, 247, 0.15);
+  --radius: 12px;
+}
+
 body {
   font-family:
     system-ui,
@@ -32,15 +45,44 @@ h1 {
 }
 
 
-:root {
-  --bg: #0a0a0a;
-  --surface: #18181b;
-  --surface-hover: #27272a;
-  --border: #2e2e35;
-  --text: #fafafa;
-  --muted: #a1a1aa;
-  --accent: #a855f7;
-  --accent-hover: #9333ea;
-  --accent-soft: rgba(168, 85, 247, 0.15);
-  --radius: 12px;
+input {
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input::placeholder { 
+    color: var(--muted); 
+}
+
+input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+
+button {
+  margin: 0 10px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+button:hover { 
+  background: var(--surface-hover); 
+}
+
+
+button.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
