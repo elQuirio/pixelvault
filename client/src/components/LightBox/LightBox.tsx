@@ -1,20 +1,20 @@
-import type { Photo } from "../../api/upload";
+import type { Item } from "../../api/upload";
 import styles from "./LightBox.module.css";
 import { useEffect } from "react";
 import { API_BASE } from "../../config/api";
 import { formatSize } from "../../helpers/helpers";
 
 type LightBoxTypes = {
-  photos: Photo[];
+  items: Item[];
   lightBoxIndex: number;
   setLightBoxIndex: (i: number) => void;
-  handleDeletePhoto: (id: string) => void;
+  handleDeleteItem: (id: string) => void;
   handleRestore?: (id: string) => void;
   onClose: () => void;
 };
 
-export function LightBox({ photos, lightBoxIndex, setLightBoxIndex, onClose, handleDeletePhoto, handleRestore }: LightBoxTypes) {
-  const photo = photos[lightBoxIndex];
+export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, handleDeleteItem, handleRestore }: LightBoxTypes) {
+  const item = items[lightBoxIndex];
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -27,7 +27,7 @@ export function LightBox({ photos, lightBoxIndex, setLightBoxIndex, onClose, han
           setLightBoxIndex(lightBoxIndex - 1);
         }
       } else if (e.key === "ArrowRight") {
-        if (lightBoxIndex === photos.length - 1) {
+        if (lightBoxIndex === items.length - 1) {
           onClose();
         } else {
           setLightBoxIndex(lightBoxIndex + 1);
@@ -42,15 +42,15 @@ export function LightBox({ photos, lightBoxIndex, setLightBoxIndex, onClose, han
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.detailsContainer} onClick={(e) => e.stopPropagation()}>
-        <p>Photo name: {photo.originalName}</p>
-        <p>Weight: {formatSize(photo.size)} - {!! photo.metadata?.ExifImageHeight && `Resolution: ${String(photo.metadata.ExifImageWidth)} x ${String(photo.metadata?.ExifImageHeight)}`}</p>
-        <p>Created at: {new Date(photo.createdAt).toLocaleDateString("it-IT", {
+        <p>Item name: {item.originalName}</p>
+        <p>Weight: {formatSize(item.size)} - {!! item.metadata?.ExifImageHeight && `Resolution: ${String(item.metadata.ExifImageWidth)} x ${String(item.metadata?.ExifImageHeight)}`}</p>
+        <p>Created at: {new Date(item.createdAt).toLocaleDateString("it-IT", {
             day: "numeric",
             month: "long",
             year: "numeric",
           })}
           ,{" "}
-          {new Date(photo.createdAt).toLocaleTimeString("it-IT", {
+          {new Date(item.createdAt).toLocaleTimeString("it-IT", {
             hour12: false,
             hour: "2-digit",
             minute: "2-digit",
@@ -58,12 +58,12 @@ export function LightBox({ photos, lightBoxIndex, setLightBoxIndex, onClose, han
           })}
         </p>
 
-        {!! photo.metadata?.Make && <p>{String(photo.metadata.Make)} {String(photo.metadata?.Model)}</p>}
+        {!! item.metadata?.Make && <p>{String(item.metadata.Make)} {String(item.metadata?.Model)}</p>}
       </div>
-      <img className={styles.image} src={`${API_BASE}${photo.url}`} alt={photo.id} onClick={(e) => e.stopPropagation()} />
+      <img className={styles.image} src={`${API_BASE}${item.url}`} alt={item.id} onClick={(e) => e.stopPropagation()} />
       <div>
-          <button className={styles.deleteButton} onClick={() => handleDeletePhoto(photo.id)} >Delete</button>
-          {handleRestore && (<button onClick={() => handleRestore(photo.id)}>Restore</button>)}
+          <button className={styles.deleteButton} onClick={() => handleDeleteItem(item.id)} >Delete</button>
+          {handleRestore && (<button onClick={() => handleRestore(item.id)}>Restore</button>)}
       </div>
     </div>
   );

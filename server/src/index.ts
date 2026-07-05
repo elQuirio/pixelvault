@@ -84,16 +84,16 @@ const sortMap = {
 
 type SortKey = keyof typeof sortMap;
 
-app.get("/photos", {preHandler: [app.authenticate]},  async (req) => {
+app.get("/items", {preHandler: [app.authenticate]},  async (req) => {
   const userId = req.user.id;
   const {sortBy} = req.query as {sortBy?: SortKey};
   const orderBy = (sortBy && sortBy in sortMap) ? sortMap[sortBy] : desc(items.createdAt);
   const rows = (await db.select().from(items).where(and(eq(items.userId, userId), isNull(items.deletedAt))).orderBy(orderBy));
-  return {data: { 
-    photos: rows.map((f) => ({
+  return {data: {
+    items: rows.map((f) => ({
       id: f.fileUuid,
       url: `/uploads/originals/${f.fileUuid}.${f.ext}`,
-      thumbnail: `/uploads/thumbnails/${f.fileUuid}.webp`,
+      thumbnail: f.itemType === 'image' ? `/uploads/thumbnails/${f.fileUuid}.webp` : null,
       originalName: f.originalName,
       size: f.size,
       createdAt: f.createdAt,
@@ -102,16 +102,16 @@ app.get("/photos", {preHandler: [app.authenticate]},  async (req) => {
   }};
 });
 
-app.get("/photos/trash", {preHandler: [app.authenticate]},  async (req) => {
+app.get("/items/trash", {preHandler: [app.authenticate]},  async (req) => {
   const userId = req.user.id;
   const {sortBy} = req.query as {sortBy?: SortKey};
   const orderBy = (sortBy && sortBy in sortMap) ? sortMap[sortBy] : desc(items.createdAt);
   const rows = (await db.select().from(items).where(and(eq(items.userId, userId), isNotNull(items.deletedAt))).orderBy(orderBy));
   return {data: { 
-    photos: rows.map((f) => ({
+    items: rows.map((f) => ({
       id: f.fileUuid,
       url: `/uploads/originals/${f.fileUuid}.${f.ext}`,
-      thumbnail: `/uploads/thumbnails/${f.fileUuid}.webp`,
+      thumbnail: f.itemType === 'image' ? `/uploads/thumbnails/${f.fileUuid}.webp` : null,
       originalName: f.originalName,
       size: f.size,
       createdAt: f.createdAt,
@@ -174,7 +174,7 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req) => {
   return { data: {uploaded: saved }};
 });
 
-app.delete("/photos/:id", {preHandler: [app.authenticate]}, async (req, reply) => {
+app.delete("/items/:id", {preHandler: [app.authenticate]}, async (req, reply) => {
   const { id } = req.params as { id: string };
   const userId = req.user.id;
 
@@ -182,8 +182,8 @@ app.delete("/photos/:id", {preHandler: [app.authenticate]}, async (req, reply) =
     return reply.code(400).send();
   }
 
-  const [photo] = await db.select().from(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId)));
-  if (!photo) {
+  const [item] = await db.select().from(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId)));
+  if (!item) {
     return reply.code(404).send({ message: "Resource not found" });
   }
   //db
@@ -192,7 +192,7 @@ app.delete("/photos/:id", {preHandler: [app.authenticate]}, async (req, reply) =
   return reply.code(204).send();
 });
 
-app.delete("/photos", {preHandler: [app.authenticate]}, async (req, reply) => {
+app.delete("/items", {preHandler: [app.authenticate]}, async (req, reply) => {
   const { ids } = req.body as { ids: string[] };
   const userId = req.user.id;
 
@@ -201,11 +201,11 @@ app.delete("/photos", {preHandler: [app.authenticate]}, async (req, reply) => {
   }
 
   for (const id of ids) {
-    const [photo] = await db
+    const [item] = await db
       .select()
       .from(items)
       .where(and(eq(items.fileUuid, id), eq(items.userId, userId)));
-    if (!photo) continue;
+    if (!item) continue;
     await db.update(items).set({deletedAt: new Date()}).where(and(eq(items.fileUuid, id), eq(items.userId, userId)));
   }
   return reply.code(204).send();
@@ -220,7 +220,7 @@ async function safeUnlink(path: string) {
   }
 }
 
-app.post('/photos/:id/restore', {preHandler: [app.authenticate]}, async (req, reply)=> {
+app.post('/items/:id/restore', {preHandler: [app.authenticate]}, async (req, reply)=> {
   const { id } = req.params as {id: string};
 
   if (!id) {
@@ -237,7 +237,7 @@ app.post('/photos/:id/restore', {preHandler: [app.authenticate]}, async (req, re
 });
 
 // restore bulk
-app.post('/photos/restore', {preHandler: [app.authenticate]}, async (req, reply)=> {
+app.post('/items/restore', {preHandler: [app.authenticate]}, async (req, reply)=> {
   const { ids } = req.body as { ids: string[] };
   const userId = req.user.id;
 
@@ -246,11 +246,11 @@ app.post('/photos/restore', {preHandler: [app.authenticate]}, async (req, reply)
   }
 
   for (const id of ids) {
-    const [photo] = await db
+    const [item] = await db
       .select()
       .from(items)
       .where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
-    if (!photo) continue;
+    if (!item) continue;
     await db.update(items).set({deletedAt: null}).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
   }
   return reply.code(200).send();
@@ -259,7 +259,7 @@ app.post('/photos/restore', {preHandler: [app.authenticate]}, async (req, reply)
 
 
 // perament single
-app.delete('/photos/:id/permanent', {preHandler: [app.authenticate]}, async (req, reply) => {
+app.delete('/items/:id/permanent', {preHandler: [app.authenticate]}, async (req, reply) => {
   const {id} = req.params as {id: string};
 
   if (!id) {
@@ -268,14 +268,14 @@ app.delete('/photos/:id/permanent', {preHandler: [app.authenticate]}, async (req
 
   const userId = req.user.id;
   
-  const [photo] = await db.select().from(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
-  if (!photo) {
+  const [item] = await db.select().from(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
+  if (!item) {
     return reply.code(404).send({ message: "Resource not found" });
   }
   //db
   await db.delete(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
   //original
-  await safeUnlink(join(ORIGINAL_DIR, `${id}.${photo.ext}`));
+  await safeUnlink(join(ORIGINAL_DIR, `${id}.${item.ext}`));
   //thumbnail
   await safeUnlink(join(THUMBNAIL_DIR, `${id}.webp`));
 
@@ -284,7 +284,7 @@ app.delete('/photos/:id/permanent', {preHandler: [app.authenticate]}, async (req
 
 
 // perament bulk
-app.delete('/photos/permanent', {preHandler: [app.authenticate]}, async (req, reply) => {
+app.delete('/items/permanent', {preHandler: [app.authenticate]}, async (req, reply) => {
   const { ids } = req.body as { ids: string[] };
   const userId = req.user.id;
 
@@ -293,13 +293,13 @@ app.delete('/photos/permanent', {preHandler: [app.authenticate]}, async (req, re
   }
 
   for (const id of ids) {
-    const [photo] = await db
+    const [item] = await db
       .select()
       .from(items)
       .where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
-    if (!photo) continue;
+    if (!item) continue;
     await db.delete(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
-    await safeUnlink(join(ORIGINAL_DIR, `${id}.${photo.ext}`));
+    await safeUnlink(join(ORIGINAL_DIR, `${id}.${item.ext}`));
     await safeUnlink(join(THUMBNAIL_DIR, `${id}.webp`));
   }
   return reply.code(204).send();

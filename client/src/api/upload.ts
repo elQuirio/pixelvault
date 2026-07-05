@@ -13,19 +13,19 @@ type UploadResponse = {
   };
 };
 
-export type Photo = {
+export type Item = {
   id: string;
   url: string;
-  thumbnail: string;
+  thumbnail: string | null;
   originalName: string;
   size: number;
   createdAt: string;
   metadata: Record<string, unknown | null>;
 };
 
-export type PhotosResponse = {
+export type ItemsResponse = {
   data: {
-    photos: Photo[];
+    items: Item[];
   };
 };
 
@@ -65,35 +65,35 @@ export async function uploadOne(file: File) {
 }
 
 
-export async function getPhotos(sortBy: string) {
-  const res = await fetch(`${API_BASE}/photos?sortBy=${sortBy}`, {
+export async function getItems(sortBy: string) {
+  const res = await fetch(`${API_BASE}/items?sortBy=${sortBy}`, {
     method: "GET",
     credentials: "include",
   });
 
   if (!res.ok) {
-    throw new Error(`Error fetching files: ${res.status} ${res.statusText}`);
+    throw new Error(`Error fetching items: ${res.status} ${res.statusText}`);
   }
 
-  return res.json() as Promise<PhotosResponse>;
+  return res.json() as Promise<ItemsResponse>;
 }
 
 export async function getTrash(sortBy: string) {
-  const res = await fetch(`${API_BASE}/photos/trash?sortBy=${sortBy}`, {
+  const res = await fetch(`${API_BASE}/items/trash?sortBy=${sortBy}`, {
     method: "GET",
     credentials: "include",
   });
 
   if (!res.ok) {
-    throw new Error(`Error fetching files: ${res.status} ${res.statusText}`);
+    throw new Error(`Error fetching items: ${res.status} ${res.statusText}`);
   }
 
-  return res.json() as Promise<PhotosResponse>;
+  return res.json() as Promise<ItemsResponse>;
 }
 
 
-export async function deletePhoto(id: string) {
-  const res = await fetch(`${API_BASE}/photos/${id}`, {
+export async function deleteItem(id: string) {
+  const res = await fetch(`${API_BASE}/items/${id}`, {
     method: "DELETE",
     credentials: "include",
   });
@@ -104,8 +104,8 @@ export async function deletePhoto(id: string) {
   return;
 }
 
-export async function deletePhotosBulk(ids: string[]) {
-  const res = await fetch(`${API_BASE}/photos`, {
+export async function deleteItemsBulk(ids: string[]) {
+  const res = await fetch(`${API_BASE}/items`, {
     method: "DELETE",
     headers: { "Content-type": "application/json" },
     credentials: "include",
@@ -119,8 +119,8 @@ export async function deletePhotosBulk(ids: string[]) {
   return;
 }
 
-export async function restorePhoto(id: string) {
-  const resp = await fetch(`${API_BASE}/photos/${id}/restore`,{
+export async function restoreItem(id: string) {
+  const resp = await fetch(`${API_BASE}/items/${id}/restore`,{
     method: 'POST',
     credentials: 'include',
   });
@@ -130,8 +130,8 @@ export async function restorePhoto(id: string) {
   return;
 }
 
-export async function restorePhotoBulk(ids: string[]) {
-  const resp = await fetch(`${API_BASE}/photos/restore`,{
+export async function restoreItemsBulk(ids: string[]) {
+  const resp = await fetch(`${API_BASE}/items/restore`,{
     method: 'POST',
     headers: { "Content-type": "application/json" },
     credentials: 'include',
@@ -145,7 +145,7 @@ export async function restorePhotoBulk(ids: string[]) {
 }
 
 export async function permanentDelete(id: string) {
-  const resp = await fetch(`${API_BASE}/photos/${id}/permanent`,{
+  const resp = await fetch(`${API_BASE}/items/${id}/permanent`,{
     method: 'DELETE',
     credentials: 'include',
   });
@@ -158,7 +158,7 @@ export async function permanentDelete(id: string) {
 
 
 export async function permanentDeleteBulk(ids: string[]) {
-  const resp = await fetch(`${API_BASE}/photos/permanent`,{
+  const resp = await fetch(`${API_BASE}/items/permanent`,{
     method: 'DELETE',
     headers: { "Content-type": "application/json" },
     credentials: 'include',
