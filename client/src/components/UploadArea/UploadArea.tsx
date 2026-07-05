@@ -17,17 +17,13 @@ export function UploadArea({
   function handleOnDrop(e: React.DragEvent<HTMLLabelElement>): void {
     e.preventDefault();
     setIsDragging(false);
-    const files = Array.from(e.dataTransfer.files).filter((f) =>
-      f.type.startsWith("image/"),
-    );
+    const files = Array.from(e.dataTransfer.files);
     onFilesSelected(files);
   }
 
   function handleOnChange(e: React.ChangeEvent<HTMLInputElement>): void {
     if (!e.target.files) return;
-    const files = Array.from(e.target.files).filter((f) =>
-      f.type.startsWith("image/"),
-    );
+    const files = Array.from(e.target.files);
     onFilesSelected(files);
   }
 
@@ -44,7 +40,7 @@ export function UploadArea({
         type="file"
         onChange={handleOnChange}
         multiple={multiple ?? true}
-        accept={accept ?? "image/*"}
+        accept={accept ?? "*"}
         hidden
       ></input>
     </label>
