@@ -14,6 +14,8 @@ import argon2 from 'argon2';
 import cookie from '@fastify/cookie';
 import jwt from '@fastify/jwt';
 import exifr from 'exifr';
+import { fileTypeFromBuffer } from "file-type";
+import convert from 'heic-convert';
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
 const ORIGINAL_DIR = join(UPLOAD_DIR, "originals");
@@ -137,23 +139,37 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req) => {
 
   for await (const part of parts) {
     const fileUuid = randomUUID();
-    const ext = part.filename.split(".").pop() ?? "bin";
-    const filepath = join(ORIGINAL_DIR, `${fileUuid}.${ext}`);
     const originalName = part.filename;
-    const isPhoto = part.mimetype.startsWith('image/');
-    const itemType = isPhoto ? 'image' : 'file';
     try {
-      const buffer = await part.toBuffer();
-      await writeFile(filepath, buffer);
+      let buffer = await part.toBuffer();
+      let originalBuffer = buffer;
+      const buffFileType = await fileTypeFromBuffer(buffer);
+      const isHeic = buffFileType?.mime === 'image/heic' || buffFileType?.mime ==='image/heif';
+      const isPhoto = isHeic || buffFileType?.mime.startsWith('image/');
+      const itemType = isPhoto ? 'image' : 'file';
+      const ext = isHeic ? 'jpg' : (buffFileType?.ext ?? 'bin');
+  
+      const filepath = join(ORIGINAL_DIR, `${fileUuid}.${ext}`);
+
+      if (isHeic) {
+        buffer = Buffer.from(await convert({
+          buffer: buffer,
+          format: 'JPEG',
+          quality: 0.9,
+        }));
+      }
+      
       let metadata = null;
 
       if (isPhoto) {
-        metadata = await exifr.parse(buffer, {gps: true}) ?? null;
+        metadata = await exifr.parse(isHeic ? originalBuffer : buffer, {gps: true}) ?? null;
         await sharp(buffer)
           .resize(200, 200, { fit: "cover" })
           .webp({ quality: 80 })
           .toFile(join(THUMBNAIL_DIR, `${fileUuid}.webp`));
       }
+
+      await writeFile(filepath, buffer);
 
       await db
         .insert(items)
@@ -175,6 +191,7 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req) => {
 
   return { data: {uploaded: saved }};
 });
+
 
 app.delete("/items/:id", {preHandler: [app.authenticate]}, async (req, reply) => {
   const { id } = req.params as { id: string };
