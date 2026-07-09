@@ -222,6 +222,14 @@ app.delete("/items/:id", {preHandler: [app.authenticate]}, async (req, reply) =>
   if (!item) {
     return reply.code(404).send({ message: "Resource not found" });
   }
+
+  if (item.itemType === 'folder') {
+    const children = await db.select({id: items.id}).from(items).where(and(eq(items.parentId, item.id), eq(items.userId, userId), isNull(items.deletedAt)));
+    if (children.length > 0) {
+      return reply.code(409).send({ message: "Folder not empty"});
+    }
+  }
+
   //db
   await db.update(items).set({deletedAt: new Date()}).where(and(eq(items.fileUuid, id), eq(items.userId, userId)));
 
@@ -342,24 +350,26 @@ app.delete('/items/permanent', {preHandler: [app.authenticate]}, async (req, rep
 
 })
 
-//////////////////////////// FOLDERS ////////////////////////////////
 
-app.get('/folders/:parentId', {preHandler: [app.authenticate]}, async (req, reply) => {
-  const {parentId: parentIdString} = req.params as {parentId: string};
+app.post('/items', {preHandler: [app.authenticate]}, async (req, reply) => {
+  const { visibleName, parentId: parentIdString } = req.body as { visibleName: string, parentId?: string};
   const userId = req.user.id;
+  let parentFolder;
 
-  const [parentIds] = await db.select().from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, parentIdString)));
-
-  if (!parentIds) {
-    return reply.code(404).send({message: 'Resource not found'});
+  if (!visibleName) {
+    return reply.code(400).send({message: 'Missing mandatory data'});
   }
 
-  const [content] = await db.select().from(items).where(and(eq(items.userId, userId), eq(items.parentId, parentIds.id)));
-  
-  return reply.code(200).send({data: {content: content }});
+  if (parentIdString) {
+    [parentFolder] = await db.select({id: items.id}).from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, parentIdString), eq(items.itemType, 'folder')));
+    if (!parentFolder) {
+      return reply.code(404).send({message: 'Resource not found'});
+    }
+  }
+
+  const [insertData] = await db.insert(items).values({parentId: parentFolder?.id ?? null, itemType: 'folder', visibleName, userId }).returning();
+  return reply.code(201).send({data: {item: {id: insertData.fileUuid, itemType: insertData.itemType, visibleName: insertData.visibleName, createdAt: insertData.createdAt }}});
 });
-
-
 
 
 //////////////////////////// AUTH ////////////////////////////////
