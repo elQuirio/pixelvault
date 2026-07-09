@@ -9,7 +9,7 @@ import staticPlugin from "@fastify/static";
 import sharp from "sharp";
 import { db } from "./db";
 import { items, users } from "./schema";
-import { eq, asc, desc, and, isNull, isNotNull, sum } from "drizzle-orm";
+import { eq, asc, desc, and, isNull, isNotNull, sum, SQLWrapper } from "drizzle-orm";
 import argon2 from 'argon2';
 import cookie from '@fastify/cookie';
 import jwt from '@fastify/jwt';
@@ -86,11 +86,27 @@ const sortMap = {
 
 type SortKey = keyof typeof sortMap;
 
-app.get("/items", {preHandler: [app.authenticate]},  async (req) => {
+
+app.get("/items", {preHandler: [app.authenticate]},  async (req, reply) => {
   const userId = req.user.id;
-  const {sortBy} = req.query as {sortBy?: SortKey};
-  const orderBy = (sortBy && sortBy in sortMap) ? sortMap[sortBy] : desc(items.createdAt);
-  const rows = (await db.select().from(items).where(and(eq(items.userId, userId), isNull(items.deletedAt))).orderBy(orderBy));
+  const {sortBy, parentId: parentIdString} = req.query as {sortBy?: SortKey, parentId?: string};
+  let parentFolder: {id: number};
+  let queryFilter: SQLWrapper;
+
+  if (parentIdString) {
+    [parentFolder] = await db.select({id: items.id}).from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, parentIdString)));
+    if (!parentFolder) {
+      return reply.code(404).send({message: 'Resource not found'});
+    } 
+    queryFilter = eq(items.parentId, parentFolder.id);
+  } else {
+    queryFilter = isNull(items.parentId);
+  }
+
+  const orderBy = (sortBy && sortBy in sortMap) ? sortMap[sortBy] : desc(items.createdAt); 
+
+  const rows = (await db.select().from(items).where(and(eq(items.userId, userId), isNull(items.deletedAt), queryFilter)).orderBy(orderBy));
+
   return {data: {
     items: rows.map((f) => ({
       id: f.fileUuid,
@@ -104,6 +120,7 @@ app.get("/items", {preHandler: [app.authenticate]},  async (req) => {
     })),
   }};
 });
+
 
 app.get("/items/trash", {preHandler: [app.authenticate]},  async (req) => {
   const userId = req.user.id;
@@ -205,6 +222,14 @@ app.delete("/items/:id", {preHandler: [app.authenticate]}, async (req, reply) =>
   if (!item) {
     return reply.code(404).send({ message: "Resource not found" });
   }
+
+  if (item.itemType === 'folder') {
+    const children = await db.select({id: items.id}).from(items).where(and(eq(items.parentId, item.id), eq(items.userId, userId), isNull(items.deletedAt)));
+    if (children.length > 0) {
+      return reply.code(409).send({ message: "Folder not empty"});
+    }
+  }
+
   //db
   await db.update(items).set({deletedAt: new Date()}).where(and(eq(items.fileUuid, id), eq(items.userId, userId)));
 
@@ -324,6 +349,28 @@ app.delete('/items/permanent', {preHandler: [app.authenticate]}, async (req, rep
   return reply.code(204).send();
 
 })
+
+
+app.post('/items', {preHandler: [app.authenticate]}, async (req, reply) => {
+  const { visibleName, parentId: parentIdString } = req.body as { visibleName: string, parentId?: string};
+  const userId = req.user.id;
+  let parentFolder;
+
+  if (!visibleName) {
+    return reply.code(400).send({message: 'Missing mandatory data'});
+  }
+
+  if (parentIdString) {
+    [parentFolder] = await db.select({id: items.id}).from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, parentIdString), eq(items.itemType, 'folder')));
+    if (!parentFolder) {
+      return reply.code(404).send({message: 'Resource not found'});
+    }
+  }
+
+  const [insertData] = await db.insert(items).values({parentId: parentFolder?.id ?? null, itemType: 'folder', visibleName, userId }).returning();
+  return reply.code(201).send({data: {item: {id: insertData.fileUuid, itemType: insertData.itemType, visibleName: insertData.visibleName, createdAt: insertData.createdAt }}});
+});
+
 
 //////////////////////////// AUTH ////////////////////////////////
 
