@@ -302,7 +302,7 @@ app.post('/items/restore', {preHandler: [app.authenticate]}, async (req, reply)=
 })
 
 
-// perament single
+// permanent single
 app.delete('/items/:id/permanent', {preHandler: [app.authenticate]}, async (req, reply) => {
   const {id} = req.params as {id: string};
 
@@ -327,7 +327,7 @@ app.delete('/items/:id/permanent', {preHandler: [app.authenticate]}, async (req,
 });
 
 
-// perament bulk
+// permanent bulk
 app.delete('/items/permanent', {preHandler: [app.authenticate]}, async (req, reply) => {
   const { ids } = req.body as { ids: string[] };
   const userId = req.user.id;
@@ -370,6 +370,25 @@ app.post('/items', {preHandler: [app.authenticate]}, async (req, reply) => {
   const [insertData] = await db.insert(items).values({parentId: parentFolder?.id ?? null, itemType: 'folder', visibleName, userId }).returning();
   return reply.code(201).send({data: {item: {id: insertData.fileUuid, itemType: insertData.itemType, visibleName: insertData.visibleName, createdAt: insertData.createdAt }}});
 });
+
+
+app.patch('/items/:id', {preHandler: [app.authenticate]}, async (req, reply) => {
+  const { id } = req.params as {id: string};
+  const { visibleName: newVisibleName } = req.body as {visibleName: string};
+  const userId = req.user.id;
+
+  if(!id || !newVisibleName) {
+    return reply.code(400).send({message: 'Missing mandatory data'});
+  }
+
+  const [row] = await db.update(items).set({visibleName: newVisibleName}).where(and(eq(items.userId, userId), eq(items.fileUuid, id))).returning({id: items.fileUuid});
+
+  if (!row) {
+    return reply.code(404).send({message: 'Resource not found'});
+  }
+  
+  return reply.code(200).send({data:{item: {id:row.id}}});
+})
 
 
 //////////////////////////// AUTH ////////////////////////////////
