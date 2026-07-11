@@ -9,7 +9,7 @@ import staticPlugin from "@fastify/static";
 import sharp from "sharp";
 import { db } from "./db";
 import { items, users } from "./schema";
-import { eq, asc, desc, and, isNull, isNotNull, sum, SQLWrapper } from "drizzle-orm";
+import { eq, asc, desc, and, isNull, isNotNull, sum, SQLWrapper, SQL } from "drizzle-orm";
 import argon2 from 'argon2';
 import cookie from '@fastify/cookie';
 import jwt from '@fastify/jwt';
@@ -142,7 +142,7 @@ app.get("/items/trash", {preHandler: [app.authenticate]},  async (req) => {
 });
 
 
-app.post("/upload", {preHandler: [app.authenticate]}, async (req) => {
+app.post("/upload", {preHandler: [app.authenticate]}, async (req, reply) => {
   const userId = req.user.id;
   const parts = req.files();
   const saved: {
@@ -153,6 +153,16 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req) => {
     url: string;
     thumbnail: string | null;
   }[] = [];
+
+  const {parentId: parentUUID} = req.query as {parentId: string};
+  let parentId : number | null = null;
+  if (parentUUID) {
+    const [parentData] = await db.select({id: items.id}).from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, parentUUID), isNull(items.deletedAt), eq(items.itemType, 'folder')));
+    if(!parentData){
+      return reply.code(404).send({message: 'Resource not found'});
+    }
+    parentId = parentData.id;
+  }
 
   for await (const part of parts) {
     const fileUuid = randomUUID();
@@ -190,7 +200,7 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req) => {
 
       await db
         .insert(items)
-        .values({ fileUuid, ext, originalName, visibleName: originalName, size: buffer.length, userId, metadata, itemType });
+        .values({ fileUuid, ext, originalName, parentId, visibleName: originalName, size: buffer.length, userId, metadata, itemType });
 
       saved.push({
         id: fileUuid,
@@ -374,14 +384,49 @@ app.post('/items', {preHandler: [app.authenticate]}, async (req, reply) => {
 
 app.patch('/items/:id', {preHandler: [app.authenticate]}, async (req, reply) => {
   const { id } = req.params as {id: string};
-  const { visibleName: newVisibleName } = req.body as {visibleName: string};
+  const { visibleName: newVisibleName, parentId: parentUUID } = req.body as {visibleName?: string, parentId?: string};
   const userId = req.user.id;
 
-  if(!id || !newVisibleName) {
+  if((!newVisibleName) && (!parentUUID)) {
     return reply.code(400).send({message: 'Missing mandatory data'});
   }
 
-  const [row] = await db.update(items).set({visibleName: newVisibleName}).where(and(eq(items.userId, userId), eq(items.fileUuid, id))).returning({id: items.fileUuid});
+  if (parentUUID === id) {
+    return reply.code(400).send({message: 'Cannot move an item into itself'});
+  }
+   
+  let updateData : {visibleName?: string, parentId?: null | number} = {};
+  if (newVisibleName) {
+    updateData.visibleName = newVisibleName;
+  }
+  if (parentUUID) {
+    if (parentUUID === 'root') {
+      updateData.parentId = null;
+    } else {
+      const [parentData] = await db.select({id: items.id}).from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, parentUUID), isNull(items.deletedAt), eq(items.itemType, 'folder')));
+      if(!parentData){
+        return reply.code(404).send({message: 'Resource not found'});
+      }
+
+      const [itemMoved] = await db.select({id: items.id, fileType: items.itemType}).from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, id), isNull(items.deletedAt)));
+      if (!itemMoved){
+        return reply.code(404).send({message: 'Resource not found'});
+      }
+      if (itemMoved.fileType === 'folder') {
+        let curr : number | null = parentData.id;
+        while (curr !== null) {
+          if (curr === itemMoved.id) {
+            return reply.code(409).send({message: 'Action not allowed'});
+          }
+          const [ancestor] = await db.select({parentId: items.parentId}).from(items).where(and(eq(items.userId, userId), eq(items.id, curr), isNull(items.deletedAt), eq(items.itemType, 'folder')));
+          curr = ancestor?.parentId ?? null;
+        }
+      }
+      updateData.parentId = parentData.id;
+    }
+  }
+
+  const [row] = await db.update(items).set(updateData).where(and(eq(items.userId, userId), eq(items.fileUuid, id))).returning({id: items.fileUuid});
 
   if (!row) {
     return reply.code(404).send({message: 'Resource not found'});
