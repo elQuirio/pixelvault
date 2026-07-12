@@ -2,7 +2,7 @@
 const units = ['B','KB', 'MB', 'GB', 'TB'];
 
 export function formatSize(fileSize: number) {
-    let size = fileSize;
+    let size = fileSize ?? 0;
     const l = units.length -1;
 
     for (let i=0; i<=l; i++) {

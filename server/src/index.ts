@@ -128,6 +128,7 @@ app.get("/items", {preHandler: [app.authenticate]},  async (req, reply) => {
       url: `/uploads/originals/${f.fileUuid}.${f.ext}`,
       thumbnail: f.itemType === 'image' ? `/uploads/thumbnails/${f.fileUuid}.webp` : null,
       originalName: f.originalName,
+      visibleName: f.visibleName,
       size: f.size,
       itemType: f.itemType,
       createdAt: f.createdAt,
