@@ -213,7 +213,6 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req, reply) => {
       continue;
     }
   }
-
   return { data: {uploaded: saved }};
 });
 
