@@ -13,7 +13,7 @@ type ItemGridProps = {
   handleRestore?: (id: string) => void;
   handleBulkRestore?: (ids: string[]) => void;
   sortBy: string;
-  setSortBy: (sortBy: string) => void; 
+  setSortBy: (sortBy: string) => void;
 };
 
 export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortBy, setSortBy, handleRestore, handleBulkRestore}: ItemGridProps) {

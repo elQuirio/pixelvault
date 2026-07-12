@@ -18,6 +18,7 @@ export type Item = {
   url: string;
   thumbnail: string | null;
   originalName: string;
+  visibleName: string;
   size: number;
   itemType: string;
   createdAt: string;
@@ -30,6 +31,17 @@ export type ItemsResponse = {
     items: Item[];
   };
 };
+
+export type ItemResponse = {
+  data: {
+    item: {
+      id: string, 
+      itemType: string, 
+      visibleName: string, 
+      createdAt: string 
+    };
+  }
+}
 
 export async function uploadFiles(files: File[], parentId: string | null = null) {
   const formData = new FormData();
@@ -85,8 +97,26 @@ export async function getItems(options: {sortBy?: string, parentId?: string, typ
   if (!res.ok) {
     throw new Error(`Error fetching items: ${res.status} ${res.statusText}`);
   }
-
   return res.json() as Promise<ItemsResponse>;
+}
+
+
+export async function createFolder({visibleName, parentId}: {visibleName: string, parentId?: string}) {
+  const body : {visibleName: string, parentId?: null|string} = {visibleName };
+  if (parentId && parentId !== 'root') body.parentId = parentId;
+
+  const resp = await fetch(`${API_BASE}/items`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) {
+    throw new Error(`Error creating folder: ${resp.status} ${resp.statusText}`)
+  }
+
+  return resp.json() as Promise<ItemResponse>;
 }
 
 
@@ -101,6 +131,7 @@ export async function deleteItem(id: string) {
   }
   return;
 }
+
 
 export async function deleteItemsBulk(ids: string[]) {
   const res = await fetch(`${API_BASE}/items`, {
@@ -117,6 +148,7 @@ export async function deleteItemsBulk(ids: string[]) {
   return;
 }
 
+
 export async function restoreItem(id: string) {
   const resp = await fetch(`${API_BASE}/items/${id}/restore`,{
     method: 'POST',
@@ -127,6 +159,7 @@ export async function restoreItem(id: string) {
   }
   return;
 }
+
 
 export async function restoreItemsBulk(ids: string[]) {
   const resp = await fetch(`${API_BASE}/items/restore`,{
@@ -141,6 +174,7 @@ export async function restoreItemsBulk(ids: string[]) {
   }
   return;
 }
+
 
 export async function permanentDelete(id: string) {
   const resp = await fetch(`${API_BASE}/items/${id}/permanent`,{
