@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
-import { getTrash } from "../../api/upload.ts";
+import { getItems } from "../../api/upload.ts";
 import type { Item } from "../..//api/upload.ts";
 import { permanentDelete, permanentDeleteBulk, restoreItem, restoreItemsBulk } from "../../api/upload.ts";
 
@@ -13,7 +13,7 @@ export function Trash({getSpaceUsed}: TrashProps) {
   const [sortBy, setSortBy] = useState("creationDateDesc");
 
   useEffect(() => {
-    getTrash(sortBy).then((res) => {
+    getItems({sortBy, deleted: true}).then((res) => {
       setFiles(res.data.items);
     });
   }, [sortBy]);

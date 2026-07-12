@@ -31,11 +31,13 @@ export type ItemsResponse = {
   };
 };
 
-export async function uploadFiles(files: File[]) {
+export async function uploadFiles(files: File[], parentId: string | null = null) {
   const formData = new FormData();
   files.forEach((f) => formData.append("file", f));
+  const params = new URLSearchParams();
+  if (parentId) params.set('parentId', parentId);
 
-  const res = await fetch(`${API_BASE}/upload`, {
+  const res = await fetch(`${API_BASE}/upload?${params}`, {
     method: "POST",
     credentials: "include",
     body: formData,
@@ -44,16 +46,17 @@ export async function uploadFiles(files: File[]) {
   if (!res.ok) {
     throw new Error(`Upload failed: ${res.status} ${res.statusText}`);
   }
-
   return res.json() as Promise<UploadResponse>;
 }
 
 
-export async function uploadOne(file: File) {
+export async function uploadOne(file: File, parentId: string | null = null) {
   const formData = new FormData();
   formData.append("file", file);
+  const params = new URLSearchParams();
+  if (parentId) params.set('parentId', parentId);
 
-  const res = await fetch(`${API_BASE}/upload`, {
+  const res = await fetch(`${API_BASE}/upload?${params}`, {
     method: "POST",
     credentials: "include",
     body: formData,
@@ -67,21 +70,14 @@ export async function uploadOne(file: File) {
 }
 
 
-export async function getItems(sortBy: string) {
-  const res = await fetch(`${API_BASE}/items?sortBy=${sortBy}`, {
-    method: "GET",
-    credentials: "include",
-  });
+export async function getItems(options: {sortBy?: string, parentId?: string, type?: string, deleted?: boolean} = {}) {
+  const params = new URLSearchParams();
+  if (options.sortBy) params.set('sortBy', options.sortBy);
+  if (options.parentId) params.set('parentId', options.parentId);
+  if (options.type) params.set('type', options.type);
+  if (options.deleted) params.set('deleted', 'true');
 
-  if (!res.ok) {
-    throw new Error(`Error fetching items: ${res.status} ${res.statusText}`);
-  }
-
-  return res.json() as Promise<ItemsResponse>;
-}
-
-export async function getTrash(sortBy: string) {
-  const res = await fetch(`${API_BASE}/items/trash?sortBy=${sortBy}`, {
+  const res = await fetch(`${API_BASE}/items?${params}`, {
     method: "GET",
     credentials: "include",
   });

@@ -23,7 +23,7 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
   const filtered = files.filter((f) => f.originalName?.toLowerCase().includes(search.toLowerCase()));
 
   useEffect(() => {
-    getItems(sortBy).then((res) => {
+    getItems({sortBy}).then((res) => {
       setFiles(res.data.items);
     });
   }, [sortBy]);
@@ -42,7 +42,7 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
       });
 
       await Promise.allSettled(promises);
-      const res = await getItems(sortBy);
+      const res = await getItems({sortBy});
       setFiles(res.data.items);
       getSpaceUsed();
     } catch (err) {
