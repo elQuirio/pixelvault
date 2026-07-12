@@ -2,20 +2,21 @@ import "dotenv/config";
 import Fastify from "fastify";
 import multipart from "@fastify/multipart";
 import cors from "@fastify/cors";
-import { mkdir, writeFile, unlink } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import staticPlugin from "@fastify/static";
 import sharp from "sharp";
 import { db } from "./db";
 import { items, users } from "./schema";
-import { eq, asc, desc, and, isNull, isNotNull, sum, SQLWrapper, SQL } from "drizzle-orm";
+import { eq, asc, desc, and, isNull, isNotNull, inArray, sum } from "drizzle-orm";
 import argon2 from 'argon2';
 import cookie from '@fastify/cookie';
 import jwt from '@fastify/jwt';
 import exifr from 'exifr';
 import { fileTypeFromBuffer } from "file-type";
 import convert from 'heic-convert';
+import { safeUnlink, isUuid } from "./utility";
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
 const ORIGINAL_DIR = join(UPLOAD_DIR, "originals");
@@ -89,45 +90,39 @@ type SortKey = keyof typeof sortMap;
 
 app.get("/items", {preHandler: [app.authenticate]},  async (req, reply) => {
   const userId = req.user.id;
-  const {sortBy, parentId: parentIdString} = req.query as {sortBy?: SortKey, parentId?: string};
+  const {sortBy, parentId: parentIdString, type, deleted} = req.query as {sortBy?: SortKey, parentId?: string, type?: string, deleted?: string};
   let parentFolder: {id: number};
-  let queryFilter: SQLWrapper;
+  const conditions = [eq(items.userId, userId)];
 
-  if (parentIdString) {
+  if (parentIdString === 'root') {
+    conditions.push(isNull(items.parentId));
+  }
+  else if (parentIdString) {
+    if (!isUuid(parentIdString)) {
+      return reply.code(404).send({message: 'Resource not found'});
+    }
     [parentFolder] = await db.select({id: items.id}).from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, parentIdString)));
     if (!parentFolder) {
       return reply.code(404).send({message: 'Resource not found'});
     } 
-    queryFilter = eq(items.parentId, parentFolder.id);
-  } else {
-    queryFilter = isNull(items.parentId);
+    conditions.push(eq(items.parentId, parentFolder.id));
   }
 
-  const orderBy = (sortBy && sortBy in sortMap) ? sortMap[sortBy] : desc(items.createdAt); 
+  if(type) {
+    conditions.push(inArray(items.itemType, type.split(',')));
+  }
 
-  const rows = (await db.select().from(items).where(and(eq(items.userId, userId), isNull(items.deletedAt), queryFilter)).orderBy(orderBy));
+  if (deleted==='true') {
+    conditions.push(isNotNull(items.deletedAt));
+  } else {
+    conditions.push(isNull(items.deletedAt));
+  }
+
+  const orderBy = (sortBy && sortBy in sortMap) ? sortMap[sortBy] : desc(items.createdAt);
+
+  const rows = (await db.select().from(items).where(and(...conditions)).orderBy(orderBy));
 
   return {data: {
-    items: rows.map((f) => ({
-      id: f.fileUuid,
-      url: `/uploads/originals/${f.fileUuid}.${f.ext}`,
-      thumbnail: f.itemType === 'image' ? `/uploads/thumbnails/${f.fileUuid}.webp` : null,
-      originalName: f.originalName,
-      size: f.size,
-      itemType: f.itemType,
-      createdAt: f.createdAt,
-      metadata: f.metadata,
-    })),
-  }};
-});
-
-
-app.get("/items/trash", {preHandler: [app.authenticate]},  async (req) => {
-  const userId = req.user.id;
-  const {sortBy} = req.query as {sortBy?: SortKey};
-  const orderBy = (sortBy && sortBy in sortMap) ? sortMap[sortBy] : desc(items.createdAt);
-  const rows = (await db.select().from(items).where(and(eq(items.userId, userId), isNotNull(items.deletedAt))).orderBy(orderBy));
-  return {data: { 
     items: rows.map((f) => ({
       id: f.fileUuid,
       url: `/uploads/originals/${f.fileUuid}.${f.ext}`,
@@ -157,6 +152,9 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req, reply) => {
   const {parentId: parentUUID} = req.query as {parentId: string};
   let parentId : number | null = null;
   if (parentUUID) {
+    if (!isUuid(parentUUID)) {
+      return reply.code(404).send({message: 'Resource not found'});
+    }
     const [parentData] = await db.select({id: items.id}).from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, parentUUID), isNull(items.deletedAt), eq(items.itemType, 'folder')));
     if(!parentData){
       return reply.code(404).send({message: 'Resource not found'});
@@ -169,7 +167,7 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req, reply) => {
     const originalName = part.filename;
     try {
       let buffer = await part.toBuffer();
-      let originalBuffer = buffer;
+      const originalBuffer = buffer;
       const buffFileType = await fileTypeFromBuffer(buffer);
       const isHeic = buffFileType?.mime === 'image/heic' || buffFileType?.mime ==='image/heif';
       const isPhoto = isHeic || buffFileType?.mime.startsWith('image/');
@@ -189,7 +187,7 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req, reply) => {
       let metadata = null;
 
       if (isPhoto) {
-        metadata = await exifr.parse(isHeic ? originalBuffer : buffer, {gps: true}) ?? null;
+        metadata = (await exifr.parse(isHeic ? originalBuffer : buffer, {gps: true}) ?? null) as Record<string, unknown> | null;
         await sharp(buffer)
           .resize(200, 200, { fit: "cover" })
           .webp({ quality: 80 })
@@ -226,7 +224,10 @@ app.delete("/items/:id", {preHandler: [app.authenticate]}, async (req, reply) =>
 
   if (!id) {
     return reply.code(400).send();
+  } else if (!isUuid(id)) {
+    return reply.code(404).send({message: 'Resource not found'});
   }
+
 
   const [item] = await db.select().from(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId)));
   if (!item) {
@@ -255,6 +256,7 @@ app.delete("/items", {preHandler: [app.authenticate]}, async (req, reply) => {
   }
 
   for (const id of ids) {
+    if (!isUuid(id)) continue;
     const [item] = await db
       .select()
       .from(items)
@@ -265,21 +267,17 @@ app.delete("/items", {preHandler: [app.authenticate]}, async (req, reply) => {
   return reply.code(204).send();
 });
 
-async function safeUnlink(path: string) {
-  try {
-    await unlink(path);
-  } catch (err) {
-    const e = err as NodeJS.ErrnoException;
-    if (e.code !== "ENOENT") throw err;
-  }
-}
+
 
 app.post('/items/:id/restore', {preHandler: [app.authenticate]}, async (req, reply)=> {
   const { id } = req.params as {id: string};
 
   if (!id) {
     return reply.code(400).send();
+  } else if (!isUuid(id)) {
+    return reply.code(404).send({message: 'Resource not found'});
   }
+
   const userId = req.user.id;
   const restored = await db.update(items).set({deletedAt: null}).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt) )).returning({id: items.fileUuid});
 
@@ -300,6 +298,7 @@ app.post('/items/restore', {preHandler: [app.authenticate]}, async (req, reply)=
   }
 
   for (const id of ids) {
+    if (!isUuid(id)) continue;
     const [item] = await db
       .select()
       .from(items)
@@ -318,6 +317,8 @@ app.delete('/items/:id/permanent', {preHandler: [app.authenticate]}, async (req,
 
   if (!id) {
     return reply.code(400).send({message: 'Missing mandatory data'});
+  } else if (!isUuid(id)) {
+    return reply.code(404).send({message: 'Resource not found'});
   }
 
   const userId = req.user.id;
@@ -347,6 +348,8 @@ app.delete('/items/permanent', {preHandler: [app.authenticate]}, async (req, rep
   }
 
   for (const id of ids) {
+    if (!isUuid(id)) continue;
+
     const [item] = await db
       .select()
       .from(items)
@@ -371,7 +374,10 @@ app.post('/items', {preHandler: [app.authenticate]}, async (req, reply) => {
   }
 
   if (parentIdString) {
-    [parentFolder] = await db.select({id: items.id}).from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, parentIdString), eq(items.itemType, 'folder')));
+    if (!isUuid(parentIdString)) {
+      return reply.code(404).send({message: 'Resource not found'});
+    }
+    [parentFolder] = await db.select({id: items.id}).from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, parentIdString), isNull(items.deletedAt), eq(items.itemType, 'folder')));
     if (!parentFolder) {
       return reply.code(404).send({message: 'Resource not found'});
     }
@@ -391,11 +397,15 @@ app.patch('/items/:id', {preHandler: [app.authenticate]}, async (req, reply) => 
     return reply.code(400).send({message: 'Missing mandatory data'});
   }
 
+  if (!isUuid(id) || (parentUUID && parentUUID !== 'root' && !isUuid(parentUUID))) {
+    return reply.code(404).send({message: 'Resource not found'});
+  }
+
   if (parentUUID === id) {
     return reply.code(400).send({message: 'Cannot move an item into itself'});
   }
    
-  let updateData : {visibleName?: string, parentId?: null | number} = {};
+  const updateData : {visibleName?: string, parentId?: null | number} = {};
   if (newVisibleName) {
     updateData.visibleName = newVisibleName;
   }
