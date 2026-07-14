@@ -1,32 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { UploadArea } from '../UploadArea/UploadArea.tsx'
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
 import { getItems } from "../../api/upload.ts";
-import type { Item } from "../..//api/upload.ts";
 import { deleteItem, deleteItemsBulk } from "../../api/upload.ts";
 import { uploadOne } from "../..//api/upload.ts";
 import { Gauge } from "../Gauge/Gauge.tsx";
 import styles from './Gallery.module.css';
+import { useItems } from "../../hooks/useItems.ts";
 
 type GalleryProps = {
   getSpaceUsed: () => void;
 }
 
 export function Gallery({getSpaceUsed}: GalleryProps) {
-  const [files, setFiles] = useState<Item[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [done, setDone] = useState(0);
   const [total, setTotal] = useState(0);
-  const [sortBy, setSortBy] = useState("creationDateDesc");
   const [search, setSearch] = useState('');
 
-  const filtered = files.filter((f) => f.originalName?.toLowerCase().includes(search.toLowerCase()));
+  const {items, removeItems, sortBy, setSortBy, reload } = useItems({type: 'image,video'});  
 
-  useEffect(() => {
-    getItems({sortBy}).then((res) => {
-      setFiles(res.data.items);
-    });
-  }, [sortBy]);
+  const filtered = items.filter((f) => f.originalName?.toLowerCase().includes(search.toLowerCase()));
 
   async function handleUploadFiles(newFiles: File[]) {
     setTotal(newFiles.length);
@@ -42,8 +36,7 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
       });
 
       await Promise.allSettled(promises);
-      const res = await getItems({sortBy});
-      setFiles(res.data.items);
+      reload();
       getSpaceUsed();
     } catch (err) {
       console.error("Upload failed:", err);
@@ -54,12 +47,12 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
 
   async function handleDeleteItem(id: string) {
     await deleteItem(id);
-    setFiles(files.filter((f) => f.id !== id));
+    removeItems([id]);
   }
 
   async function handleDeleteBulkClick(ids: string[]) {
     await deleteItemsBulk(ids);
-    setFiles(files.filter((f) => !ids.includes(f.id)));
+    removeItems(ids);
   }
 
   return (
