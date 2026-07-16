@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { UploadArea } from '../UploadArea/UploadArea.tsx'
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
 import { deleteItem, deleteItemsBulk } from "../../api/upload.ts";
@@ -7,6 +7,7 @@ import { Gauge } from "../Gauge/Gauge.tsx";
 import styles from './Drive.module.css';
 import { createFolder } from "../..//api/upload.ts";
 import { useItems } from "../../hooks/useItems.ts";
+import { createPortal } from "react-dom";
 
 type DriveProps = {
   getSpaceUsed: () => void;
@@ -19,6 +20,8 @@ export function Drive({getSpaceUsed}: DriveProps) {
   const [done, setDone] = useState(0);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
 
   const {items, removeItems, reload, sortBy, setSortBy } = useItems({parentId: currentFolder});
 
@@ -61,8 +64,12 @@ export function Drive({getSpaceUsed}: DriveProps) {
     removeItems(ids);
   }
 
-  async function handleCreateFolder() {
-    await createFolder({visibleName: 'testFolder', parentId: currentFolder});
+  async function handleCreateFolder(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newFolderName.trim()) return;
+    await createFolder({visibleName: newFolderName.trim(), parentId: currentFolder});
+    setNewFolderName('');
+    setIsCreating(false);
     reload();
   }
 
@@ -84,7 +91,17 @@ export function Drive({getSpaceUsed}: DriveProps) {
       {path.map((p) => {
         return <button key={p.id} onClick={() => onBreadcrumbClick(p.id)}>{p.name}</button>
         })}
-      <button onClick={handleCreateFolder}>Create folder</button>
+      <button onClick={() => setIsCreating(true)}>Create folder</button>
+      {isCreating && createPortal(<div onClick={() => {setIsCreating(false); setNewFolderName('');}} className={styles.overlay}>
+                                    <form onSubmit={handleCreateFolder} onClick={(e) => e.stopPropagation()} className={styles.modal}>
+                                      <div className={styles.modalWrapper}>
+                                        <label htmlFor="new-folder-name-input">Insert folder name</label>
+                                        <input id='new-folder-name-input' type="text" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} autoFocus></input>
+                                        <button type="submit">Confirm</button>
+                                        <button type="button" onClick={() => {setIsCreating(false);setNewFolderName('');}}>Cancel</button>
+                                      </div>
+                                    </form>
+                                  </div>, document.body)}
       <ItemGrid
         files={filtered}
         handleDeleteItem={handleDeleteItem}

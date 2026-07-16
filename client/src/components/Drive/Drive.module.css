@@ -16,14 +16,37 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
-.searchInput::placeholder { 
-    color: var(--muted); 
+.searchInput::placeholder {
+  color: var(--muted);
 }
 
 .searchBarInput:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: var(--bg);
+  padding: 24px;
+  border-radius: var(--radius);
+}
+
+.modalWrapper {
+  display: flex;
+  flex-direction: column;
 }
