@@ -13,7 +13,8 @@ type DriveProps = {
 }
 
 export function Drive({getSpaceUsed}: DriveProps) {
-  const [currentFolder, setCurrentFolder] = useState("root");
+  const [path, setPath] = useState<{id: string, name: string}[]>([{id: 'root', name: 'Home'}]);
+  const currentFolder = path.at(-1)?.id ?? 'root';
   const [isUploading, setIsUploading] = useState(false);
   const [done, setDone] = useState(0);
   const [total, setTotal] = useState(0);
@@ -65,8 +66,13 @@ export function Drive({getSpaceUsed}: DriveProps) {
     reload();
   }
 
-  function handleOpenFolder(id: string) {
-    setCurrentFolder(id);
+  function handleOpenFolder(id: string, name: string) {
+    setPath((prev) => [...prev, {id: id, name: name}])
+  }
+
+  function onBreadcrumbClick(id: string) {
+    const breadIndex = path.findIndex((p) => p.id === id);
+    setPath((prev) => prev.slice(0, breadIndex+1));
   }
 
   return (
@@ -75,6 +81,9 @@ export function Drive({getSpaceUsed}: DriveProps) {
       {isUploading && <p className="status">Uploading...{done}/{total}</p>}
       {isUploading && <Gauge done={done} total={total}/>}
       <div className={styles.searchBarWrapper}><input className={styles.searchBarInput} type="text" value={search} placeholder= 'Search...' onChange={(e) => setSearch(e.target.value)}/></div>
+      {path.map((p) => {
+        return <button key={p.id} onClick={() => onBreadcrumbClick(p.id)}>{p.name}</button>
+        })}
       <button onClick={handleCreateFolder}>Create folder</button>
       <ItemGrid
         files={filtered}
@@ -86,7 +95,5 @@ export function Drive({getSpaceUsed}: DriveProps) {
       />
     </>
   );
-
-
 
 }
