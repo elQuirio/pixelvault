@@ -14,7 +14,7 @@ type ItemGridProps = {
   handleBulkRestore?: (ids: string[]) => void;
   sortBy: string;
   setSortBy: (sortBy: string) => void;
-  onFolderOpen?: (id: string) => void;
+  onFolderOpen?: (id: string, name: string) => void;
 };
 
 export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortBy, setSortBy, handleRestore, handleBulkRestore, onFolderOpen}: ItemGridProps) {
@@ -37,7 +37,7 @@ export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortB
 
   const handleOnClick = (u: Item, i: number) => {
     if (isSelectMode) {handleCheckboxOnChange(u.id); return;}
-    if (u.itemType === 'folder') {onFolderOpen?.(u.id); return;}
+    if (u.itemType === 'folder') {onFolderOpen?.(u.id, u.visibleName); return;}
       setLightBoxIndex(i);
   }
 
