@@ -21,6 +21,9 @@
 
 .thumbnailContainer {
   position: relative;
+  margin-top: 15px;
+  margin-left: 1px;
+  margin-right: 1px;
 }
 
 .select {
@@ -53,3 +56,14 @@
   z-index: 100;
 }
 
+
+.itemName {
+  max-width: 150px;
+  height: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  font-size: 13px;
+  margin-top: 2px;
+}

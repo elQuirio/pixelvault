@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import type { Item } from "..//api/upload.ts";
+import type { Item } from "../api/upload.ts";
 import { getItems } from "../api/upload.ts";
 
 type useItemsProps = {
   parentId?: string;
   deleted?: boolean;
-  type?: string;
+  type?: string[];
 };
 
 export function useItems({ parentId, deleted, type }: useItemsProps) {
@@ -20,7 +20,7 @@ export function useItems({ parentId, deleted, type }: useItemsProps) {
 
   useEffect(() => {
     loadItems();
-  }, [sortBy, parentId, deleted, type]);
+  }, [sortBy, parentId, deleted, type?.join(',')]);
 
   const removeItems = (ids: string[]) => {
     setItems((prev) => prev.filter((f) => !ids.includes(f.id)));
