@@ -39,6 +39,8 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, hand
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose, setLightBoxIndex, lightBoxIndex]);
 
+  if(!item) return null;
+
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.detailsContainer} onClick={(e) => e.stopPropagation()}>
@@ -62,7 +64,7 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, hand
       </div>
       <img className={styles.image} src={`${API_BASE}${item.url}`} alt={item.id} onClick={(e) => e.stopPropagation()} />
       <div>
-          <button className={styles.deleteButton} onClick={() => handleDeleteItem(item.id)} >Delete</button>
+          <button className={styles.deleteButton} onClick={(e) => {handleDeleteItem(item.id); e.stopPropagation()}} >Delete</button>
           {handleRestore && (<button onClick={() => handleRestore(item.id)}>Restore</button>)}
       </div>
     </div>

@@ -43,24 +43,6 @@ export type ItemResponse = {
   }
 }
 
-export async function uploadFiles(files: File[], parentId: string | null = null) {
-  const formData = new FormData();
-  files.forEach((f) => formData.append("file", f));
-  const params = new URLSearchParams();
-  if (parentId) params.set('parentId', parentId);
-
-  const res = await fetch(`${API_BASE}/upload?${params}`, {
-    method: "POST",
-    credentials: "include",
-    body: formData,
-  });
-
-  if (!res.ok) {
-    throw new Error(`Upload failed: ${res.status} ${res.statusText}`);
-  }
-  return res.json() as Promise<UploadResponse>;
-}
-
 
 export async function uploadOne(file: File, parentId: string | null = null) {
   const formData = new FormData();
@@ -82,11 +64,11 @@ export async function uploadOne(file: File, parentId: string | null = null) {
 }
 
 
-export async function getItems(options: {sortBy?: string, parentId?: string, type?: string, deleted?: boolean} = {}) {
+export async function getItems(options: {sortBy?: string, parentId?: string, type?: string[], deleted?: boolean} = {}) {
   const params = new URLSearchParams();
   if (options.sortBy) params.set('sortBy', options.sortBy);
   if (options.parentId) params.set('parentId', options.parentId);
-  if (options.type) params.set('type', options.type);
+  if (options.type) params.set('type', options.type.join(','));
   if (options.deleted) params.set('deleted', 'true');
 
   const res = await fetch(`${API_BASE}/items?${params}`, {

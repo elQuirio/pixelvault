@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { UploadArea } from '../UploadArea/UploadArea.tsx'
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
 import { deleteItem, deleteItemsBulk } from "../../api/upload.ts";
-import { uploadOne } from "../..//api/upload.ts";
+import { uploadOne } from "../../api/upload.ts";
 import { Gauge } from "../Gauge/Gauge.tsx";
 import styles from './Drive.module.css';
-import { createFolder } from "../..//api/upload.ts";
+import { createFolder } from "../../api/upload.ts";
 import { useItems } from "../../hooks/useItems.ts";
 import { createPortal } from "react-dom";
 
@@ -38,7 +38,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
     try {
 
       const promises = newFiles.map((f) => {
-        return uploadOne(f).then((c) => {
+        return uploadOne(f, currentFolder === 'root' ? null : currentFolder).then((c) => {
           setDone(p => p+1);
           return c;
         })
@@ -103,6 +103,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
                                     </form>
                                   </div>, document.body)}
       <ItemGrid
+        key={currentFolder}
         files={filtered}
         handleDeleteItem={handleDeleteItem}
         handleDeleteBulkClick={handleDeleteBulkClick}

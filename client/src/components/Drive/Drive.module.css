@@ -21,7 +21,7 @@
     box-shadow 0.15s;
 }
 
-.searchInput::placeholder {
+.searchBarInput::placeholder {
   color: var(--muted);
 }
 

@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { UploadArea } from '../UploadArea/UploadArea.tsx'
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
-import { getItems } from "../../api/upload.ts";
 import { deleteItem, deleteItemsBulk } from "../../api/upload.ts";
-import { uploadOne } from "../..//api/upload.ts";
+import { uploadOne } from "../../api/upload.ts";
 import { Gauge } from "../Gauge/Gauge.tsx";
 import styles from './Gallery.module.css';
 import { useItems } from "../../hooks/useItems.ts";
@@ -18,7 +17,7 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
 
-  const {items, removeItems, sortBy, setSortBy, reload } = useItems({type: 'image,video'});  
+  const {items, removeItems, sortBy, setSortBy, reload } = useItems({type: ['image', 'video']});
 
   const filtered = items.filter((f) => f.originalName?.toLowerCase().includes(search.toLowerCase()));
 
