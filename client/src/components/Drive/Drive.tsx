@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { UploadArea } from '../UploadArea/UploadArea.tsx'
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
 import { deleteItem, deleteItemsBulk } from "../../api/upload.ts";
@@ -6,8 +6,10 @@ import { uploadOne } from "../../api/upload.ts";
 import { Gauge } from "../Gauge/Gauge.tsx";
 import styles from './Drive.module.css';
 import { createFolder } from "../../api/upload.ts";
+
 import { useItems } from "../../hooks/useItems.ts";
-import { createPortal } from "react-dom";
+
+import { CreateFolderModal } from "../CreateFolderModal/CreateFolderModal.tsx";
 
 type DriveProps = {
   getSpaceUsed: () => void;
@@ -21,7 +23,6 @@ export function Drive({getSpaceUsed}: DriveProps) {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-  const [newFolderName, setNewFolderName] = useState('');
 
   const {items, removeItems, reload, sortBy, setSortBy } = useItems({parentId: currentFolder});
 
@@ -64,14 +65,6 @@ export function Drive({getSpaceUsed}: DriveProps) {
     removeItems(ids);
   }
 
-  async function handleCreateFolder(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newFolderName.trim()) return;
-    await createFolder({visibleName: newFolderName.trim(), parentId: currentFolder});
-    setNewFolderName('');
-    setIsCreating(false);
-    reload();
-  }
 
   function handleOpenFolder(id: string, name: string) {
     setPath((prev) => [...prev, {id: id, name: name}])
@@ -80,6 +73,17 @@ export function Drive({getSpaceUsed}: DriveProps) {
   function onBreadcrumbClick(id: string) {
     const breadIndex = path.findIndex((p) => p.id === id);
     setPath((prev) => prev.slice(0, breadIndex+1));
+  }
+
+
+  async function handleCreateFolder(newFolderName: string) {
+        await createFolder({visibleName: newFolderName.trim(), parentId: currentFolder});
+        setIsCreating(false);
+        reload();
+  }
+
+  function onClickCancel() {
+    setIsCreating(false);
   }
 
   return (
@@ -92,16 +96,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
         return <button key={p.id} onClick={() => onBreadcrumbClick(p.id)}>{p.name}</button>
         })}
       <button onClick={() => setIsCreating(true)}>Create folder</button>
-      {isCreating && createPortal(<div onClick={() => {setIsCreating(false); setNewFolderName('');}} className={styles.overlay}>
-                                    <form onSubmit={handleCreateFolder} onClick={(e) => e.stopPropagation()} className={styles.modal}>
-                                      <div className={styles.modalWrapper}>
-                                        <label htmlFor="new-folder-name-input">Insert folder name</label>
-                                        <input id='new-folder-name-input' type="text" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} autoFocus></input>
-                                        <button type="submit">Confirm</button>
-                                        <button type="button" onClick={() => {setIsCreating(false);setNewFolderName('');}}>Cancel</button>
-                                      </div>
-                                    </form>
-                                  </div>, document.body)}
+      {isCreating && <CreateFolderModal onConfirm={handleCreateFolder} onClose={onClickCancel}/>}
       <ItemGrid
         key={currentFolder}
         files={filtered}
