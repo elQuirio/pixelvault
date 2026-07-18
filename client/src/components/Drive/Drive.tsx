@@ -2,11 +2,10 @@ import { useState } from "react";
 import { UploadArea } from '../UploadArea/UploadArea.tsx'
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
 import { deleteItem, deleteItemsBulk } from "../../api/upload.ts";
-import { uploadOne } from "../../api/upload.ts";
 import { Gauge } from "../Gauge/Gauge.tsx";
 import styles from './Drive.module.css';
 import { createFolder } from "../../api/upload.ts";
-
+import { useUpload } from "../../hooks/useUpload.ts";
 import { useItems } from "../../hooks/useItems.ts";
 
 import { CreateFolderModal } from "../CreateFolderModal/CreateFolderModal.tsx";
@@ -18,13 +17,15 @@ type DriveProps = {
 export function Drive({getSpaceUsed}: DriveProps) {
   const [path, setPath] = useState<{id: string, name: string}[]>([{id: 'root', name: 'Home'}]);
   const currentFolder = path.at(-1)?.id ?? 'root';
-  const [isUploading, setIsUploading] = useState(false);
-  const [done, setDone] = useState(0);
-  const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
   const {items, removeItems, reload, sortBy, setSortBy } = useItems({parentId: currentFolder});
+  const {done, total, isUploading, uploadFiles} = useUpload({
+                onComplete: () => {
+                  reload();
+                  getSpaceUsed();
+              }})
 
   const filtered = items.filter((f) => {
     const name = f.visibleName ?? f.originalName;
@@ -32,28 +33,6 @@ export function Drive({getSpaceUsed}: DriveProps) {
   });
 
 
-  async function handleUploadFiles(newFiles: File[]) {
-    setTotal(newFiles.length);
-    setDone(0);
-    setIsUploading(true);
-    try {
-
-      const promises = newFiles.map((f) => {
-        return uploadOne(f, currentFolder === 'root' ? null : currentFolder).then((c) => {
-          setDone(p => p+1);
-          return c;
-        })
-      });
-
-      await Promise.allSettled(promises);
-      reload();
-      getSpaceUsed();
-    } catch (err) {
-      console.error("Upload failed:", err);
-    } finally {
-      setIsUploading(false);
-    }
-  }
 
   async function handleDeleteItem(id: string) {
     await deleteItem(id);
@@ -85,10 +64,11 @@ export function Drive({getSpaceUsed}: DriveProps) {
   function onClickCancel() {
     setIsCreating(false);
   }
+  
 
   return (
     <>
-      <UploadArea onFilesSelected={handleUploadFiles} />
+      <UploadArea onFilesSelected={(files) => uploadFiles(files, currentFolder === 'root' ? null : currentFolder)} />
       {isUploading && <p className="status">Uploading...{done}/{total}</p>}
       {isUploading && <Gauge done={done} total={total}/>}
       <div className={styles.searchBarWrapper}><input className={styles.searchBarInput} type="text" value={search} placeholder= 'Search...' onChange={(e) => setSearch(e.target.value)}/></div>
