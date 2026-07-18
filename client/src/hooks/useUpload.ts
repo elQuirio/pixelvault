@@ -2,7 +2,7 @@ import { uploadOne } from "../api/upload.ts";
 import { useState } from "react";
 
 type useUploadProps = {
-    onComplete: () => void;
+    onComplete?: () => void;
 }
 
 export function useUpload({onComplete}: useUploadProps) {
@@ -24,7 +24,7 @@ export function useUpload({onComplete}: useUploadProps) {
           });
     
           await Promise.allSettled(promises);
-          onComplete();
+          onComplete?.();
         } catch (err) {
           console.error("Upload failed:", err);
         } finally {

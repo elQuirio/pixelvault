@@ -16,16 +16,7 @@ type ItemGridProps = {
   onFolderOpen?: (id: string, name: string) => void;
 };
 
-export function ItemGrid({
-  files,
-  handleDeleteItem,
-  handleDeleteBulkClick,
-  sortBy,
-  setSortBy,
-  handleRestore,
-  handleBulkRestore,
-  onFolderOpen,
-}: ItemGridProps) {
+export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortBy, setSortBy, handleRestore, handleBulkRestore, onFolderOpen }: ItemGridProps) {
   const [lightBoxIndex, setLightBoxIndex] = useState<number | null>(null);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -71,37 +62,15 @@ export function ItemGrid({
 
   return (
     <div>
-      <button
-        className={`${styles.selectModeBtn} ${isSelectMode ? styles.active : ""}`}
-        onClick={toggleSelectMode}
-      >
-        Select...
-      </button>
-      <select
-        className={styles.select}
-        value={sortBy}
-        onChange={(e) => setSortBy(e.target.value)}
-      >
-        {sortMap.map((s) => (
-          <option key={s.sortkey} value={s.sortkey}>
-            {s.label}
-          </option>
-        ))}
+      <button className={`${styles.selectModeBtn} ${isSelectMode ? styles.active : ""}`} onClick={toggleSelectMode}>Select...</button>
+      <select className={styles.select} value={sortBy} onChange={(e) => setSortBy(e.target.value)} >
+        {sortMap.map((s) => ( <option key={s.sortkey} value={s.sortkey}>{s.label}</option> ))}
       </select>
       {isSelectMode && (
         <>
-          <button onClick={() => handleDeleteBulkClick(selectedIds)}>
-            Delete
-          </button>
+          <button onClick={() => {handleDeleteBulkClick(selectedIds); toggleSelectMode();}}>Delete</button>
           {handleBulkRestore && (
-            <button
-              onClick={(e) => {
-                handleBulkRestore(selectedIds);
-                e.stopPropagation();
-              }}
-            >
-              Restore
-            </button>
+            <button onClick={(e) => { handleBulkRestore(selectedIds); toggleSelectMode(); e.stopPropagation();}} >Restore</button>
           )}
         </>
       )}
