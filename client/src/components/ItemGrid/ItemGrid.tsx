@@ -1,10 +1,12 @@
 import styles from "./ItemGrid.module.css";
 import type { Item } from "../../api/upload";
-import { useEffect, useState } from "react";
 import { LightBox } from "../LightBox/LightBox";
 import { API_BASE } from "../../config/api";
 import { TypeIcon } from "../TypeIcon/TypeIcon";
-import { Toolbar } from "../Toolbar/ToolBar";
+import { Toolbar } from "../Toolbar/Toolbar";
+import { useLightBox } from "../../hooks/useLightBox";
+import { useSelection } from "../../hooks/useSelection";
+
 
 type ItemGridProps = {
   files: Item[];
@@ -18,22 +20,11 @@ type ItemGridProps = {
 };
 
 export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortBy, setSortBy, handleRestore, handleBulkRestore, onFolderOpen }: ItemGridProps) {
-  const [lightBoxIndex, setLightBoxIndex] = useState<number | null>(null);
-  const [isSelectMode, setIsSelectMode] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const {isSelectMode, toggleSelectMode, selectedIds, handleCheckboxOnChange} = useSelection();
+
   const mediaItems = files.filter((f) => f.itemType !== "folder");
+  const { lightBoxIndex, setLightBoxIndex, closeLightBox } = useLightBox(mediaItems);
 
-  const toggleSelectMode = () => {
-    setIsSelectMode((prev: boolean) => !prev);
-  };
-
-  const handleCheckboxOnChange = (id: string) => {
-    if (selectedIds.includes(id)) {
-      setSelectedIds((prev) => [...prev.filter((i) => i !== id)]);
-    } else {
-      setSelectedIds((prev) => [...prev, id]);
-    }
-  };
 
   const handleOnClick = (u: Item) => {
     if (isSelectMode) {
@@ -57,16 +48,6 @@ export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortB
     toggleSelectMode();
   }
 
-
-  useEffect(() => {
-    if (lightBoxIndex === null) return;
-    if (mediaItems.length === 0) {
-      setLightBoxIndex(null);
-    } else if (lightBoxIndex >= mediaItems.length) {
-      setLightBoxIndex(mediaItems.length - 1);
-    }
-  }, [mediaItems.length, lightBoxIndex]);
-
   return (
     <div>
       <Toolbar isSelectMode={isSelectMode} toggleSelectMode={toggleSelectMode} sortBy={sortBy} setSortBy={setSortBy} onBulkDelete={() => onBulkDelete(selectedIds)} onBulkRestore={handleBulkRestore && (() => onBulkRestore(selectedIds))} />
@@ -85,7 +66,7 @@ export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortB
           </div>
         ))}
         {lightBoxIndex !== null && (
-          <LightBox items={mediaItems} lightBoxIndex={lightBoxIndex} setLightBoxIndex={setLightBoxIndex} onClose={() => setLightBoxIndex(null)} handleDeleteItem={handleDeleteItem} handleRestore={handleRestore}/>
+          <LightBox items={mediaItems} lightBoxIndex={lightBoxIndex} setLightBoxIndex={setLightBoxIndex} onClose={closeLightBox} handleDeleteItem={handleDeleteItem} handleRestore={handleRestore}/>
         )}
       </div>
     </div>

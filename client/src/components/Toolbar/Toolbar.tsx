@@ -6,7 +6,7 @@ type ToolbarProps = {
     sortBy: string;
     setSortBy: (sortBy: string) => void;
     onBulkDelete: () => void;
-    onBulkRestore?: undefined | (() => void);
+    onBulkRestore?: () => void;
 }
 
 export function Toolbar({isSelectMode, toggleSelectMode, sortBy, setSortBy, onBulkDelete, onBulkRestore }: ToolbarProps) {
@@ -16,7 +16,7 @@ export function Toolbar({isSelectMode, toggleSelectMode, sortBy, setSortBy, onBu
     ];
 
 
-    return <>
+    return <div className={styles.toolbar}>
             <button className={`${styles.selectModeBtn} ${isSelectMode ? styles.active : ""}`} onClick={toggleSelectMode}>Select...</button>
             <select className={styles.select} value={sortBy} onChange={(e) => setSortBy(e.target.value)} >
                 {sortMap.map((s) => ( <option key={s.sortkey} value={s.sortkey}>{s.label}</option> ))}
@@ -25,10 +25,10 @@ export function Toolbar({isSelectMode, toggleSelectMode, sortBy, setSortBy, onBu
                             <>
                             <button onClick={() => onBulkDelete()}>Delete</button>
                             {onBulkRestore && (
-                                <button onClick={(e) => { onBulkRestore(); e.stopPropagation();}} >Restore</button>
+                                <button onClick={() => onBulkRestore()} >Restore</button>
                             )}
                             </>
             )}
-        </>
+        </div>
 
 }
