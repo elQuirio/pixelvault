@@ -1,25 +1,27 @@
-import { useState } from "react";
 import { UploadArea } from '../UploadArea/UploadArea.tsx'
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
 import { deleteItem, deleteItemsBulk } from "../../api/upload.ts";
 import { Gauge } from "../Gauge/Gauge.tsx";
-import styles from './Gallery.module.css';
+//import styles from './Gallery.module.css';
 import { useItems } from "../../hooks/useItems.ts";
 import { useUpload } from "../../hooks/useUpload.ts";
+import { useSearch } from '../../hooks/useSearch.ts';
+import { SearchBar } from '../SearchBar/SearchBar.tsx';
 
 type GalleryProps = {
   getSpaceUsed: () => void;
 }
 
 export function Gallery({getSpaceUsed}: GalleryProps) {
-  const [search, setSearch] = useState('');
+  
   const {items, removeItems, sortBy, setSortBy, reload } = useItems({type: ['image', 'video']});
   const { done, total, isUploading, uploadFiles } = useUpload({ onComplete: () => {
       reload();
       getSpaceUsed();
   }});
 
-  const filtered = items.filter((f) => f.originalName?.toLowerCase().includes(search.toLowerCase()));
+  const {query, setQuery, filtered} = useSearch(items);
+
 
   async function handleDeleteItem(id: string) {
     await deleteItem(id);
@@ -36,7 +38,7 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
       <UploadArea onFilesSelected={(files) => uploadFiles(files, null)} />
       {isUploading && <p className="status">Uploading...{done}/{total}</p>}
       {isUploading && <Gauge done={done} total={total}/>}
-      <div className={styles.searchBarWrapper}><input className={styles.searchBarInput} type="text" value={search} placeholder= 'Search...' onChange={(e) => setSearch(e.target.value)}/></div>
+      <SearchBar value={query} setValue={setQuery}/>
       <ItemGrid
         files={filtered}
         handleDeleteItem={handleDeleteItem}

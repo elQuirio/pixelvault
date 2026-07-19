@@ -43,7 +43,7 @@ export function ItemGrid({
     }
   };
 
-  const handleOnClick = (u: Item, i: number) => {
+  const handleOnClick = (u: Item) => {
     if (isSelectMode) {
       handleCheckboxOnChange(u.id);
       return;
