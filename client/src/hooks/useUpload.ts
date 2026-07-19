@@ -32,11 +32,6 @@ export function useUpload({onComplete}: useUploadProps) {
         }
       }
 
-      return {
-        done,
-        total,
-        isUploading,
-        uploadFiles
-      }
-
+      return { done, total, isUploading, uploadFiles }
+      
 }
