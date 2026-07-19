@@ -1,7 +1,7 @@
 import { UploadArea } from '../UploadArea/UploadArea.tsx'
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
 import { deleteItem, deleteItemsBulk } from "../../api/upload.ts";
-import { Gauge } from "../Gauge/Gauge.tsx";
+import { useItems } from "../../hooks/useItems.ts";
 //import styles from './Gallery.module.css';
 import { useItems } from "../../hooks/useItems.ts";
 import { useUpload } from "../../hooks/useUpload.ts";
@@ -15,10 +15,6 @@ type GalleryProps = {
 export function Gallery({getSpaceUsed}: GalleryProps) {
   
   const {items, removeItems, sortBy, setSortBy, reload } = useItems({type: ['image', 'video']});
-  const { done, total, isUploading, uploadFiles } = useUpload({ onComplete: () => {
-      reload();
-      getSpaceUsed();
-  }});
 
   const {query, setQuery, filtered} = useSearch(items);
 
@@ -35,9 +31,7 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
 
   return (
     <>
-      <UploadArea onFilesSelected={(files) => uploadFiles(files, null)} />
-      {isUploading && <p className="status">Uploading...{done}/{total}</p>}
-      {isUploading && <Gauge done={done} total={total}/>}
+      <UploadArea parentId={null} onComplete={() => { reload(); getSpaceUsed(); }}/>
       <SearchBar value={query} setValue={setQuery}/>
       <ItemGrid
         files={filtered}

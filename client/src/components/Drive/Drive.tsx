@@ -5,7 +5,6 @@ import { deleteItem, deleteItemsBulk } from "../../api/upload.ts";
 import { Gauge } from "../Gauge/Gauge.tsx";
 //import styles from './Drive.module.css';
 import { createFolder } from "../../api/upload.ts";
-import { useUpload } from "../../hooks/useUpload.ts";
 import { useItems } from "../../hooks/useItems.ts";
 import { useSearch } from "../../hooks/useSearch.ts";
 import { SearchBar } from "../SearchBar/SearchBar.tsx";
@@ -29,7 +28,6 @@ export function Drive({getSpaceUsed}: DriveProps) {
               }});
 
   const {query, setQuery, filtered} = useSearch(items);
-
 
   async function handleDeleteItem(id: string) {
     await deleteItem(id);
@@ -65,9 +63,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
 
   return (
     <>
-      <UploadArea onFilesSelected={(files) => uploadFiles(files, currentFolder === 'root' ? null : currentFolder)} />
-      {isUploading && <p className="status">Uploading...{done}/{total}</p>}
-      {isUploading && <Gauge done={done} total={total}/>}
+      <UploadArea parentId={currentFolder === 'root' ? null : currentFolder} onComplete={()=> { reload(); getSpaceUsed();}} />
       <SearchBar value={query} setValue={setQuery}/>
       {path.map((p) => {
         return <button key={p.id} onClick={() => onBreadcrumbClick(p.id)}>{p.name}</button>
