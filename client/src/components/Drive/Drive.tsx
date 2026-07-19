@@ -2,7 +2,6 @@ import { useState } from "react";
 import { UploadArea } from '../UploadArea/UploadArea.tsx'
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
 import { deleteItem, deleteItemsBulk } from "../../api/upload.ts";
-import { Gauge } from "../Gauge/Gauge.tsx";
 //import styles from './Drive.module.css';
 import { createFolder } from "../../api/upload.ts";
 import { useItems } from "../../hooks/useItems.ts";
@@ -21,11 +20,6 @@ export function Drive({getSpaceUsed}: DriveProps) {
   const [isCreating, setIsCreating] = useState(false);
 
   const {items, removeItems, reload, sortBy, setSortBy } = useItems({parentId: currentFolder});
-  const {done, total, isUploading, uploadFiles} = useUpload({
-                onComplete: () => {
-                  reload();
-                  getSpaceUsed();
-              }});
 
   const {query, setQuery, filtered} = useSearch(items);
 
