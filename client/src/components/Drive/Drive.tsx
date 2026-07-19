@@ -2,9 +2,12 @@ import { useState } from "react";
 import { UploadArea } from '../UploadArea/UploadArea.tsx'
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
 import { deleteItem, deleteItemsBulk } from "../../api/upload.ts";
-import styles from './Drive.module.css';
+import { Gauge } from "../Gauge/Gauge.tsx";
+//import styles from './Drive.module.css';
 import { createFolder } from "../../api/upload.ts";
 import { useItems } from "../../hooks/useItems.ts";
+import { useSearch } from "../../hooks/useSearch.ts";
+import { SearchBar } from "../SearchBar/SearchBar.tsx";
 
 import { CreateFolderModal } from "../CreateFolderModal/CreateFolderModal.tsx";
 
@@ -15,16 +18,16 @@ type DriveProps = {
 export function Drive({getSpaceUsed}: DriveProps) {
   const [path, setPath] = useState<{id: string, name: string}[]>([{id: 'root', name: 'Home'}]);
   const currentFolder = path.at(-1)?.id ?? 'root';
-  const [search, setSearch] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
   const {items, removeItems, reload, sortBy, setSortBy } = useItems({parentId: currentFolder});
+  const {done, total, isUploading, uploadFiles} = useUpload({
+                onComplete: () => {
+                  reload();
+                  getSpaceUsed();
+              }});
 
-  const filtered = items.filter((f) => {
-    const name = f.visibleName ?? f.originalName;
-    return name?.toLowerCase().includes(search.toLowerCase())
-  });
-
+  const {query, setQuery, filtered} = useSearch(items);
 
   async function handleDeleteItem(id: string) {
     await deleteItem(id);
@@ -61,7 +64,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
   return (
     <>
       <UploadArea parentId={currentFolder === 'root' ? null : currentFolder} onComplete={()=> { reload(); getSpaceUsed();}} />
-      <div className={styles.searchBarWrapper}><input className={styles.searchBarInput} type="text" value={search} placeholder= 'Search...' onChange={(e) => setSearch(e.target.value)}/></div>
+      <SearchBar value={query} setValue={setQuery}/>
       {path.map((p) => {
         return <button key={p.id} onClick={() => onBreadcrumbClick(p.id)}>{p.name}</button>
         })}
