@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { LightBox } from "../LightBox/LightBox";
 import { API_BASE } from "../../config/api";
 import { TypeIcon } from "../TypeIcon/TypeIcon";
+import { Toolbar } from "../Toolbar/ToolBar";
 
 type ItemGridProps = {
   files: Item[];
@@ -46,10 +47,16 @@ export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortB
     setLightBoxIndex(mediaItems.findIndex((m) => u.id === m.id));
   };
 
-  const sortMap = [
-    { sortkey: "creationDateDesc", label: "New first" },
-    { sortkey: "creationDateAsc", label: "Old first" },
-  ];
+  function onBulkDelete(selectedIds: string[]) {
+    handleDeleteBulkClick(selectedIds);
+    toggleSelectMode();
+  }
+
+  function onBulkRestore(selectedIds: string[]) {
+    handleBulkRestore?.(selectedIds);
+    toggleSelectMode();
+  }
+
 
   useEffect(() => {
     if (lightBoxIndex === null) return;
@@ -62,54 +69,23 @@ export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortB
 
   return (
     <div>
-      <button className={`${styles.selectModeBtn} ${isSelectMode ? styles.active : ""}`} onClick={toggleSelectMode}>Select...</button>
-      <select className={styles.select} value={sortBy} onChange={(e) => setSortBy(e.target.value)} >
-        {sortMap.map((s) => ( <option key={s.sortkey} value={s.sortkey}>{s.label}</option> ))}
-      </select>
-      {isSelectMode && (
-        <>
-          <button onClick={() => {handleDeleteBulkClick(selectedIds); toggleSelectMode();}}>Delete</button>
-          {handleBulkRestore && (
-            <button onClick={(e) => { handleBulkRestore(selectedIds); toggleSelectMode(); e.stopPropagation();}} >Restore</button>
-          )}
-        </>
-      )}
+      <Toolbar isSelectMode={isSelectMode} toggleSelectMode={toggleSelectMode} sortBy={sortBy} setSortBy={setSortBy} onBulkDelete={() => onBulkDelete(selectedIds)} onBulkRestore={handleBulkRestore && (() => onBulkRestore(selectedIds))} />
       <div className={styles.gridContainer}>
         {files.map((u, i) => (
           <div key={u.id} className={styles.thumbnailContainer}>
             {isSelectMode && (
-              <input
-                type="checkbox"
-                className={styles.selectionCheckbox}
-                checked={selectedIds.includes(u.id)}
-                onChange={() => handleCheckboxOnChange(u.id)}
-              />
+              <input type="checkbox" className={styles.selectionCheckbox} checked={selectedIds.includes(u.id)} onChange={() => handleCheckboxOnChange(u.id)} />
             )}
             {u.thumbnail ? (
-              <img
-                className={styles.thumbnail}
-                src={`${API_BASE}${u.thumbnail}`}
-                alt={files[i].id}
-                onClick={() => handleOnClick(u, i)}
-              />
+              <img className={styles.thumbnail} src={`${API_BASE}${u.thumbnail}`} alt={files[i].id} onClick={() => handleOnClick(u)}/>
             ) : (
-              <TypeIcon
-                itemType={u.itemType}
-                onClick={() => handleOnClick(u, i)}
-              />
+              <TypeIcon itemType={u.itemType} onClick={() => handleOnClick(u)}/>
             )}
             <p className={styles.itemName}>{u.visibleName}</p>
           </div>
         ))}
         {lightBoxIndex !== null && (
-          <LightBox
-            items={mediaItems}
-            lightBoxIndex={lightBoxIndex}
-            setLightBoxIndex={setLightBoxIndex}
-            onClose={() => setLightBoxIndex(null)}
-            handleDeleteItem={handleDeleteItem}
-            handleRestore={handleRestore}
-          />
+          <LightBox items={mediaItems} lightBoxIndex={lightBoxIndex} setLightBoxIndex={setLightBoxIndex} onClose={() => setLightBoxIndex(null)} handleDeleteItem={handleDeleteItem} handleRestore={handleRestore}/>
         )}
       </div>
     </div>
