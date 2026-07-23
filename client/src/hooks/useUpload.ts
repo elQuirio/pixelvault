@@ -1,5 +1,6 @@
 import { uploadOne } from "../api/upload.ts";
 import { useState } from "react";
+import { useToast } from "../context/useToast.tsx";
 
 type useUploadProps = {
     onComplete?: () => void;
@@ -9,6 +10,7 @@ export function useUpload({onComplete}: useUploadProps) {
     const [done, setDone] = useState(0);
     const [total, setTotal] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
+    const { showToast } = useToast();
 
     async function uploadFiles(newFiles: File[], parentId: string|null ) {
         setTotal(newFiles.length);
@@ -27,6 +29,7 @@ export function useUpload({onComplete}: useUploadProps) {
           onComplete?.();
         } catch (err) {
           console.error("Upload failed:", err);
+          showToast('Upload fallito', 'error');
         } finally {
           setIsUploading(false);
         }
