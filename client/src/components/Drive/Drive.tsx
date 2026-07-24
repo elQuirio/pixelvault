@@ -7,6 +7,7 @@ import { createFolder } from "../../api/upload.ts";
 import { useItems } from "../../hooks/useItems.ts";
 import { useSearch } from "../../hooks/useSearch.ts";
 import { SearchBar } from "../SearchBar/SearchBar.tsx";
+import { useToast } from '../../context/useToast.tsx';
 
 import { CreateFolderModal } from "../CreateFolderModal/CreateFolderModal.tsx";
 
@@ -18,19 +19,30 @@ export function Drive({getSpaceUsed}: DriveProps) {
   const [path, setPath] = useState<{id: string, name: string}[]>([{id: 'root', name: 'Home'}]);
   const currentFolder = path.at(-1)?.id ?? 'root';
   const [isCreating, setIsCreating] = useState(false);
+  const { showToast } = useToast();
 
   const {items, removeItems, reload, sortBy, setSortBy } = useItems({parentId: currentFolder});
 
   const {query, setQuery, filtered} = useSearch(items);
 
   async function handleDeleteItem(id: string) {
-    await deleteItem(id);
-    removeItems([id]);
+    try {
+      await deleteItem(id);
+      removeItems([id]);
+    } catch (err) {
+      console.log('Delete failed', err);
+      showToast('Delete failed', 'error');
+    }
   }
 
   async function handleDeleteBulkClick(ids: string[]) {
-    await deleteItemsBulk(ids);
-    removeItems(ids);
+    try { 
+      await deleteItemsBulk(ids);
+      removeItems(ids);
+    } catch (err) {
+      console.log('Delete failed', err);
+      showToast('Delete failed', 'error');
+    }
   }
 
 
@@ -45,9 +57,14 @@ export function Drive({getSpaceUsed}: DriveProps) {
 
 
   async function handleCreateFolder(newFolderName: string) {
-        await createFolder({visibleName: newFolderName.trim(), parentId: currentFolder});
-        setIsCreating(false);
-        reload();
+    try {
+      await createFolder({visibleName: newFolderName.trim(), parentId: currentFolder});
+      setIsCreating(false);
+      reload();
+    } catch (err) {
+      console.log('Create folder failed', err);
+      showToast('Create folder failed', 'error');
+    }
   }
 
   function onClickCancel() {

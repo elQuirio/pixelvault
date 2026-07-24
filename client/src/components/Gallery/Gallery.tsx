@@ -5,6 +5,7 @@ import { deleteItem, deleteItemsBulk } from "../../api/upload.ts";
 import { useItems } from "../../hooks/useItems.ts";
 import { useSearch } from '../../hooks/useSearch.ts';
 import { SearchBar } from '../SearchBar/SearchBar.tsx';
+import { useToast } from '../../context/useToast.tsx';
 
 type GalleryProps = {
   getSpaceUsed: () => void;
@@ -15,16 +16,29 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
   const {items, removeItems, sortBy, setSortBy, reload } = useItems({type: ['image', 'video']});
 
   const {query, setQuery, filtered} = useSearch(items);
+  const { showToast } = useToast();
 
 
   async function handleDeleteItem(id: string) {
-    await deleteItem(id);
-    removeItems([id]);
+    try {
+      await deleteItem(id);
+      removeItems([id]);
+    } catch (err) {
+      console.log('Delete failed', err);
+      showToast('Delete failed', 'error');
+    }
+    
   }
 
   async function handleDeleteBulkClick(ids: string[]) {
-    await deleteItemsBulk(ids);
-    removeItems(ids);
+    try {
+      await deleteItemsBulk(ids);
+      removeItems(ids);
+    } catch (err) {
+      console.log('Delete failed', err);
+      showToast('Delete failed', 'error');
+    }
+    
   }
 
   return (

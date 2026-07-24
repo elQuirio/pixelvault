@@ -2,7 +2,7 @@ import { useState } from "react";
 import { login } from "../../api/auth";
 import { useAuth } from "../../context/useAuth";
 import styles from './LoginForm.module.css';
-import { useErrorToast } from "../../hooks/useErrorToast";
+import { useToast } from '../../context/useToast';
 
 
 type LoginFormProps = {
@@ -12,13 +12,12 @@ type LoginFormProps = {
 export function LoginForm({ setIsRegistration }: LoginFormProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useErrorToast();
+  const { showToast } = useToast();
   const {setUser} = useAuth();
 
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
     const resp = await login({name: username, password });
     if (resp.ok) {
       const user = resp.data;
@@ -26,10 +25,10 @@ export function LoginForm({ setIsRegistration }: LoginFormProps) {
     } else {
       switch(resp.error) {
         case 'wrong_credentials':
-          setError('Wrong credentials');
+          showToast('Wrong credentials', 'error');
           break;
         case 'invalid_input':
-          setError('Invalid input');
+          showToast('Invalid input', 'error');
           break;
       }
     }
@@ -39,7 +38,6 @@ export function LoginForm({ setIsRegistration }: LoginFormProps) {
   return (
     <form className={styles.formContainer} onSubmit={handleSubmit}>
       <div className={styles.loginFormLabel}>Login</div>
-      {error &&<p className={styles.errorToast}>{error}</p>}
       <div className={styles.inputWrapper}>
         <label htmlFor="login-username">Username</label>
         <input id="login-username" type="text" className={styles.input} value={username} onChange={(e) => setUsername(e.target.value)} />
