@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { register } from "../../api/auth";
 import styles from './RegistrationForm.module.css';
-import { useErrorToast } from "../../hooks/useErrorToast";
+import { useToast } from "../../context/useToast";
 
 
 type RegistrationFormProps = {
@@ -12,22 +12,21 @@ export function RegistrationForm({ setIsRegistration }: RegistrationFormProps) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useErrorToast();
-
+  const { showToast } = useToast();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
+
     const resp = await register({name: username, email, password });
     if (resp.ok) {
       setIsRegistration(false);
     } else {
       switch(resp.error) {
         case 'invalid_input':
-          setError('Invalid input');
+          showToast('Invalid input', 'error');
           break;
         case 'name_taken':
-          setError('Name already taken');
+          showToast('Name already taken', 'error');
           break;
       }
     }
@@ -37,7 +36,6 @@ export function RegistrationForm({ setIsRegistration }: RegistrationFormProps) {
   return (
     <form className={styles.formContainer} onSubmit={handleSubmit}>
       <div className={styles.registrationFormLabel}>Registration</div>
-      {error && <p className={styles.errorToast}>{error}</p>}
       <div className={styles.inputWrapper}>
         <label htmlFor="registration-username">Username</label>
         <input id="registration-username" type="text" className={styles.input} value={username} onChange={(e) => setUsername(e.target.value)}/>

@@ -1,5 +1,6 @@
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
 import { permanentDelete, permanentDeleteBulk, restoreItem, restoreItemsBulk } from "../../api/upload.ts";
+import { useToast } from "../../context/useToast.tsx";
 
 import { useItems } from "../../hooks/useItems.ts";
 
@@ -9,28 +10,49 @@ type TrashProps = {
 
 export function Trash({getSpaceUsed}: TrashProps) {
   const {items, removeItems, sortBy, setSortBy } = useItems({deleted: true});
+  const { showToast } = useToast();
 
 
   async function handlePermanentDelete(id: string) {
-    await permanentDelete(id);
-    removeItems([id]);
-    getSpaceUsed();
+    try {
+      await permanentDelete(id);
+      removeItems([id]);
+      getSpaceUsed();
+    } catch (err) {
+      console.log('Delete failed', err);
+      showToast('Delete failed', 'error');
+    }
   }
 
   async function handlePermanentDeleteBulk(ids: string[]) {
-    await permanentDeleteBulk(ids);
-    removeItems(ids);
-    getSpaceUsed();
+    try {
+      await permanentDeleteBulk(ids);
+      removeItems(ids);
+      getSpaceUsed();
+    } catch (err) {
+      console.log('Delete failed', err);
+      showToast('Delete failed', 'error');
+    }
   }
 
   async function handleRestore(id: string) {
-    await restoreItem(id);
-    removeItems([id]);
+    try {
+      await restoreItem(id);
+      removeItems([id]);
+    } catch (err) {
+      console.log('Restore failed', err);
+      showToast('Restore failed', 'error');
+    }
   }
 
   async function handleBulkRestore(ids: string[]) {
-    await restoreItemsBulk(ids);
-    removeItems(ids);
+    try {
+      await restoreItemsBulk(ids);
+      removeItems(ids);  
+    } catch (err) {
+      console.log('Restore failed', err);
+      showToast('Restore failed', 'error');
+    }
   }
 
   return (
