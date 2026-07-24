@@ -172,7 +172,8 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req, reply) => {
       const buffFileType = await fileTypeFromBuffer(buffer);
       const isHeic = buffFileType?.mime === 'image/heic' || buffFileType?.mime ==='image/heif';
       const isPhoto = isHeic || buffFileType?.mime.startsWith('image/');
-      const itemType = isPhoto ? 'image' : 'file';
+      const isVideo = buffFileType?.mime.startsWith('video/');
+      const itemType = isPhoto ? 'image' : (isVideo ? 'video' : 'file');
       const ext = isHeic ? 'jpg' : (buffFileType?.ext ?? 'bin');
   
       const filepath = join(ORIGINAL_DIR, `${fileUuid}.${ext}`);
