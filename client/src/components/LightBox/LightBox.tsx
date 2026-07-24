@@ -62,7 +62,7 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, hand
 
         {!! item.metadata?.Make && <p>{String(item.metadata.Make)} {String(item.metadata?.Model)}</p>}
       </div>
-      {item.itemType === 'video' ? (<video className={styles.image} src={`${API_BASE}${item.url}`} controls autoPlay onClick={(e) => e.stopPropagation()}></video>) :( <img className={styles.image} src={`${API_BASE}${item.url}`} alt={item.id} onClick={(e) => e.stopPropagation()} />)}
+      {item.itemType === 'video' ? (<video className={styles.image} src={`${API_BASE}${item.url}`} controls autoPlay muted={true} onClick={(e) => e.stopPropagation()}></video>) :( <img className={styles.image} src={`${API_BASE}${item.url}`} alt={item.id} onClick={(e) => e.stopPropagation()} />)}
       <div>
           <button className={styles.deleteButton} onClick={(e) => {handleDeleteItem(item.id); e.stopPropagation()}} >Delete</button>
           {handleRestore && (<button onClick={() => handleRestore(item.id)}>Restore</button>)}
