@@ -16,7 +16,7 @@ import jwt from '@fastify/jwt';
 import exifr from 'exifr';
 import { fileTypeFromBuffer } from "file-type";
 import convert from 'heic-convert';
-import { safeUnlink, isUuid } from "./utility";
+import { safeUnlink, isUuid, probeVideo } from "./utility";
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
 const ORIGINAL_DIR = join(UPLOAD_DIR, "originals");
@@ -185,6 +185,8 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req, reply) => {
           quality: 0.9,
         }));
       }
+
+      await writeFile(filepath, buffer);
       
       let metadata = null;
 
@@ -194,9 +196,9 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req, reply) => {
           .resize(200, 200, { fit: "cover" })
           .webp({ quality: 80 })
           .toFile(join(THUMBNAIL_DIR, `${fileUuid}.webp`));
+      } else if (isVideo) {
+        metadata = await probeVideo(filepath);
       }
-
-      await writeFile(filepath, buffer);
 
       await db
         .insert(items)
