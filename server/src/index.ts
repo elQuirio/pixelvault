@@ -16,7 +16,7 @@ import jwt from '@fastify/jwt';
 import exifr from 'exifr';
 import { fileTypeFromBuffer } from "file-type";
 import convert from 'heic-convert';
-import { safeUnlink, isUuid, probeVideo } from "./utility";
+import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail } from "./utility";
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
 const ORIGINAL_DIR = join(UPLOAD_DIR, "originals");
@@ -126,7 +126,7 @@ app.get("/items", {preHandler: [app.authenticate]},  async (req, reply) => {
     items: rows.map((f) => ({
       id: f.fileUuid,
       url: `/uploads/originals/${f.fileUuid}.${f.ext}`,
-      thumbnail: f.itemType === 'image' ? `/uploads/thumbnails/${f.fileUuid}.webp` : null,
+      thumbnail: ['image', 'video'].includes(f.itemType) ? `/uploads/thumbnails/${f.fileUuid}.webp` : null,
       originalName: f.originalName,
       visibleName: f.visibleName,
       size: f.size,
@@ -198,6 +198,7 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req, reply) => {
           .toFile(join(THUMBNAIL_DIR, `${fileUuid}.webp`));
       } else if (isVideo) {
         metadata = await probeVideo(filepath);
+        await generateVideoThumbnail(filepath, fileUuid, THUMBNAIL_DIR);
       }
 
       await db
