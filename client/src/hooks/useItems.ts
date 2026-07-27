@@ -31,11 +31,16 @@ export function useItems({ parentId, deleted, type }: useItemsProps) {
     setItems((prev) => prev.filter((f) => !ids.includes(f.id)));
   }
 
+  const patchItem = (id: string, patch: Partial<Item>) => {
+    setItems((prev) => prev.map((f) => f.id === id ? {...f, ...patch} : f ));
+  }
+
   return {
     items,
     sortBy,
     setSortBy,
     removeItems,
-    reload: loadItems
+    reload: loadItems,
+    patchItem,
   };
 }

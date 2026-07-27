@@ -8,6 +8,7 @@ import { useItems } from "../../hooks/useItems.ts";
 import { useSearch } from "../../hooks/useSearch.ts";
 import { SearchBar } from "../SearchBar/SearchBar.tsx";
 import { useToast } from '../../context/useToast.tsx';
+import { updateItem } from '../../api/upload.ts';
 
 import { CreateFolderModal } from "../CreateFolderModal/CreateFolderModal.tsx";
 
@@ -18,10 +19,10 @@ type DriveProps = {
 export function Drive({getSpaceUsed}: DriveProps) {
   const [path, setPath] = useState<{id: string, name: string}[]>([{id: 'root', name: 'Home'}]);
   const currentFolder = path.at(-1)?.id ?? 'root';
-  const [isCreating, setIsCreating] = useState(false);
+  const [modal, setModal] = useState< {mode:'rename', item:{id: string, name: string}, } | {mode: 'create'} | null > (null);
   const { showToast } = useToast();
 
-  const {items, removeItems, reload, sortBy, setSortBy } = useItems({parentId: currentFolder});
+  const {items, removeItems, reload, sortBy, setSortBy, patchItem } = useItems({parentId: currentFolder});
 
   const {query, setQuery, filtered} = useSearch(items);
 
@@ -36,7 +37,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
   }
 
   async function handleDeleteBulkClick(ids: string[]) {
-    try { 
+    try {
       await deleteItemsBulk(ids);
       removeItems(ids);
     } catch (err) {
@@ -59,7 +60,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
   async function handleCreateFolder(newFolderName: string) {
     try {
       await createFolder({visibleName: newFolderName.trim(), parentId: currentFolder});
-      setIsCreating(false);
+      setModal(null);
       reload();
     } catch (err) {
       console.log('Create folder failed', err);
@@ -68,7 +69,19 @@ export function Drive({getSpaceUsed}: DriveProps) {
   }
 
   function onClickCancel() {
-    setIsCreating(false);
+    setModal(null);
+  }
+
+  async function handleRenameItem(newName: string) {
+    if (modal?.mode !== 'rename') return;
+    try {
+      await updateItem({id: modal.item.id, visibleName: newName.trim()});
+      patchItem(modal.item.id, {visibleName: newName.trim()})
+      setModal(null);
+    } catch (err) {
+      console.log('Rename failed');
+      showToast('Rename failed','error');
+    }
   }
   
 
@@ -79,8 +92,11 @@ export function Drive({getSpaceUsed}: DriveProps) {
       {path.map((p) => {
         return <button key={p.id} onClick={() => onBreadcrumbClick(p.id)}>{p.name}</button>
         })}
-      <button onClick={() => setIsCreating(true)}>Create folder</button>
-      {isCreating && <CreateFolderModal onConfirm={handleCreateFolder} onClose={onClickCancel}/>}
+      <button onClick={() => setModal({mode:'create'})}>Create folder</button>
+      {modal && <CreateFolderModal { ...(modal.mode === 'create' ?
+                                      {initialValue: '', onConfirm: handleCreateFolder, confirmBtnLabel:'Create folder' } 
+                                      : {initialValue: modal.item.name, onConfirm: handleRenameItem, confirmBtnLabel:'Rename item' })} 
+                                      onClose={onClickCancel} />}
       <ItemGrid
         key={currentFolder}
         files={filtered}
@@ -89,6 +105,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
         sortBy={sortBy}
         setSortBy={setSortBy}
         onFolderOpen={handleOpenFolder}
+        onRename={(item) => setModal({mode: 'rename', item})}
       />
     </>
   );

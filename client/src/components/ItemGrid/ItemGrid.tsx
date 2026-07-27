@@ -17,9 +17,10 @@ type ItemGridProps = {
   sortBy: string;
   setSortBy: (sortBy: string) => void;
   onFolderOpen?: (id: string, name: string) => void;
+  onRename?: (item: { id: string, name: string }) => void;
 };
 
-export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortBy, setSortBy, handleRestore, handleBulkRestore, onFolderOpen }: ItemGridProps) {
+export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortBy, setSortBy, handleRestore, handleBulkRestore, onFolderOpen, onRename }: ItemGridProps) {
   const {isSelectMode, toggleSelectMode, selectedIds, handleCheckboxOnChange} = useSelection();
 
   const mediaItems = files.filter((f) => f.itemType !== "folder");
@@ -62,7 +63,7 @@ export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortB
             ) : (
               <TypeIcon itemType={u.itemType} onClick={() => handleOnClick(u)}/>
             )}
-            <p className={styles.itemName}>{u.visibleName}</p>
+            <p className={styles.itemName}>{u.visibleName}</p><button onClick={() => onRename?.({id: u.id, name: u.visibleName})}>...</button>
           </div>
         ))}
         {lightBoxIndex !== null && (
