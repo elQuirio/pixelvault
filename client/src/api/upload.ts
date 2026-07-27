@@ -198,3 +198,23 @@ export async function getStorage() {
   const { data } = await resp.json() as {data: {used: number}};
   return data.used;
 }
+
+
+export async function updateItem({id, parentId, visibleName}: {id:string, parentId?: string, visibleName?: string }) {
+  const body = {} as {parentId?: string, visibleName?: string};
+  if (parentId) body.parentId = parentId;
+  if (visibleName) body.visibleName = visibleName;
+
+  const resp = await fetch(`${API_BASE}/items/${id}`, {
+    method: 'PATCH',
+    headers: { "Content-type": "application/json" },
+    credentials: 'include',
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) throw new Error(`Error updating item: ${resp.status} ${resp.statusText}`);
+
+  const {data} = await resp.json() as {data: {item: {id: string}}};
+
+  return data.item.id;
+}
