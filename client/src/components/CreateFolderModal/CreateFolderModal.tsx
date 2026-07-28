@@ -22,7 +22,7 @@ export function CreateFolderModal({initialValue, confirmBtnLabel, onConfirm, onC
                             <form onSubmit={handleOnSubmit} onClick={(e) => e.stopPropagation()} className={styles.modal}>
                                 <div className={styles.modalWrapper}>
                                 <label htmlFor="new-folder-name-input">Insert name</label>
-                                <input id='new-folder-name-input' type="text" value={name} onChange={(e) => setName(e.target.value)} autoFocus></input>
+                                <input id='new-folder-name-input' type="text" value={name} onChange={(e) => setName(e.target.value)} autoFocus autoComplete="off"></input>
                                 <button type="submit">{confirmBtnLabel}</button>
                                 <button type="button" onClick={onClose}>Cancel</button>
                                 </div>

@@ -14,7 +14,7 @@
   width: 100%;
   aspect-ratio: 1 / 1;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 10px;
   display: block;
   z-index: 1;
 }
@@ -48,4 +48,17 @@
   text-align: center;
   font-size: 13px;
   margin-top: 2px;
+}
+
+.renameBtnWrapper {
+  position: absolute;
+  z-index: 10;
+  bottom: 18px;
+  right: -9px;
+  padding: 0;
+}
+
+.renameButton {
+  display: flex;
+  padding: 4px;
 }

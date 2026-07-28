@@ -79,7 +79,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
       patchItem(modal.item.id, {visibleName: newName.trim()})
       setModal(null);
     } catch (err) {
-      console.log('Rename failed');
+      console.log('Rename failed', err);
       showToast('Rename failed','error');
     }
   }
