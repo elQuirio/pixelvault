@@ -10,7 +10,7 @@ import { SearchBar } from "../SearchBar/SearchBar.tsx";
 import { useToast } from '../../context/useToast.tsx';
 import { updateItem } from '../../api/upload.ts';
 
-import { CreateFolderModal } from "../CreateFolderModal/CreateFolderModal.tsx";
+import { InputModal } from "../InputModal/InputModal.tsx";
 
 type DriveProps = {
   getSpaceUsed: () => void;
@@ -93,9 +93,9 @@ export function Drive({getSpaceUsed}: DriveProps) {
         return <button key={p.id} onClick={() => onBreadcrumbClick(p.id)}>{p.name}</button>
         })}
       <button onClick={() => setModal({mode:'create'})}>Create folder</button>
-      {modal && <CreateFolderModal { ...(modal.mode === 'create' ?
-                                      {initialValue: '', onConfirm: handleCreateFolder, confirmBtnLabel:'Create folder' } 
-                                      : {initialValue: modal.item.name, onConfirm: handleRenameItem, confirmBtnLabel:'Rename item' })} 
+      {modal && <InputModal { ...(modal.mode === 'create' ?
+                                      {initialValue: '', mainLabel: 'Insert folder name', onConfirm: handleCreateFolder, confirmBtnLabel:'Create folder' } 
+                                      : {initialValue: modal.item.name, mainLabel: 'Insert new name' , onConfirm: handleRenameItem, confirmBtnLabel:'Rename item' })} 
                                       onClose={onClickCancel} />}
       <ItemGrid
         key={currentFolder}

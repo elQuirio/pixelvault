@@ -65,7 +65,7 @@ export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortB
               <TypeIcon itemType={u.itemType} onClick={() => handleOnClick(u)}/>
             )}
             <div className={styles.itemName}>{u.visibleName}</div>
-            <div className={styles.renameBtnWrapper}><button className={styles.renameButton} onClick={() => onRename?.({id: u.id, name: u.visibleName})}><FolderPen size={12}/></button></div>
+            {onRename && <div className={styles.renameBtnWrapper}><button className={styles.renameButton} onClick={() => onRename({id: u.id, name: u.visibleName})}><FolderPen size={12}/></button></div>}
           </div>
         ))}
         {lightBoxIndex !== null && (

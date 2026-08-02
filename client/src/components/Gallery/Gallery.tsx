@@ -7,7 +7,7 @@ import { useSearch } from '../../hooks/useSearch.ts';
 import { SearchBar } from '../SearchBar/SearchBar.tsx';
 import { useToast } from '../../context/useToast.tsx';
 import { useState } from 'react';
-import { CreateFolderModal } from '../CreateFolderModal/CreateFolderModal.tsx';
+import { InputModal } from '../InputModal/InputModal.tsx';
 
 type GalleryProps = {
   getSpaceUsed: () => void;
@@ -59,7 +59,7 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
     <>
       <UploadArea parentId={null} onComplete={() => { reload(); getSpaceUsed(); }}/>
       <SearchBar value={query} setValue={setQuery}/>
-      {modal && <CreateFolderModal initialValue={''} confirmBtnLabel={'Rename item'} onConfirm={handleConfirmRename} onClose={() => setModal(null)} />}
+      {modal && <InputModal initialValue={modal.item.name} confirmBtnLabel={'Rename item'} mainLabel={'Insert new name'} onConfirm={handleConfirmRename} onClose={() => setModal(null)} />}
       <ItemGrid
         files={filtered}
         handleDeleteItem={handleDeleteItem}
