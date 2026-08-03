@@ -9,7 +9,8 @@ import staticPlugin from "@fastify/static";
 import sharp from "sharp";
 import { db } from "./db";
 import { items, users } from "./schema";
-import { eq, asc, desc, and, isNull, isNotNull, inArray, sum } from "drizzle-orm";
+import { eq, asc, desc, and, isNull, isNotNull, inArray, sum, notExists } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import argon2 from 'argon2';
 import cookie from '@fastify/cookie';
 import jwt from '@fastify/jwt';
@@ -114,6 +115,10 @@ app.get("/items", {preHandler: [app.authenticate]},  async (req, reply) => {
 
   if (deleted==='true') {
     conditions.push(isNotNull(items.deletedAt));
+    if (!parentIdString) {
+      const parent = alias(items, 'parent');
+      conditions.push(notExists(db.select().from(parent).where(and(eq(parent.id, items.parentId), eq(parent.deletedAt, items.deletedAt)))));
+    }
   } else {
     conditions.push(isNull(items.deletedAt));
   }
