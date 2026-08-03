@@ -4,6 +4,9 @@ import ffmpeg from "fluent-ffmpeg";
 import ffprobeStatic from 'ffprobe-static';
 import ffmpegStatic from 'ffmpeg-static';
 import sharp from "sharp";
+import { db } from "./db";
+import { items } from "./schema";
+import { eq, and } from "drizzle-orm";
 
 ffmpeg.setFfprobePath(ffprobeStatic.path);
 ffmpeg.setFfmpegPath(ffmpegStatic!);
@@ -55,3 +58,24 @@ export async function generateVideoThumbnail(filepath: string, fileUuid: string,
 
   await safeUnlink(tempFrame);
 }
+
+
+export async function collectSubtree({rootId, userId}: {rootId: number, userId: number}): Promise<number[]> {
+  const subtreeList = new Set<number>();
+  subtreeList.add(rootId);
+  const childToInspect : number[] = [rootId];
+
+  while (childToInspect.length !== 0) {
+    const inspectedChild = childToInspect.pop();
+    if (inspectedChild === undefined) continue;
+
+    const children = await db.select({id: items.id}).from(items).where(and(eq(items.userId, userId), eq(items.parentId, inspectedChild)));
+    children.forEach((c) => {
+      if (!subtreeList.has(c.id)) {
+        subtreeList.add(c.id);
+        childToInspect.push(c.id);
+      }
+    });
+  }
+  return [...subtreeList];
+};

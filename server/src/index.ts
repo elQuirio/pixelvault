@@ -16,7 +16,7 @@ import jwt from '@fastify/jwt';
 import exifr from 'exifr';
 import { fileTypeFromBuffer } from "file-type";
 import convert from 'heic-convert';
-import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail } from "./utility";
+import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail, collectSubtree } from "./utility";
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
 const ORIGINAL_DIR = join(UPLOAD_DIR, "originals");
@@ -238,15 +238,10 @@ app.delete("/items/:id", {preHandler: [app.authenticate]}, async (req, reply) =>
     return reply.code(404).send({ message: "Resource not found" });
   }
 
-  if (item.itemType === 'folder') {
-    const children = await db.select({id: items.id}).from(items).where(and(eq(items.parentId, item.id), eq(items.userId, userId), isNull(items.deletedAt)));
-    if (children.length > 0) {
-      return reply.code(409).send({ message: "Folder not empty"});
-    }
-  }
+  const itemChildren = await collectSubtree({userId, rootId: item.id});
 
   //db
-  await db.update(items).set({deletedAt: new Date()}).where(and(eq(items.fileUuid, id), eq(items.userId, userId)));
+  await db.update(items).set({deletedAt: new Date()}).where(and(inArray(items.id, itemChildren), isNull(items.deletedAt), eq(items.userId, userId)));
 
   return reply.code(204).send();
 });
@@ -254,6 +249,7 @@ app.delete("/items/:id", {preHandler: [app.authenticate]}, async (req, reply) =>
 app.delete("/items", {preHandler: [app.authenticate]}, async (req, reply) => {
   const { ids } = req.body as { ids: string[] };
   const userId = req.user.id;
+  const idsToDelete : number[] = [];
 
   if (!ids || ids.length === 0) {
     return reply.code(400).send();
@@ -266,8 +262,12 @@ app.delete("/items", {preHandler: [app.authenticate]}, async (req, reply) => {
       .from(items)
       .where(and(eq(items.fileUuid, id), eq(items.userId, userId)));
     if (!item) continue;
-    await db.update(items).set({deletedAt: new Date()}).where(and(eq(items.fileUuid, id), eq(items.userId, userId)));
+    const itemChildren = await collectSubtree({userId, rootId: item.id});
+    idsToDelete.push(...itemChildren);
   }
+
+  await db.update(items).set({deletedAt: new Date()}).where(and(inArray(items.id, idsToDelete), isNull(items.deletedAt), eq(items.userId, userId)));
+
   return reply.code(204).send();
 });
 
@@ -283,7 +283,21 @@ app.post('/items/:id/restore', {preHandler: [app.authenticate]}, async (req, rep
   }
 
   const userId = req.user.id;
-  const restored = await db.update(items).set({deletedAt: null}).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt) )).returning({id: items.fileUuid});
+
+  const [item] = await db.select().from(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
+  if (!item) {
+    return reply.code(404).send({message: 'Resource not found'});
+  }
+
+  if (item.parentId) {
+    const [parent] = await db.select().from(items).where(and(eq(items.id, item.parentId), eq(items.userId, userId) ));
+    if (parent?.deletedAt) {
+      await db.update(items).set({parentId: null}).where(and(eq(items.id, item.id), eq(items.userId, userId), isNotNull(items.deletedAt) ));
+    }
+  }
+
+  const itemChildren = await collectSubtree({rootId: item.id , userId});
+  const restored = await db.update(items).set({deletedAt: null}).where(and(eq(items.deletedAt, item.deletedAt!), inArray(items.id, itemChildren), eq(items.userId, userId), isNotNull(items.deletedAt) )).returning({id: items.fileUuid});
 
   if (restored.length === 0) {
     return reply.code(404).send({message: 'Resource not found'});
@@ -303,15 +317,20 @@ app.post('/items/restore', {preHandler: [app.authenticate]}, async (req, reply)=
 
   for (const id of ids) {
     if (!isUuid(id)) continue;
-    const [item] = await db
-      .select()
-      .from(items)
-      .where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
+    const [item] = await db.select().from(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
     if (!item) continue;
-    await db.update(items).set({deletedAt: null}).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
+
+    if (item.parentId) {
+      const [parent] = await db.select().from(items).where(and(eq(items.id, item.parentId), eq(items.userId, userId) ));
+      if (parent?.deletedAt) {
+        await db.update(items).set({parentId: null}).where(and(eq(items.id, item.id), eq(items.userId, userId), isNotNull(items.deletedAt)));
+      }
+    }
+    
+    const itemChildren = await collectSubtree({rootId: item.id, userId});
+    await db.update(items).set({deletedAt: null}).where(and(inArray(items.id, itemChildren), eq(items.userId, userId), eq(items.deletedAt, item.deletedAt! ), isNotNull(items.deletedAt)));
   }
   return reply.code(200).send();
-
 })
 
 
@@ -331,13 +350,18 @@ app.delete('/items/:id/permanent', {preHandler: [app.authenticate]}, async (req,
   if (!item) {
     return reply.code(404).send({ message: "Resource not found" });
   }
-  //db
-  await db.delete(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
-  //original
-  await safeUnlink(join(ORIGINAL_DIR, `${id}.${item.ext}`));
-  //thumbnail
-  await safeUnlink(join(THUMBNAIL_DIR, `${id}.webp`));
 
+  const itemChildren = await collectSubtree({rootId: item.id, userId});
+
+  const deletedItems = await db.delete(items).where(and(inArray(items.id, itemChildren), eq(items.userId, userId))).returning({uuid: items.fileUuid, ext: items.ext});
+
+  for (const delItem of deletedItems) {
+    //original
+    await safeUnlink(join(ORIGINAL_DIR, `${delItem.uuid}.${delItem.ext}`));
+    //thumbnail
+    await safeUnlink(join(THUMBNAIL_DIR, `${delItem.uuid}.webp`));
+  }
+  
   return reply.code(204).send();
 });
 
@@ -346,6 +370,7 @@ app.delete('/items/:id/permanent', {preHandler: [app.authenticate]}, async (req,
 app.delete('/items/permanent', {preHandler: [app.authenticate]}, async (req, reply) => {
   const { ids } = req.body as { ids: string[] };
   const userId = req.user.id;
+  const itemsToDelete: number[] = [];
 
   if (!ids || ids.length === 0) {
     return reply.code(400).send();
@@ -354,17 +379,19 @@ app.delete('/items/permanent', {preHandler: [app.authenticate]}, async (req, rep
   for (const id of ids) {
     if (!isUuid(id)) continue;
 
-    const [item] = await db
-      .select()
-      .from(items)
-      .where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
+    const [item] = await db.select().from(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
     if (!item) continue;
-    await db.delete(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
-    await safeUnlink(join(ORIGINAL_DIR, `${id}.${item.ext}`));
-    await safeUnlink(join(THUMBNAIL_DIR, `${id}.webp`));
+    const childrenItem = await collectSubtree({rootId: item.id, userId});
+    itemsToDelete.push(...childrenItem);
   }
-  return reply.code(204).send();
 
+  const deletedItems = await db.delete(items).where(and(inArray(items.id, itemsToDelete), eq(items.userId, userId))).returning({uuid: items.fileUuid, ext: items.ext, });
+  for (const delItem of deletedItems) {
+    await safeUnlink(join(ORIGINAL_DIR, `${delItem.uuid}.${delItem.ext}`));
+    await safeUnlink(join(THUMBNAIL_DIR, `${delItem.uuid}.webp`));
+  }
+
+  return reply.code(204).send();
 })
 
 
