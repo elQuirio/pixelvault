@@ -246,7 +246,8 @@ app.delete("/items/:id", {preHandler: [app.authenticate]}, async (req, reply) =>
   const itemChildren = await collectSubtree({userId, rootId: item.id});
 
   //db
-  await db.update(items).set({deletedAt: new Date()}).where(and(inArray(items.id, itemChildren), isNull(items.deletedAt), eq(items.userId, userId)));
+  const deletedAt = new Date();
+  await db.update(items).set({deletedAt: deletedAt}).where(and(inArray(items.id, itemChildren), isNull(items.deletedAt), eq(items.userId, userId)));
 
   return reply.code(204).send();
 });
@@ -271,7 +272,8 @@ app.delete("/items", {preHandler: [app.authenticate]}, async (req, reply) => {
     idsToDelete.push(...itemChildren);
   }
 
-  await db.update(items).set({deletedAt: new Date()}).where(and(inArray(items.id, idsToDelete), isNull(items.deletedAt), eq(items.userId, userId)));
+  const deletedAt = new Date();
+  await db.update(items).set({deletedAt: deletedAt}).where(and(inArray(items.id, idsToDelete), isNull(items.deletedAt), eq(items.userId, userId)));
 
   return reply.code(204).send();
 });
@@ -294,7 +296,7 @@ app.post('/items/:id/restore', {preHandler: [app.authenticate]}, async (req, rep
     return reply.code(404).send({message: 'Resource not found'});
   }
 
-  if (item.parentId) {
+  if (item.parentId !== null) {
     const [parent] = await db.select().from(items).where(and(eq(items.id, item.parentId), eq(items.userId, userId) ));
     if (parent?.deletedAt) {
       await db.update(items).set({parentId: null}).where(and(eq(items.id, item.id), eq(items.userId, userId), isNotNull(items.deletedAt) ));
@@ -302,11 +304,7 @@ app.post('/items/:id/restore', {preHandler: [app.authenticate]}, async (req, rep
   }
 
   const itemChildren = await collectSubtree({rootId: item.id , userId});
-  const restored = await db.update(items).set({deletedAt: null}).where(and(eq(items.deletedAt, item.deletedAt!), inArray(items.id, itemChildren), eq(items.userId, userId), isNotNull(items.deletedAt) )).returning({id: items.fileUuid});
-
-  if (restored.length === 0) {
-    return reply.code(404).send({message: 'Resource not found'});
-  }
+  await db.update(items).set({deletedAt: null}).where(and(eq(items.deletedAt, item.deletedAt!), inArray(items.id, itemChildren), eq(items.userId, userId))).returning({id: items.fileUuid});
 
   return reply.code(200).send();
 });
@@ -325,7 +323,7 @@ app.post('/items/restore', {preHandler: [app.authenticate]}, async (req, reply)=
     const [item] = await db.select().from(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
     if (!item) continue;
 
-    if (item.parentId) {
+    if (item.parentId !== null) {
       const [parent] = await db.select().from(items).where(and(eq(items.id, item.parentId), eq(items.userId, userId) ));
       if (parent?.deletedAt) {
         await db.update(items).set({parentId: null}).where(and(eq(items.id, item.id), eq(items.userId, userId), isNotNull(items.deletedAt)));
@@ -333,7 +331,7 @@ app.post('/items/restore', {preHandler: [app.authenticate]}, async (req, reply)=
     }
     
     const itemChildren = await collectSubtree({rootId: item.id, userId});
-    await db.update(items).set({deletedAt: null}).where(and(inArray(items.id, itemChildren), eq(items.userId, userId), eq(items.deletedAt, item.deletedAt! ), isNotNull(items.deletedAt)));
+    await db.update(items).set({deletedAt: null}).where(and(inArray(items.id, itemChildren), eq(items.userId, userId), eq(items.deletedAt, item.deletedAt! )));
   }
   return reply.code(200).send();
 })

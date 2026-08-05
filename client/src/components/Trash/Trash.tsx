@@ -1,7 +1,7 @@
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
 import { permanentDelete, permanentDeleteBulk, restoreItem, restoreItemsBulk } from "../../api/upload.ts";
 import { useToast } from "../../context/useToast.tsx";
-
+import { useState } from "react";
 import { useItems } from "../../hooks/useItems.ts";
 
 type TrashProps = {
@@ -9,7 +9,9 @@ type TrashProps = {
 }
 
 export function Trash({getSpaceUsed}: TrashProps) {
-  const {items, removeItems, sortBy, setSortBy } = useItems({deleted: true});
+  const [path, setPath] = useState<{id: string | null, name: string}[]>([{id: null, name: 'Home'}]);
+  const currentFolder = path.at(-1)?.id ?? undefined;
+  const {items, removeItems, sortBy, setSortBy } = useItems({parentId: currentFolder, deleted: true});
   const { showToast } = useToast();
 
 
@@ -55,9 +57,23 @@ export function Trash({getSpaceUsed}: TrashProps) {
     }
   }
 
+
+  function handleOpenFolder(id: string, name: string) {
+    setPath((prev) => [...prev, {id: id, name: name}]);
+  }
+
+  function onBreadcrumbClick(id: string|null) {
+    const breadIndex = path.findIndex((p) => p.id === id);
+    setPath((prev) => prev.slice(0, breadIndex+1));
+  }
+
   return (
     <>
+      {path.map((p) => {
+        return <button key={p.id ?? 'home'} onClick={() => onBreadcrumbClick(p.id)}>{p.name}</button>
+        })}
       <ItemGrid
+        key={currentFolder ?? 'home'}
         files={items}
         handleDeleteItem={handlePermanentDelete}
         handleDeleteBulkClick={handlePermanentDeleteBulk}
@@ -65,6 +81,7 @@ export function Trash({getSpaceUsed}: TrashProps) {
         handleBulkRestore={handleBulkRestore}
         sortBy={sortBy}
         setSortBy={setSortBy}
+        onFolderOpen={handleOpenFolder}
       />
     </>
   );
