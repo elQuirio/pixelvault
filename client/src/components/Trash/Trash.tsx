@@ -1,8 +1,9 @@
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
-import { permanentDelete, permanentDeleteBulk, restoreItem, restoreItemsBulk } from "../../api/upload.ts";
+import { getItemCount, permanentDeleteBulk, restoreItemsBulk } from "../../api/upload.ts";
 import { useToast } from "../../context/useToast.tsx";
 import { useState } from "react";
 import { useItems } from "../../hooks/useItems.ts";
+import { ConfirmModal } from "../ConfirmModal/ConfirmModal.tsx";
 
 type TrashProps = {
   getSpaceUsed: () => void;
@@ -13,44 +14,45 @@ export function Trash({getSpaceUsed}: TrashProps) {
   const currentFolder = path.at(-1)?.id ?? undefined;
   const {items, removeItems, sortBy, setSortBy } = useItems({parentId: currentFolder, deleted: true});
   const { showToast } = useToast();
+  const [modal, setModal] = useState<{mode:'confirm', action: 'restore'|'permanent', count: number, ids: string[]} | null>(null);
 
-
-  async function handlePermanentDelete(id: string) {
+  async function handlePermanentClick(ids: string[]) {
     try {
-      await permanentDelete(id);
-      removeItems([id]);
-      getSpaceUsed();
+      const count = await getItemCount({selectedIds: ids, mode:'permanent'});
+      setModal({mode: 'confirm', action: 'permanent', count: count, ids});
     } catch (err) {
       console.log('Delete failed', err);
       showToast('Delete failed', 'error');
     }
   }
 
-  async function handlePermanentDeleteBulk(ids: string[]) {
+  async function handlePermanentConfirm(ids: string[]) {
     try {
       await permanentDeleteBulk(ids);
       removeItems(ids);
       getSpaceUsed();
+      setModal(null);
     } catch (err) {
       console.log('Delete failed', err);
       showToast('Delete failed', 'error');
     }
   }
 
-  async function handleRestore(id: string) {
+  async function handleRestoreClick(ids: string[]) {
     try {
-      await restoreItem(id);
-      removeItems([id]);
+      const count = await getItemCount({selectedIds: ids, mode: 'restore'});
+      setModal({mode:'confirm', action: 'restore', count, ids});
     } catch (err) {
       console.log('Restore failed', err);
       showToast('Restore failed', 'error');
     }
   }
 
-  async function handleBulkRestore(ids: string[]) {
+  async function handleRestoreConfirm(ids: string[]) {
     try {
       await restoreItemsBulk(ids);
-      removeItems(ids);  
+      removeItems(ids);
+      setModal(null);
     } catch (err) {
       console.log('Restore failed', err);
       showToast('Restore failed', 'error');
@@ -67,18 +69,25 @@ export function Trash({getSpaceUsed}: TrashProps) {
     setPath((prev) => prev.slice(0, breadIndex+1));
   }
 
+  function onClickCancel() {
+    setModal(null);
+  }
+
   return (
     <>
       {path.map((p) => {
         return <button key={p.id ?? 'home'} onClick={() => onBreadcrumbClick(p.id)}>{p.name}</button>
         })}
+        {modal?.mode === 'confirm' && <ConfirmModal confirmBtnLabel={'Confirm'} action={modal.action} itemCount={modal.count}
+                                                    onConfirm={modal.action === 'permanent' ? () => handlePermanentConfirm(modal.ids) : () => handleRestoreConfirm(modal.ids)} 
+                                                    onClose={onClickCancel}/>}
       <ItemGrid
         key={currentFolder ?? 'home'}
         files={items}
-        handleDeleteItem={handlePermanentDelete}
-        handleDeleteBulkClick={handlePermanentDeleteBulk}
-        handleRestore={handleRestore}
-        handleBulkRestore={handleBulkRestore}
+        handleDeleteItem={handlePermanentClick}
+        handleDeleteBulkClick={handlePermanentClick}
+        handleRestore={handleRestoreClick}
+        handleBulkRestore={handleRestoreClick}
         sortBy={sortBy}
         setSortBy={setSortBy}
         onFolderOpen={handleOpenFolder}

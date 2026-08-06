@@ -218,3 +218,20 @@ export async function updateItem({id, parentId, visibleName}: {id:string, parent
 
   return data.item.id;
 }
+
+
+export async function getItemCount({selectedIds, mode}: {selectedIds: string[], mode: 'soft'|'permanent'|'restore'}) {
+  const resp = await fetch(`${API_BASE}/items/count`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { "Content-type": "application/json" },
+    body: JSON.stringify({
+      mode: mode, 
+      roots: selectedIds
+    })
+  })
+
+  if (!resp.ok) throw new Error(`Error getting items count: ${resp.status} ${resp.statusText}`);
+  const {data} = await resp.json() as {data: {count: number}};
+  return data.count;
+}

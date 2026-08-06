@@ -9,7 +9,7 @@ import staticPlugin from "@fastify/static";
 import sharp from "sharp";
 import { db } from "./db";
 import { items, users } from "./schema";
-import { eq, asc, desc, and, isNull, isNotNull, inArray, sum, notExists } from "drizzle-orm";
+import { eq, asc, desc, and, isNull, isNotNull, inArray, sum, notExists, count } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import argon2 from 'argon2';
 import cookie from '@fastify/cookie';
@@ -477,6 +477,57 @@ app.patch('/items/:id', {preHandler: [app.authenticate]}, async (req, reply) => 
   }
   
   return reply.code(200).send({data:{item: {id:row.id}}});
+})
+
+
+app.post('/items/count', {preHandler: [app.authenticate]}, async (req, reply) => {
+  const userId = req.user.id;
+  const {mode, roots} = req.body as {mode: 'soft'|'permanent'|'restore', roots: string[]};
+
+  if (!Array.isArray(roots) || roots.length === 0) {
+    return reply.code(400).send({message: 'Missing mandatory data'});
+  }
+  
+  for (const id of roots) {
+    if (!isUuid(id)) {
+      return reply.code(404).send({message: 'Resource not found'});
+    }
+  }
+
+  if (!['soft', 'permanent', 'restore'].includes(mode)) {
+    return reply.code(400).send({message: 'Mode not managed'});
+  }
+
+  let idsCount : {total: number} = {total: 0};
+
+  if (mode === 'permanent') {
+    const idsChildren : number[] = [];
+    const rootsN = await db.select({id: items.id}).from(items).where(and(inArray(items.fileUuid, roots), eq(items.userId, userId), isNotNull(items.deletedAt)));
+    for (const root of rootsN) {
+      const subTree = await collectSubtree({userId, rootId: root.id});
+      idsChildren.push(...subTree);
+    }
+    [idsCount] = await db.select({total: count()}).from(items).where(and(inArray(items.id, idsChildren), eq(items.userId, userId), isNotNull(items.deletedAt)));
+    
+  } else if (mode === 'soft') {
+    const idsChildren : number[] = [];
+    const rootsN = await db.select({id: items.id}).from(items).where(and(inArray(items.fileUuid, roots), eq(items.userId, userId), isNull(items.deletedAt)));
+    for (const root of rootsN) {
+      const subTree = await collectSubtree({userId, rootId: root.id});
+      idsChildren.push(...subTree);
+    }
+    [idsCount] = await db.select({total: count()}).from(items).where(and(inArray(items.id, idsChildren), eq(items.userId, userId), isNull(items.deletedAt)));
+  }
+  else if (mode === 'restore') {
+    const rootsN = await db.select({id: items.id, deletedAt: items.deletedAt}).from(items).where(and(inArray(items.fileUuid, roots), eq(items.userId, userId), isNotNull(items.deletedAt)));
+    for (const root of rootsN) {
+      const subTree = await collectSubtree({userId, rootId: root.id});
+      const [currentCount] = await db.select({total: count()}).from(items).where(and(inArray(items.id, subTree), eq(items.userId, userId), eq(items.deletedAt, root.deletedAt!) ));
+      idsCount.total += currentCount.total;
+    }
+  }
+  
+  return reply.code(200).send({data: {count: idsCount.total}});
 })
 
 

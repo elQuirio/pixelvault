@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { UploadArea } from '../UploadArea/UploadArea.tsx'
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
-import { deleteItem, deleteItemsBulk } from "../../api/upload.ts";
+import { deleteItemsBulk } from "../../api/upload.ts";
 //import styles from './Drive.module.css';
 import { createFolder } from "../../api/upload.ts";
 import { useItems } from "../../hooks/useItems.ts";
 import { useSearch } from "../../hooks/useSearch.ts";
 import { SearchBar } from "../SearchBar/SearchBar.tsx";
 import { useToast } from '../../context/useToast.tsx';
-import { updateItem } from '../../api/upload.ts';
+import { updateItem, getItemCount } from '../../api/upload.ts';
 
 import { InputModal } from "../InputModal/InputModal.tsx";
+import { ConfirmModal } from "../ConfirmModal/ConfirmModal.tsx";
 
 type DriveProps = {
   getSpaceUsed: () => void;
@@ -19,29 +20,30 @@ type DriveProps = {
 export function Drive({getSpaceUsed}: DriveProps) {
   const [path, setPath] = useState<{id: string, name: string}[]>([{id: 'root', name: 'Home'}]);
   const currentFolder = path.at(-1)?.id ?? 'root';
-  const [modal, setModal] = useState< {mode:'rename', item:{id: string, name: string}, } | {mode: 'create'} | null > (null);
+  const [modal, setModal] = useState< {mode:'rename', item:{id: string, name: string}, } | {mode: 'create'} | {mode: 'confirm', action: 'soft', count: number, ids: string[]} | null > (null);
   const { showToast } = useToast();
 
   const {items, removeItems, reload, sortBy, setSortBy, patchItem } = useItems({parentId: currentFolder});
 
   const {query, setQuery, filtered} = useSearch(items);
 
-  async function handleDeleteItem(id: string) {
+  async function handleDeleteConfirm(ids: string[]) {
     try {
-      await deleteItem(id);
-      removeItems([id]);
+      await deleteItemsBulk(ids);
+      removeItems(ids);
+      setModal(null);
     } catch (err) {
       console.log('Delete failed', err);
       showToast('Delete failed', 'error');
     }
   }
 
-  async function handleDeleteBulkClick(ids: string[]) {
+  async function handleDeleteClick(ids: string[]) {
     try {
-      await deleteItemsBulk(ids);
-      removeItems(ids);
+      const count = await getItemCount({mode:'soft', selectedIds: ids});
+      setModal({mode: 'confirm', action: 'soft', count, ids});
     } catch (err) {
-      console.log('Delete failed', err);
+      console.log(err);
       showToast('Delete failed', 'error');
     }
   }
@@ -83,7 +85,6 @@ export function Drive({getSpaceUsed}: DriveProps) {
       showToast('Rename failed','error');
     }
   }
-  
 
   return (
     <>
@@ -93,15 +94,16 @@ export function Drive({getSpaceUsed}: DriveProps) {
         return <button key={p.id} onClick={() => onBreadcrumbClick(p.id)}>{p.name}</button>
         })}
       <button onClick={() => setModal({mode:'create'})}>Create folder</button>
-      {modal && <InputModal { ...(modal.mode === 'create' ?
-                                      {initialValue: '', mainLabel: 'Insert folder name', onConfirm: handleCreateFolder, confirmBtnLabel:'Create folder' } 
-                                      : {initialValue: modal.item.name, mainLabel: 'Insert new name' , onConfirm: handleRenameItem, confirmBtnLabel:'Rename item' })} 
+      {(modal?.mode === 'create' || modal?.mode === 'rename') && <InputModal { ...(modal.mode === 'create' ?
+                                      {initialValue: '', mode: modal.mode, onConfirm: handleCreateFolder, confirmBtnLabel:'Create folder' } 
+                                      : {initialValue: modal.item.name, mode:modal.mode, onConfirm: handleRenameItem, confirmBtnLabel:'Rename item' })} 
                                       onClose={onClickCancel} />}
+      {(modal?.mode === 'confirm') && <ConfirmModal action={modal.action} itemCount={modal.count} onConfirm={() => handleDeleteConfirm(modal.ids)} onClose={onClickCancel}/>}
       <ItemGrid
         key={currentFolder}
         files={filtered}
-        handleDeleteItem={handleDeleteItem}
-        handleDeleteBulkClick={handleDeleteBulkClick}
+        handleDeleteItem={handleDeleteClick}
+        handleDeleteBulkClick={handleDeleteClick}
         sortBy={sortBy}
         setSortBy={setSortBy}
         onFolderOpen={handleOpenFolder}
