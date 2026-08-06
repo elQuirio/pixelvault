@@ -11,9 +11,9 @@ import { FolderPen } from "lucide-react";
 
 type ItemGridProps = {
   files: Item[];
-  handleDeleteItem: (id: string) => void;
+  handleDeleteItem: (ids: string[]) => void;
   handleDeleteBulkClick: (ids: string[]) => void;
-  handleRestore?: (id: string) => void;
+  handleRestore?: (ids: string[]) => void;
   handleBulkRestore?: (ids: string[]) => void;
   sortBy: string;
   setSortBy: (sortBy: string) => void;

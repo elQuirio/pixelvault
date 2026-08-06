@@ -1,49 +1,42 @@
-import { createPortal } from "react-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { Modal } from "../Modal/Modal";
 import styles from './InputModal.module.css';
+
 
 type InputModalProps = {
     initialValue: string,
     mainLabel?: string,
+    mode: 'create'|'rename',
     confirmBtnLabel: string,
     onConfirm: (input: string) => Promise<void>,
     onClose: () => void,
 }
 
-export function InputModal({initialValue, mainLabel='Insert value', confirmBtnLabel, onConfirm, onClose}: InputModalProps) {
+export function InputModal({initialValue, mainLabel, mode, confirmBtnLabel, onConfirm, onClose}: InputModalProps) {
   const [input, setInput] = useState(initialValue);
-
-  useEffect(() => {
-    const onKeyDownHandler = (event: KeyboardEvent) => {
-        if (event.key === 'Escape') {
-            onClose();
-        }
-    }
-
-    document.addEventListener('keydown', onKeyDownHandler);
-    return () => {document.removeEventListener('keydown', onKeyDownHandler)};
-
-  }, [onClose]);
 
   function handleOnSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim()) return;
     onConfirm(input);
   }
+  let defaultMainLabel: string = 'Insert name';
+  if (mode === 'create') {
+    defaultMainLabel= 'Insert folder name';
+  } else if (mode === 'rename') {
+    defaultMainLabel= 'Insert new name';
+  }
 
-  const modalContent = (<div onClick={onClose} className={styles.overlay}>
-                            <form onSubmit={handleOnSubmit} onClick={(e) => e.stopPropagation()} className={styles.modal}>
+  const modalContent = (<form onSubmit={handleOnSubmit} onClick={(e) => e.stopPropagation()} className={styles.modal}>
                                 <div className={styles.modalWrapper}>
-                                <label htmlFor="input-value">{mainLabel}</label>
+                                <label htmlFor="input-value">{mainLabel ?? defaultMainLabel}</label>
                                 <input id='input-value' type="text" value={input} onChange={(e) => setInput(e.target.value)} autoFocus autoComplete="off"></input>
                                 <button type="submit">{confirmBtnLabel}</button>
                                 <button type="button" onClick={onClose}>Cancel</button>
                                 </div>
-                            </form>
-                        </div>);
+                            </form>);
 
-
-    return createPortal(modalContent, document.body);
+    return <Modal onClose={onClose} modalContent={modalContent}/>
 }
 
 
