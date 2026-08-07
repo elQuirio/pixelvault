@@ -18,7 +18,11 @@ export function ConfirmModal({mainLabel, confirmBtnLabel='Confirm', itemCount, a
   }
 
   let defaultMainLabel: string = 'Are you sure?';
-  const itemString = `${itemCount} ${(itemCount === 1) ? 'item': 'items'}`;
+  let itemString: string = 'selected items';
+  if (itemCount) {
+    itemString = `${itemCount} ${(itemCount === 1) ? 'item': 'items'}`;
+  }
+  
   if (action === 'permanent') {
     defaultMainLabel = `Permanently delete ${itemString}?`;
   } else if (action === 'soft') {

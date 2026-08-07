@@ -12,7 +12,7 @@ type TrashProps = {
 export function Trash({getSpaceUsed}: TrashProps) {
   const [path, setPath] = useState<{id: string | null, name: string}[]>([{id: null, name: 'Home'}]);
   const currentFolder = path.at(-1)?.id ?? undefined;
-  const {items, removeItems, sortBy, setSortBy } = useItems({parentId: currentFolder, deleted: true});
+  const {items, removeItems, sortBy, setSortBy, reload } = useItems({parentId: currentFolder, deleted: true});
   const { showToast } = useToast();
   const [modal, setModal] = useState<{mode:'confirm', action: 'restore'|'permanent', count: number, ids: string[]} | null>(null);
 
@@ -32,6 +32,7 @@ export function Trash({getSpaceUsed}: TrashProps) {
       removeItems(ids);
       getSpaceUsed();
       setModal(null);
+      reload();
     } catch (err) {
       console.log('Delete failed', err);
       showToast('Delete failed', 'error');
@@ -53,6 +54,7 @@ export function Trash({getSpaceUsed}: TrashProps) {
       await restoreItemsBulk(ids);
       removeItems(ids);
       setModal(null);
+      reload();
     } catch (err) {
       console.log('Restore failed', err);
       showToast('Restore failed', 'error');
