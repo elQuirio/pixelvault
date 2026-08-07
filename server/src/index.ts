@@ -92,7 +92,7 @@ type SortKey = keyof typeof sortMap;
 app.get("/items", {preHandler: [app.authenticate]},  async (req, reply) => {
   const userId = req.user.id;
   const {sortBy, parentId: parentIdString, type, deleted} = req.query as {sortBy?: SortKey, parentId?: string, type?: string, deleted?: string};
-  let parentFolder: {id: number};
+  let parentFolder: {id: number, deletedAt: Date | null} = {id: -1, deletedAt: null};
   const conditions = [eq(items.userId, userId)];
 
   if (parentIdString === 'root') {
@@ -102,20 +102,28 @@ app.get("/items", {preHandler: [app.authenticate]},  async (req, reply) => {
     if (!isUuid(parentIdString)) {
       return reply.code(404).send({message: 'Resource not found'});
     }
-    [parentFolder] = await db.select({id: items.id}).from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, parentIdString)));
+    [parentFolder] = await db.select({id: items.id, deletedAt: items.deletedAt}).from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, parentIdString)));
     if (!parentFolder) {
       return reply.code(404).send({message: 'Resource not found'});
-    } 
+    }
     conditions.push(eq(items.parentId, parentFolder.id));
   }
 
   if(type) {
     conditions.push(inArray(items.itemType, type.split(',')));
   }
-
+// deletedAt is both a flag and a BATCH id.
+// Every item trashed in the same request shares the exact same timestamp.
+// An item whose parent was trashed in a different batch is a root of its own.
   if (deleted==='true') {
     conditions.push(isNotNull(items.deletedAt));
-    if (!parentIdString) {
+    // When browsing trashed items deleted in different batches I want to see them as root items in trash
+    // that is why parentFolder.deletedAt guard is important here
+    if (parentFolder?.deletedAt) {
+      conditions.push(eq(items.deletedAt, parentFolder.deletedAt));
+    }
+    else if (!parentIdString) {
+      // I want to see in the root all child items with a parent deleted in a different batch (not exists)
       const parent = alias(items, 'parent');
       conditions.push(notExists(db.select().from(parent).where(and(eq(parent.id, items.parentId), eq(parent.deletedAt, items.deletedAt)))));
     }
@@ -302,7 +310,7 @@ app.post('/items/:id/restore', {preHandler: [app.authenticate]}, async (req, rep
       await db.update(items).set({parentId: null}).where(and(eq(items.id, item.id), eq(items.userId, userId), isNotNull(items.deletedAt) ));
     }
   }
-
+  // When I restore a child without a parent (or before a parent) delete the link with the parent
   const itemChildren = await collectSubtree({rootId: item.id , userId});
   await db.update(items).set({deletedAt: null}).where(and(eq(items.deletedAt, item.deletedAt!), inArray(items.id, itemChildren), eq(items.userId, userId))).returning({id: items.fileUuid});
 
@@ -329,7 +337,7 @@ app.post('/items/restore', {preHandler: [app.authenticate]}, async (req, reply)=
         await db.update(items).set({parentId: null}).where(and(eq(items.id, item.id), eq(items.userId, userId), isNotNull(items.deletedAt)));
       }
     }
-    
+    // When I restore a child without a parent (or before a parent) delete the link with the parent
     const itemChildren = await collectSubtree({rootId: item.id, userId});
     await db.update(items).set({deletedAt: null}).where(and(inArray(items.id, itemChildren), eq(items.userId, userId), eq(items.deletedAt, item.deletedAt! )));
   }

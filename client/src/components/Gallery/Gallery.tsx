@@ -59,7 +59,7 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
     <>
       <UploadArea parentId={null} onComplete={() => { reload(); getSpaceUsed(); }}/>
       <SearchBar value={query} setValue={setQuery}/>
-      {(modal?.mode === 'rename') && <InputModal initialValue={modal.item.name} mode={modal.mode} confirmBtnLabel={'Rename item'} mainLabel={'Insert new name'} onConfirm={handleConfirmRename} onClose={() => setModal(null)} />}
+      {(modal?.mode === 'rename') && <InputModal initialValue={modal.item.name} mode={modal.mode} confirmBtnLabel={'Rename item'} onConfirm={handleConfirmRename} onClose={() => setModal(null)} />}
       {(modal?.mode === 'confirm') && <ConfirmModal action={modal.action} itemCount={modal.count} onConfirm={() => handleDeleteConfirm(modal.ids)} onClose={() => setModal(null)} />}
       <ItemGrid
         files={filtered}
