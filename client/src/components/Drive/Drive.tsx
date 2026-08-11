@@ -71,6 +71,10 @@ export function Drive({getSpaceUsed}: DriveProps) {
     }
   }
 
+  function handleMoveClick(ids: string[]) {
+    setModal({mode:'move', ids});
+  }
+
   function onClickCancel() {
     setModal(null);
   }
@@ -87,6 +91,22 @@ export function Drive({getSpaceUsed}: DriveProps) {
     }
   }
 
+  async function handleMoveConfirm(parentId: string) {
+    if (modal?.mode !== 'move') return;
+    try {
+      for (const id of modal.ids) {
+        await updateItem({id, parentId});
+      }
+    } catch (err) {
+      console.log('Move failed', err);
+      showToast('Move failed', 'error');
+    }
+    finally {
+      reload();
+      setModal(null);
+    }
+  }
+
   return (
     <>
       <UploadArea parentId={currentFolder === 'root' ? null : currentFolder} onComplete={()=> { reload(); getSpaceUsed();}} />
@@ -95,13 +115,12 @@ export function Drive({getSpaceUsed}: DriveProps) {
         return <button key={p.id} onClick={() => onBreadcrumbClick(p.id)}>{p.name}</button>
         })}
       <button onClick={() => setModal({mode:'create'})}>Create folder</button>
-      <button onClick={() => setModal({mode:'move', ids: []})}>Move folder</button>
       {(modal?.mode === 'create' || modal?.mode === 'rename') && <InputModal { ...(modal.mode === 'create' ?
                                       {initialValue: '', mode: modal.mode, onConfirm: handleCreateFolder, confirmBtnLabel:'Create folder' } 
                                       : {initialValue: modal.item.name, mode:modal.mode, onConfirm: handleRenameItem, confirmBtnLabel:'Rename item' })} 
                                       onClose={onClickCancel} />}
       {(modal?.mode === 'confirm') && <ConfirmModal action={modal.action} itemCount={modal.count} onConfirm={() => handleDeleteConfirm(modal.ids)} onClose={onClickCancel}/>}
-        {(modal?.mode === 'move' && <NavigationModal initialPath={path} excludedIds={[]} onConfirm={async (a) => console.log(a)} onClose={onClickCancel} />)}
+      {(modal?.mode === 'move' && <NavigationModal initialPath={path} excludedIds={modal.ids} onConfirm={handleMoveConfirm} onClose={onClickCancel} />)}
       <ItemGrid
         key={currentFolder}
         files={filtered}
@@ -111,6 +130,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
         setSortBy={setSortBy}
         onFolderOpen={handleOpenFolder}
         onRename={(item) => setModal({mode: 'rename', item})}
+        onBulkMove={handleMoveClick}
       />
     </>
   );

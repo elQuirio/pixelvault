@@ -14,12 +14,16 @@ type NavigationModalProps = {
 export function NavigationModal({initialPath, excludedIds, onConfirm, onClose}: NavigationModalProps) {
     const [path, setPath] = useState<{id: string, name: string}[]>(initialPath);
     const currentFolder = path.at(-1)?.id ?? 'root';
+    const openingFolder = initialPath.at(-1)?.id ?? 'root';
     const {items} = useItems({parentId: currentFolder, type: ['folder']});
     const filteredItems = items.filter((i) => !excludedIds.includes(i.id));
+    const [isMoving, setIsMoving] = useState<boolean>(false);
 
-  function handleOnSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    onConfirm(currentFolder);
+  async function handleOnSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setIsMoving(true);
+    await onConfirm(currentFolder);
+    setIsMoving(false);
   }
 
   const handleFolderClick = (id: string, name: string) => {
@@ -44,7 +48,7 @@ export function NavigationModal({initialPath, excludedIds, onConfirm, onClose}: 
                                         }
                                     </div>
                                     <div className={styles.modalButtons}>
-                                      <button type="submit">Move here</button>
+                                      <button type="submit" className={styles.confirmButton} disabled={isMoving || (openingFolder===currentFolder)}>Move here</button>
                                       <button type="button" onClick={onClose}>Cancel</button>
                                     </div>
                                 </div>

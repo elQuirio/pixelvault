@@ -7,9 +7,10 @@ type ToolbarProps = {
     setSortBy: (sortBy: string) => void;
     onBulkDelete: () => void;
     onBulkRestore?: () => void;
+    onBulkMove?: () => void;
 }
 
-export function Toolbar({isSelectMode, toggleSelectMode, sortBy, setSortBy, onBulkDelete, onBulkRestore }: ToolbarProps) {
+export function Toolbar({isSelectMode, toggleSelectMode, sortBy, setSortBy, onBulkDelete, onBulkRestore, onBulkMove }: ToolbarProps) {
     const sortMap = [
         { sortkey: "creationDateDesc", label: "New first" },
         { sortkey: "creationDateAsc", label: "Old first" },
@@ -21,14 +22,12 @@ export function Toolbar({isSelectMode, toggleSelectMode, sortBy, setSortBy, onBu
             <select className={styles.select} value={sortBy} onChange={(e) => setSortBy(e.target.value)} >
                 {sortMap.map((s) => ( <option key={s.sortkey} value={s.sortkey}>{s.label}</option> ))}
             </select>
-            {isSelectMode && (
-                            <>
-                            <button onClick={() => onBulkDelete()}>Delete</button>
-                            {onBulkRestore && (
-                                <button onClick={() => onBulkRestore()} >Restore</button>
-                            )}
-                            </>
-            )}
+            {isSelectMode && (<>
+                                <button onClick={() => onBulkDelete()}>Delete</button>
+                                    {onBulkRestore && (<button onClick={() => onBulkRestore()} >Restore</button>)}
+                                    {onBulkMove && <button onClick={() => onBulkMove()} >Move</button>}
+                            </>)
+            }
         </div>
 
 }

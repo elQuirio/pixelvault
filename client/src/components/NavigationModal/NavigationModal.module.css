@@ -28,6 +28,11 @@
     cursor: default; 
 }
 
+.confirmButton:disabled { 
+    opacity: 0.35; 
+    cursor: default; 
+}
+
 .folderButton {
   display: flex;
   align-items: center;
