@@ -19,9 +19,10 @@ type ItemGridProps = {
   setSortBy: (sortBy: string) => void;
   onFolderOpen?: (id: string, name: string) => void;
   onRename?: (item: { id: string, name: string }) => void;
+  onBulkMove?: (ids: string[]) => void;
 };
 
-export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortBy, setSortBy, handleRestore, handleBulkRestore, onFolderOpen, onRename }: ItemGridProps) {
+export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortBy, setSortBy, handleRestore, handleBulkRestore, onFolderOpen, onRename, onBulkMove }: ItemGridProps) {
   const {isSelectMode, toggleSelectMode, selectedIds, handleCheckboxOnChange} = useSelection();
 
   const mediaItems = files.filter((f) => f.itemType !== "folder");
@@ -50,9 +51,14 @@ export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortB
     toggleSelectMode();
   }
 
+  function handleBulkMove(selectedIds: string[]) {
+    onBulkMove?.(selectedIds);
+    toggleSelectMode();
+  }
+
   return (
     <div>
-      <Toolbar isSelectMode={isSelectMode} toggleSelectMode={toggleSelectMode} sortBy={sortBy} setSortBy={setSortBy} onBulkDelete={() => onBulkDelete(selectedIds)} onBulkRestore={handleBulkRestore && (() => onBulkRestore(selectedIds))} />
+      <Toolbar isSelectMode={isSelectMode} toggleSelectMode={toggleSelectMode} sortBy={sortBy} setSortBy={setSortBy} onBulkDelete={() => onBulkDelete(selectedIds)} onBulkRestore={handleBulkRestore && (() => onBulkRestore(selectedIds))} onBulkMove={onBulkMove && (() => handleBulkMove(selectedIds))} />
       <div className={styles.gridContainer}>
         {files.map((u, i) => (
           <div key={u.id} className={styles.thumbnailContainer}>
