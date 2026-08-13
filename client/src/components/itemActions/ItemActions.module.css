@@ -1,0 +1,38 @@
+
+.actionBtnWrapper {
+  position: absolute;
+  z-index: 10;
+  bottom: 18px;
+  right: -9px;
+  padding: 0;
+}
+
+.actionMenuButton {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 4px;  
+}
+
+.renameButton {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 4px;
+  margin-top: 2px;
+}
+
+.moveButton {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 4px;
+  margin-top: 2px;
+}
+
+.actionMenuWrapper {
+    position: absolute;
+    gap: 1px;
+    right: -25px;
+    bottom: 25px;
+}

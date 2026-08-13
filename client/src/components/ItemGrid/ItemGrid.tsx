@@ -6,7 +6,8 @@ import { TypeIcon } from "../TypeIcon/TypeIcon";
 import { Toolbar } from "../Toolbar/Toolbar";
 import { useLightBox } from "../../hooks/useLightBox";
 import { useSelection } from "../../hooks/useSelection";
-import { FolderPen } from "lucide-react";
+import { ItemActions } from "../itemActions/ItemActions";
+
 
 
 type ItemGridProps = {
@@ -71,7 +72,7 @@ export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortB
               <TypeIcon itemType={u.itemType} onClick={() => handleOnClick(u)}/>
             )}
             <div className={styles.itemName}>{u.visibleName}</div>
-            {onRename && <div className={styles.renameBtnWrapper}><button className={styles.renameButton} onClick={() => onRename({id: u.id, name: u.visibleName})}><FolderPen size={12}/></button></div>}
+            <ItemActions item={u} onRename={onRename} onMove={onBulkMove} />
           </div>
         ))}
         {lightBoxIndex !== null && (
