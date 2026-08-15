@@ -13,6 +13,7 @@ import { updateItem, getItemCount } from '../../api/upload.ts';
 import { InputModal } from "../InputModal/InputModal.tsx";
 import { ConfirmModal } from "../ConfirmModal/ConfirmModal.tsx";
 import { NavigationModal } from "../NavigationModal/NavigationModal.tsx";
+import { Breadcrumb } from "../Breadcrumb/Breadcrumb.tsx";
 
 type DriveProps = {
   getSpaceUsed: () => void;
@@ -54,7 +55,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
     setPath((prev) => [...prev, {id: id, name: name}])
   }
 
-  function handleBreadcrumbClick(id: string) {
+  function handleBreadcrumbClick(id: string|null) {
     const breadIndex = path.findIndex((p) => p.id === id);
     setPath((prev) => prev.slice(0, breadIndex+1));
   }
@@ -111,10 +112,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
     <>
       <UploadArea parentId={currentFolder === 'root' ? null : currentFolder} onComplete={()=> { reload(); getSpaceUsed();}} />
       <SearchBar value={query} setValue={setQuery}/>
-      {path.map((p) => {
-        return <button key={p.id} onClick={() => handleBreadcrumbClick(p.id)}>{p.name}</button>
-        })}
-      <button onClick={() => setModal({mode:'create'})}>Create folder</button>
+      <Breadcrumb path={path} onNavigate={handleBreadcrumbClick}/>
       {(modal?.mode === 'create' || modal?.mode === 'rename') && <InputModal { ...(modal.mode === 'create' ?
                                       {initialValue: '', mode: modal.mode, onConfirm: handleCreateFolder, confirmBtnLabel:'Create folder' } 
                                       : {initialValue: modal.item.name, mode:modal.mode, onConfirm: handleRenameItem, confirmBtnLabel:'Rename item' })} 
@@ -131,6 +129,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
         onFolderOpen={handleOpenFolder}
         onRename={(item) => setModal({mode: 'rename', item})}
         onMoveBulk={handleMoveClick}
+        onCreateFolder={() => setModal({mode:'create'})}
       />
     </>
   );

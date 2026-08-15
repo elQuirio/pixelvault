@@ -1,0 +1,48 @@
+
+.breadcrumbWrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    white-space: nowrap;
+    overflow-x: auto;
+    padding: 4px 0;
+    margin-bottom: 12px;
+    scrollbar-width: none;
+}
+
+.breadcrumbWrapper::-webkit-scrollbar { 
+    display: none; 
+}
+
+.crumb {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 8px 8px 8px;
+  font: inherit;
+  color: var(--text);
+  margin: 0;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.crumb:hover {
+  background: var(--surface-hover);
+}
+
+.crumb:not(:last-child)::after {
+  content: '›';
+  margin-left: 10px;
+  color: var(--text);
+}
+
+.current {
+  color: var(--muted);
+  font-weight: 500;
+  cursor: default;
+}
+
+.current:hover {
+  background: transparent;
+}

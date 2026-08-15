@@ -4,6 +4,7 @@ import { useToast } from "../../context/useToast.tsx";
 import { useState } from "react";
 import { useItems } from "../../hooks/useItems.ts";
 import { ConfirmModal } from "../ConfirmModal/ConfirmModal.tsx";
+import { Breadcrumb } from "../Breadcrumb/Breadcrumb.tsx";
 
 type TrashProps = {
   getSpaceUsed: () => void;
@@ -77,9 +78,7 @@ export function Trash({getSpaceUsed}: TrashProps) {
 
   return (
     <>
-      {path.map((p) => {
-        return <button key={p.id ?? 'home'} onClick={() => handleBreadcrumbClick(p.id)}>{p.name}</button>
-        })}
+      <Breadcrumb path={path} onNavigate={handleBreadcrumbClick}/> 
         {modal?.mode === 'confirm' && <ConfirmModal confirmBtnLabel={'Confirm'} mode={modal.action} itemCount={modal.count}
                                                     onConfirm={modal.action === 'permanent' ? () => handlePermanentConfirm(modal.ids) : () => handleRestoreConfirm(modal.ids)} 
                                                     onClose={handleCancelClick}/>}
