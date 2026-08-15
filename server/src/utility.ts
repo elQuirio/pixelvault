@@ -60,7 +60,7 @@ export async function generateVideoThumbnail(filepath: string, fileUuid: string,
 }
 
 
-export async function collectSubtree({rootId, userId}: {rootId: number, userId: number}): Promise<number[]> {
+export async function collectSubtree({rootId, userId, deletedAt}: {rootId: number, userId: number, deletedAt?: Date | null}): Promise<number[]> {
   const subtreeList = new Set<number>();
   subtreeList.add(rootId);
   const childToInspect : number[] = [rootId];
@@ -69,7 +69,9 @@ export async function collectSubtree({rootId, userId}: {rootId: number, userId: 
     const inspectedChild = childToInspect.pop();
     if (inspectedChild === undefined) continue;
 
-    const children = await db.select({id: items.id}).from(items).where(and(eq(items.userId, userId), eq(items.parentId, inspectedChild)));
+    const queryConditions = [eq(items.userId, userId), eq(items.parentId, inspectedChild)];
+    if (deletedAt) queryConditions.push(eq(items.deletedAt, deletedAt));
+    const children = await db.select({id: items.id}).from(items).where(and(...queryConditions));
     children.forEach((c) => {
       if (!subtreeList.has(c.id)) {
         subtreeList.add(c.id);
