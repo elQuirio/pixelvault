@@ -102,19 +102,6 @@ export async function createFolder({visibleName, parentId}: {visibleName: string
 }
 
 
-export async function deleteItem(id: string) {
-  const res = await fetch(`${API_BASE}/items/${id}`, {
-    method: "DELETE",
-    credentials: "include",
-  });
-
-  if (!res.ok) {
-    throw new Error(`Error deleting id: ${id}`);
-  }
-  return;
-}
-
-
 export async function deleteItemsBulk(ids: string[]) {
   const res = await fetch(`${API_BASE}/items`, {
     method: "DELETE",
@@ -131,18 +118,6 @@ export async function deleteItemsBulk(ids: string[]) {
 }
 
 
-export async function restoreItem(id: string) {
-  const resp = await fetch(`${API_BASE}/items/${id}/restore`,{
-    method: 'POST',
-    credentials: 'include',
-  });
-  if (!resp.ok) {
-    throw new Error(`Error deleting id: ${id}`);
-  }
-  return;
-}
-
-
 export async function restoreItemsBulk(ids: string[]) {
   const resp = await fetch(`${API_BASE}/items/restore`,{
     method: 'POST',
@@ -153,19 +128,6 @@ export async function restoreItemsBulk(ids: string[]) {
 
   if (!resp.ok) {
     throw new Error(`Error restoring ids`);
-  }
-  return;
-}
-
-
-export async function permanentDelete(id: string) {
-  const resp = await fetch(`${API_BASE}/items/${id}/permanent`,{
-    method: 'DELETE',
-    credentials: 'include',
-  });
-
-  if (!resp.ok) {
-    throw new Error(`Error deleting id: ${id}`);
   }
   return;
 }

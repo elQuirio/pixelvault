@@ -235,31 +235,6 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req, reply) => {
 });
 
 
-app.delete("/items/:id", {preHandler: [app.authenticate]}, async (req, reply) => {
-  const { id } = req.params as { id: string };
-  const userId = req.user.id;
-
-  if (!id) {
-    return reply.code(400).send();
-  } else if (!isUuid(id)) {
-    return reply.code(404).send({message: 'Resource not found'});
-  }
-
-
-  const [item] = await db.select().from(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId)));
-  if (!item) {
-    return reply.code(404).send({ message: "Resource not found" });
-  }
-
-  const itemChildren = await collectSubtree({userId, rootId: item.id});
-
-  //db
-  const deletedAt = new Date();
-  await db.update(items).set({deletedAt: deletedAt}).where(and(inArray(items.id, itemChildren), isNull(items.deletedAt), eq(items.userId, userId)));
-
-  return reply.code(204).send();
-});
-
 app.delete("/items", {preHandler: [app.authenticate]}, async (req, reply) => {
   const { ids } = req.body as { ids: string[] };
   const userId = req.user.id;
@@ -286,36 +261,6 @@ app.delete("/items", {preHandler: [app.authenticate]}, async (req, reply) => {
   return reply.code(204).send();
 });
 
-
-
-app.post('/items/:id/restore', {preHandler: [app.authenticate]}, async (req, reply)=> {
-  const { id } = req.params as {id: string};
-
-  if (!id) {
-    return reply.code(400).send();
-  } else if (!isUuid(id)) {
-    return reply.code(404).send({message: 'Resource not found'});
-  }
-
-  const userId = req.user.id;
-
-  const [item] = await db.select().from(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
-  if (!item) {
-    return reply.code(404).send({message: 'Resource not found'});
-  }
-
-  if (item.parentId !== null) {
-    const [parent] = await db.select().from(items).where(and(eq(items.id, item.parentId), eq(items.userId, userId) ));
-    if (parent?.deletedAt) {
-      await db.update(items).set({parentId: null}).where(and(eq(items.id, item.id), eq(items.userId, userId), isNotNull(items.deletedAt) ));
-    }
-  }
-  // When I restore a child without a parent (or before a parent) delete the link with the parent
-  const itemChildren = await collectSubtree({rootId: item.id , userId});
-  await db.update(items).set({deletedAt: null}).where(and(eq(items.deletedAt, item.deletedAt!), inArray(items.id, itemChildren), eq(items.userId, userId))).returning({id: items.fileUuid});
-
-  return reply.code(200).send();
-});
 
 // restore bulk
 app.post('/items/restore', {preHandler: [app.authenticate]}, async (req, reply)=> {
@@ -350,43 +295,10 @@ app.post('/items/restore', {preHandler: [app.authenticate]}, async (req, reply)=
         await db.update(items).set({parentId: null}).where(and(eq(items.id, item.id), eq(items.userId, userId), isNotNull(items.deletedAt)));
       }
     }
-    
     await db.update(items).set({deletedAt: null}).where(and(inArray(items.id, subtree), eq(items.userId, userId), eq(items.deletedAt, item.deletedAt! )));
   }
   return reply.code(200).send();
 })
-
-
-// permanent single
-app.delete('/items/:id/permanent', {preHandler: [app.authenticate]}, async (req, reply) => {
-  const {id} = req.params as {id: string};
-
-  if (!id) {
-    return reply.code(400).send({message: 'Missing mandatory data'});
-  } else if (!isUuid(id)) {
-    return reply.code(404).send({message: 'Resource not found'});
-  }
-
-  const userId = req.user.id;
-  
-  const [item] = await db.select().from(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
-  if (!item) {
-    return reply.code(404).send({ message: "Resource not found" });
-  }
-
-  const itemChildren = await collectSubtree({rootId: item.id, userId});
-
-  const deletedItems = await db.delete(items).where(and(inArray(items.id, itemChildren), eq(items.userId, userId))).returning({uuid: items.fileUuid, ext: items.ext});
-
-  for (const delItem of deletedItems) {
-    //original
-    await safeUnlink(join(ORIGINAL_DIR, `${delItem.uuid}.${delItem.ext}`));
-    //thumbnail
-    await safeUnlink(join(THUMBNAIL_DIR, `${delItem.uuid}.webp`));
-  }
-  
-  return reply.code(204).send();
-});
 
 
 // permanent bulk
