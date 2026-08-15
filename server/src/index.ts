@@ -326,20 +326,32 @@ app.post('/items/restore', {preHandler: [app.authenticate]}, async (req, reply)=
     return reply.code(400).send();
   }
 
+  const itemChildrenUnion : number[] = [];
+  const itemsList = [];
+
   for (const id of ids) {
     if (!isUuid(id)) continue;
+    // get item details from item id
     const [item] = await db.select().from(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
     if (!item) continue;
+    // collect subtree for each item
+    const subtree = await collectSubtree({rootId: item.id, userId, deletedAt: item.deletedAt});
+    itemsList.push({item, subtree});
+    itemChildrenUnion.push(...subtree);
+  }
+
+  for (const {item, subtree} of itemsList) {
 
     if (item.parentId !== null) {
+      // get parent from item
       const [parent] = await db.select().from(items).where(and(eq(items.id, item.parentId), eq(items.userId, userId) ));
-      if (parent?.deletedAt) {
+      if (parent?.deletedAt && !itemChildrenUnion.includes(parent.id)) {
+        // if parent is deleted too but not restore in this batch then unlink them
         await db.update(items).set({parentId: null}).where(and(eq(items.id, item.id), eq(items.userId, userId), isNotNull(items.deletedAt)));
       }
     }
-    // When I restore a child without a parent (or before a parent) delete the link with the parent
-    const itemChildren = await collectSubtree({rootId: item.id, userId});
-    await db.update(items).set({deletedAt: null}).where(and(inArray(items.id, itemChildren), eq(items.userId, userId), eq(items.deletedAt, item.deletedAt! )));
+    
+    await db.update(items).set({deletedAt: null}).where(and(inArray(items.id, subtree), eq(items.userId, userId), eq(items.deletedAt, item.deletedAt! )));
   }
   return reply.code(200).send();
 })
@@ -392,7 +404,7 @@ app.delete('/items/permanent', {preHandler: [app.authenticate]}, async (req, rep
 
     const [item] = await db.select().from(items).where(and(eq(items.fileUuid, id), eq(items.userId, userId), isNotNull(items.deletedAt)));
     if (!item) continue;
-    const childrenItem = await collectSubtree({rootId: item.id, userId});
+    const childrenItem = await collectSubtree({rootId: item.id, userId, deletedAt: item.deletedAt});
     itemsToDelete.push(...childrenItem);
   }
 
@@ -510,9 +522,9 @@ app.post('/items/count', {preHandler: [app.authenticate]}, async (req, reply) =>
 
   if (mode === 'permanent') {
     const idsChildren : number[] = [];
-    const rootsN = await db.select({id: items.id}).from(items).where(and(inArray(items.fileUuid, roots), eq(items.userId, userId), isNotNull(items.deletedAt)));
+    const rootsN = await db.select({id: items.id, deletedAt: items.deletedAt}).from(items).where(and(inArray(items.fileUuid, roots), eq(items.userId, userId), isNotNull(items.deletedAt)));
     for (const root of rootsN) {
-      const subTree = await collectSubtree({userId, rootId: root.id});
+      const subTree = await collectSubtree({userId, rootId: root.id, deletedAt: root.deletedAt});
       idsChildren.push(...subTree);
     }
     [idsCount] = await db.select({total: count()}).from(items).where(and(inArray(items.id, idsChildren), eq(items.userId, userId), isNotNull(items.deletedAt)));
@@ -529,7 +541,7 @@ app.post('/items/count', {preHandler: [app.authenticate]}, async (req, reply) =>
   else if (mode === 'restore') {
     const rootsN = await db.select({id: items.id, deletedAt: items.deletedAt}).from(items).where(and(inArray(items.fileUuid, roots), eq(items.userId, userId), isNotNull(items.deletedAt)));
     for (const root of rootsN) {
-      const subTree = await collectSubtree({userId, rootId: root.id});
+      const subTree = await collectSubtree({userId, rootId: root.id, deletedAt: root.deletedAt});
       const [currentCount] = await db.select({total: count()}).from(items).where(and(inArray(items.id, subTree), eq(items.userId, userId), eq(items.deletedAt, root.deletedAt!) ));
       idsCount.total += currentCount.total;
     }
