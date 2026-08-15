@@ -14,14 +14,14 @@ export function UploadArea({ accept, multiple, onComplete, parentId }: UploadAre
   const [isDragging, setIsDragging] = useState(false);
   const {done, total, isUploading, uploadFiles} = useUpload({onComplete});
 
-  function handleOnDrop(e: React.DragEvent<HTMLLabelElement>): void {
+  function handleDrop(e: React.DragEvent<HTMLLabelElement>): void {
     e.preventDefault();
     setIsDragging(false);
     const files = Array.from(e.dataTransfer.files);
     uploadFiles(files, parentId);
   }
 
-  function handleOnChange(e: React.ChangeEvent<HTMLInputElement>): void {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
     if (!e.target.files) return;
     const files = Array.from(e.target.files);
     uploadFiles(files, parentId);
@@ -33,7 +33,7 @@ export function UploadArea({ accept, multiple, onComplete, parentId }: UploadAre
       onDragEnter={() => setIsDragging(true)}
       onDragLeave={() => setIsDragging(false)}
       onDragOver={(e) => e.preventDefault()}
-      onDrop={handleOnDrop}
+      onDrop={handleDrop}
     >
     { isUploading ? (<>
                       <p className="status">Uploading...{done}/{total}</p>
@@ -42,7 +42,7 @@ export function UploadArea({ accept, multiple, onComplete, parentId }: UploadAre
       : <span>Drop here your files...</span>
       }
 
-      <input type="file" onChange={handleOnChange} multiple={multiple ?? true} accept={accept ?? "*"} hidden></input>
+      <input type="file" onChange={handleChange} multiple={multiple ?? true} accept={accept ?? "*"} hidden></input>
     </label>
   );
 }

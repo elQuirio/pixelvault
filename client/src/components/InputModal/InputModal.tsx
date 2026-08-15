@@ -15,7 +15,7 @@ type InputModalProps = {
 export function InputModal({initialValue, mainLabel, mode, confirmBtnLabel, onConfirm, onClose}: InputModalProps) {
   const [input, setInput] = useState(initialValue);
 
-  function handleOnSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim()) return;
     onConfirm(input);
@@ -27,7 +27,7 @@ export function InputModal({initialValue, mainLabel, mode, confirmBtnLabel, onCo
     defaultMainLabel= 'Insert new name';
   }
 
-  const modalContent = (<form onSubmit={handleOnSubmit} onClick={(e) => e.stopPropagation()} className={styles.modal}>
+  const modalContent = (<form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()} className={styles.modal}>
                                 <div className={styles.modalWrapper}>
                                 <label htmlFor="input-value">{mainLabel ?? defaultMainLabel}</label>
                                 <input id='input-value' type="text" value={input} onChange={(e) => setInput(e.target.value)} autoFocus autoComplete="off"></input>

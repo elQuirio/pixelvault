@@ -7,7 +7,7 @@ import styles from './NavigationModal.module.css';
 type NavigationModalProps = {
     initialPath: {id: string, name: string}[],
     excludedIds: string[],
-    onConfirm: (currentFolder: string) => Promise<void>,
+    onConfirm: (destinationId: string) => Promise<void>,
     onClose: () => void,
 }
 
@@ -19,7 +19,7 @@ export function NavigationModal({initialPath, excludedIds, onConfirm, onClose}: 
     const filteredItems = items.filter((i) => !excludedIds.includes(i.id));
     const [isMoving, setIsMoving] = useState<boolean>(false);
 
-  async function handleOnSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setIsMoving(true);
     await onConfirm(currentFolder);
@@ -35,7 +35,7 @@ export function NavigationModal({initialPath, excludedIds, onConfirm, onClose}: 
   }
 
 
-  const modalContent = (<form onSubmit={handleOnSubmit} onClick={(e) => e.stopPropagation()} className={styles.modal}>
+  const modalContent = (<form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()} className={styles.modal}>
                                 <div className={styles.modalWrapper}>
                                     <div className={styles.header}>
                                       <button type='button' className={styles.backButton} disabled={path.length===1} onClick={handleNavigateBack}><div><ArrowBigLeft size={18}/></div></button>

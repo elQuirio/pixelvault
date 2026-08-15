@@ -66,30 +66,30 @@ export function Trash({getSpaceUsed}: TrashProps) {
     setPath((prev) => [...prev, {id: id, name: name}]);
   }
 
-  function onBreadcrumbClick(id: string|null) {
+  function handleBreadcrumbClick(id: string|null) {
     const breadIndex = path.findIndex((p) => p.id === id);
     setPath((prev) => prev.slice(0, breadIndex+1));
   }
 
-  function onClickCancel() {
+  function handleCancelClick() {
     setModal(null);
   }
 
   return (
     <>
       {path.map((p) => {
-        return <button key={p.id ?? 'home'} onClick={() => onBreadcrumbClick(p.id)}>{p.name}</button>
+        return <button key={p.id ?? 'home'} onClick={() => handleBreadcrumbClick(p.id)}>{p.name}</button>
         })}
-        {modal?.mode === 'confirm' && <ConfirmModal confirmBtnLabel={'Confirm'} action={modal.action} itemCount={modal.count}
+        {modal?.mode === 'confirm' && <ConfirmModal confirmBtnLabel={'Confirm'} mode={modal.action} itemCount={modal.count}
                                                     onConfirm={modal.action === 'permanent' ? () => handlePermanentConfirm(modal.ids) : () => handleRestoreConfirm(modal.ids)} 
-                                                    onClose={onClickCancel}/>}
+                                                    onClose={handleCancelClick}/>}
       <ItemGrid
         key={currentFolder ?? 'home'}
-        files={items}
-        handleDeleteItem={handlePermanentClick}
-        handleDeleteBulkClick={handlePermanentClick}
-        handleRestore={handleRestoreClick}
-        handleBulkRestore={handleRestoreClick}
+        items={items}
+        onDelete={handlePermanentClick}
+        onDeleteBulk={handlePermanentClick}
+        onRestore={handleRestoreClick}
+        onRestoreBulk={handleRestoreClick}
         sortBy={sortBy}
         setSortBy={setSortBy}
         onFolderOpen={handleOpenFolder}
