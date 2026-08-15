@@ -10,7 +10,7 @@ export function useSelection() {
   };
 
 
-  const handleCheckboxOnChange = (id: string) => {
+  const toggleSelection = (id: string) => {
     if (selectedIds.includes(id)) {
       setSelectedIds((prev) => [...prev.filter((i) => i !== id)]);
     } else {
@@ -18,5 +18,5 @@ export function useSelection() {
     }
   };
 
-  return { isSelectMode, setIsSelectMode, selectedIds, setSelectedIds, toggleSelectMode, handleCheckboxOnChange};
+  return { isSelectMode, setIsSelectMode, selectedIds, setSelectedIds, toggleSelectMode, toggleSelection};
 }

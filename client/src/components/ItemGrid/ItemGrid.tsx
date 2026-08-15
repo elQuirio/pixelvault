@@ -6,33 +6,33 @@ import { TypeIcon } from "../TypeIcon/TypeIcon";
 import { Toolbar } from "../Toolbar/Toolbar";
 import { useLightBox } from "../../hooks/useLightBox";
 import { useSelection } from "../../hooks/useSelection";
-import { ItemActions } from "../itemActions/ItemActions";
+import { ItemActions } from "../ItemActions/ItemActions";
 
 
 
 type ItemGridProps = {
-  files: Item[];
-  handleDeleteItem: (ids: string[]) => void;
-  handleDeleteBulkClick: (ids: string[]) => void;
-  handleRestore?: (ids: string[]) => void;
-  handleBulkRestore?: (ids: string[]) => void;
+  items: Item[];
+  onDelete: (ids: string[]) => void;
+  onDeleteBulk: (ids: string[]) => void;
+  onRestore?: (ids: string[]) => void;
+  onRestoreBulk?: (ids: string[]) => void;
   sortBy: string;
   setSortBy: (sortBy: string) => void;
   onFolderOpen?: (id: string, name: string) => void;
   onRename?: (item: { id: string, name: string }) => void;
-  onBulkMove?: (ids: string[]) => void;
+  onMoveBulk?: (ids: string[]) => void;
 };
 
-export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortBy, setSortBy, handleRestore, handleBulkRestore, onFolderOpen, onRename, onBulkMove }: ItemGridProps) {
-  const {isSelectMode, toggleSelectMode, selectedIds, handleCheckboxOnChange} = useSelection();
+export function ItemGrid({ items, onDelete, onDeleteBulk, sortBy, setSortBy, onRestore, onRestoreBulk, onFolderOpen, onRename, onMoveBulk }: ItemGridProps) {
+  const {isSelectMode, toggleSelectMode, selectedIds, toggleSelection} = useSelection();
 
-  const mediaItems = files.filter((f) => f.itemType !== "folder");
+  const mediaItems = items.filter((f) => f.itemType !== "folder");
   const { lightBoxIndex, setLightBoxIndex, closeLightBox } = useLightBox(mediaItems);
 
 
-  const handleOnClick = (u: Item) => {
+  const handleClick = (u: Item) => {
     if (isSelectMode) {
-      handleCheckboxOnChange(u.id);
+      toggleSelection(u.id);
       return;
     }
     if (u.itemType === "folder") {
@@ -42,41 +42,41 @@ export function ItemGrid({ files, handleDeleteItem, handleDeleteBulkClick, sortB
     setLightBoxIndex(mediaItems.findIndex((m) => u.id === m.id));
   };
 
-  function onBulkDelete(selectedIds: string[]) {
-    handleDeleteBulkClick(selectedIds);
+  function handleDeleteBulk(selectedIds: string[]) {
+    onDeleteBulk(selectedIds);
     toggleSelectMode();
   }
 
-  function onBulkRestore(selectedIds: string[]) {
-    handleBulkRestore?.(selectedIds);
+  function handleRestoreBulk(selectedIds: string[]) {
+    onRestoreBulk?.(selectedIds);
     toggleSelectMode();
   }
 
-  function handleBulkMove(selectedIds: string[]) {
-    onBulkMove?.(selectedIds);
+  function handleMoveBulk(selectedIds: string[]) {
+    onMoveBulk?.(selectedIds);
     toggleSelectMode();
   }
 
   return (
     <div>
-      <Toolbar isSelectMode={isSelectMode} toggleSelectMode={toggleSelectMode} sortBy={sortBy} setSortBy={setSortBy} onBulkDelete={() => onBulkDelete(selectedIds)} onBulkRestore={handleBulkRestore && (() => onBulkRestore(selectedIds))} onBulkMove={onBulkMove && (() => handleBulkMove(selectedIds))} />
+      <Toolbar isSelectMode={isSelectMode} onToggleSelectMode={toggleSelectMode} sortBy={sortBy} setSortBy={setSortBy} onDeleteBulk={() => handleDeleteBulk(selectedIds)} onRestoreBulk={onRestoreBulk && (() => handleRestoreBulk(selectedIds))} onMoveBulk={onMoveBulk && (() => handleMoveBulk(selectedIds))} />
       <div className={styles.gridContainer}>
-        {files.map((u, i) => (
+        {items.map((u) => (
           <div key={u.id} className={styles.thumbnailContainer}>
             {isSelectMode && (
-              <input type="checkbox" className={styles.selectionCheckbox} checked={selectedIds.includes(u.id)} onChange={() => handleCheckboxOnChange(u.id)} />
+              <input type="checkbox" className={styles.selectionCheckbox} checked={selectedIds.includes(u.id)} onChange={() => toggleSelection(u.id)} />
             )}
             {u.thumbnail ? (
-              <img className={styles.thumbnail} src={`${API_BASE}${u.thumbnail}`} alt={files[i].id} onClick={() => handleOnClick(u)}/>
+              <img className={styles.thumbnail} src={`${API_BASE}${u.thumbnail}`} alt={u.id} onClick={() => handleClick(u)}/>
             ) : (
-              <TypeIcon itemType={u.itemType} onClick={() => handleOnClick(u)}/>
+              <TypeIcon itemType={u.itemType} onClick={() => handleClick(u)}/>
             )}
             <div className={styles.itemName}>{u.visibleName}</div>
-            <ItemActions item={u} onRename={onRename} onMove={onBulkMove} />
+            <ItemActions item={u} onRename={onRename} onMove={onMoveBulk} />
           </div>
         ))}
         {lightBoxIndex !== null && (
-          <LightBox items={mediaItems} lightBoxIndex={lightBoxIndex} setLightBoxIndex={setLightBoxIndex} onClose={closeLightBox} handleDeleteItem={handleDeleteItem} handleRestore={handleRestore}/>
+          <LightBox items={mediaItems} lightBoxIndex={lightBoxIndex} setLightBoxIndex={setLightBoxIndex} onClose={closeLightBox} onDelete={onDelete} onRestore={onRestore}/>
         )}
       </div>
     </div>

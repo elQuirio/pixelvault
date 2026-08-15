@@ -5,14 +5,14 @@ type ConfirmModalProps = {
     mainLabel?: string,
     confirmBtnLabel?: string,
     itemCount?: number,
-    action: 'soft'|'permanent'|'restore',
+    mode: 'soft'|'permanent'|'restore',
     onConfirm: () => Promise<void>,
     onClose: () => void,
 }
 
-export function ConfirmModal({mainLabel, confirmBtnLabel='Confirm', itemCount, action, onConfirm, onClose}: ConfirmModalProps) {
+export function ConfirmModal({mainLabel, confirmBtnLabel='Confirm', itemCount, mode, onConfirm, onClose}: ConfirmModalProps) {
 
-  function handleOnSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     onConfirm();
   }
@@ -23,15 +23,15 @@ export function ConfirmModal({mainLabel, confirmBtnLabel='Confirm', itemCount, a
     itemString = `${itemCount} ${(itemCount === 1) ? 'item': 'items'}`;
   }
   
-  if (action === 'permanent') {
+  if (mode === 'permanent') {
     defaultMainLabel = `Permanently delete ${itemString}?`;
-  } else if (action === 'soft') {
+  } else if (mode === 'soft') {
     defaultMainLabel = `Move ${itemString} to trash?`;
-  } else if (action === 'restore') {
+  } else if (mode === 'restore') {
      defaultMainLabel = `Restore ${itemString}?`;
   }
 
-  const modalContent = (<form onSubmit={handleOnSubmit} onClick={(e) => e.stopPropagation()} className={styles.modal}>
+  const modalContent = (<form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()} className={styles.modal}>
                                 <div className={styles.modalWrapper}>
                                 <div>{mainLabel ?? defaultMainLabel}</div>
                                 <button type="submit">{confirmBtnLabel}</button>

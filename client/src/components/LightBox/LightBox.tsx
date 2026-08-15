@@ -8,12 +8,12 @@ type LightBoxTypes = {
   items: Item[];
   lightBoxIndex: number;
   setLightBoxIndex: (i: number) => void;
-  handleDeleteItem: (ids: string[]) => void;
-  handleRestore?: (ids: string[]) => void;
+  onDelete: (ids: string[]) => void;
+  onRestore?: (ids: string[]) => void;
   onClose: () => void;
 };
 
-export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, handleDeleteItem, handleRestore }: LightBoxTypes) {
+export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, onDelete, onRestore }: LightBoxTypes) {
   const item = items[lightBoxIndex];
 
   useEffect(() => {
@@ -64,8 +64,8 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, hand
       </div>
       {item.itemType === 'video' ? (<video key={item.id} className={styles.image} src={`${API_BASE}${item.url}`} controls autoPlay muted={true} onClick={(e) => e.stopPropagation()}></video>) :( <img key={item.id} className={styles.image} src={`${API_BASE}${item.url}`} alt={item.id} onClick={(e) => e.stopPropagation()} />)}
       <div>
-          <button className={styles.deleteButton} onClick={(e) => {handleDeleteItem([item.id]); e.stopPropagation()}} >Delete</button>
-          {handleRestore && (<button onClick={() => handleRestore([item.id])}>Restore</button>)}
+          <button className={styles.deleteButton} onClick={(e) => {onDelete([item.id]); e.stopPropagation()}} >Delete</button>
+          {onRestore && (<button onClick={() => onRestore([item.id])}>Restore</button>)}
       </div>
     </div>
   );

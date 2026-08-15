@@ -2,15 +2,15 @@ import styles from './Toolbar.module.css';
 
 type ToolbarProps = {
     isSelectMode: boolean;
-    toggleSelectMode: () => void;
+    onToggleSelectMode: () => void;
     sortBy: string;
     setSortBy: (sortBy: string) => void;
-    onBulkDelete: () => void;
-    onBulkRestore?: () => void;
-    onBulkMove?: () => void;
+    onDeleteBulk: () => void;
+    onRestoreBulk?: () => void;
+    onMoveBulk?: () => void;
 }
 
-export function Toolbar({isSelectMode, toggleSelectMode, sortBy, setSortBy, onBulkDelete, onBulkRestore, onBulkMove }: ToolbarProps) {
+export function Toolbar({isSelectMode, onToggleSelectMode, sortBy, setSortBy, onDeleteBulk, onRestoreBulk, onMoveBulk }: ToolbarProps) {
     const sortMap = [
         { sortkey: "creationDateDesc", label: "New first" },
         { sortkey: "creationDateAsc", label: "Old first" },
@@ -18,14 +18,14 @@ export function Toolbar({isSelectMode, toggleSelectMode, sortBy, setSortBy, onBu
 
 
     return <div className={styles.toolbar}>
-            <button className={`${styles.selectModeBtn} ${isSelectMode ? styles.active : ""}`} onClick={toggleSelectMode}>Select...</button>
+            <button className={`${styles.selectModeBtn} ${isSelectMode ? styles.active : ""}`} onClick={onToggleSelectMode}>Select...</button>
             <select className={styles.select} value={sortBy} onChange={(e) => setSortBy(e.target.value)} >
                 {sortMap.map((s) => ( <option key={s.sortkey} value={s.sortkey}>{s.label}</option> ))}
             </select>
             {isSelectMode && (<>
-                                <button onClick={() => onBulkDelete()}>Delete</button>
-                                    {onBulkRestore && (<button onClick={() => onBulkRestore()} >Restore</button>)}
-                                    {onBulkMove && <button onClick={() => onBulkMove()} >Move</button>}
+                                <button onClick={() => onDeleteBulk()}>Delete</button>
+                                    {onRestoreBulk && (<button onClick={() => onRestoreBulk()} >Restore</button>)}
+                                    {onMoveBulk && <button onClick={() => onMoveBulk()} >Move</button>}
                             </>)
             }
         </div>

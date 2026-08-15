@@ -54,7 +54,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
     setPath((prev) => [...prev, {id: id, name: name}])
   }
 
-  function onBreadcrumbClick(id: string) {
+  function handleBreadcrumbClick(id: string) {
     const breadIndex = path.findIndex((p) => p.id === id);
     setPath((prev) => prev.slice(0, breadIndex+1));
   }
@@ -75,7 +75,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
     setModal({mode:'move', ids});
   }
 
-  function onClickCancel() {
+  function handleCancelClick() {
     setModal(null);
   }
 
@@ -112,25 +112,25 @@ export function Drive({getSpaceUsed}: DriveProps) {
       <UploadArea parentId={currentFolder === 'root' ? null : currentFolder} onComplete={()=> { reload(); getSpaceUsed();}} />
       <SearchBar value={query} setValue={setQuery}/>
       {path.map((p) => {
-        return <button key={p.id} onClick={() => onBreadcrumbClick(p.id)}>{p.name}</button>
+        return <button key={p.id} onClick={() => handleBreadcrumbClick(p.id)}>{p.name}</button>
         })}
       <button onClick={() => setModal({mode:'create'})}>Create folder</button>
       {(modal?.mode === 'create' || modal?.mode === 'rename') && <InputModal { ...(modal.mode === 'create' ?
                                       {initialValue: '', mode: modal.mode, onConfirm: handleCreateFolder, confirmBtnLabel:'Create folder' } 
                                       : {initialValue: modal.item.name, mode:modal.mode, onConfirm: handleRenameItem, confirmBtnLabel:'Rename item' })} 
-                                      onClose={onClickCancel} />}
-      {(modal?.mode === 'confirm') && <ConfirmModal action={modal.action} itemCount={modal.count} onConfirm={() => handleDeleteConfirm(modal.ids)} onClose={onClickCancel}/>}
-      {(modal?.mode === 'move' && <NavigationModal initialPath={path} excludedIds={modal.ids} onConfirm={handleMoveConfirm} onClose={onClickCancel} />)}
+                                      onClose={handleCancelClick} />}
+      {(modal?.mode === 'confirm') && <ConfirmModal mode={modal.action} itemCount={modal.count} onConfirm={() => handleDeleteConfirm(modal.ids)} onClose={handleCancelClick}/>}
+      {(modal?.mode === 'move' && <NavigationModal initialPath={path} excludedIds={modal.ids} onConfirm={handleMoveConfirm} onClose={handleCancelClick} />)}
       <ItemGrid
         key={currentFolder}
-        files={filtered}
-        handleDeleteItem={handleDeleteClick}
-        handleDeleteBulkClick={handleDeleteClick}
+        items={filtered}
+        onDelete={handleDeleteClick}
+        onDeleteBulk={handleDeleteClick}
         sortBy={sortBy}
         setSortBy={setSortBy}
         onFolderOpen={handleOpenFolder}
         onRename={(item) => setModal({mode: 'rename', item})}
-        onBulkMove={handleMoveClick}
+        onMoveBulk={handleMoveClick}
       />
     </>
   );

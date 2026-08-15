@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 type ItemActionsProps = {
     item: Item;
     onRename?: ({id, name}: {id: string, name: string}) => void;
-    onMove?: (id: string[]) => void;
+    onMove?: (ids: string[]) => void;
 
 }
 
