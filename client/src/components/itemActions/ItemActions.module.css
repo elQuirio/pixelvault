@@ -2,20 +2,27 @@
 .actionBtnWrapper {
   position: absolute;
   z-index: 10;
-  bottom: 18px;
-  right: -9px;
-  padding: 0;
+  bottom: 20px;
+  right: 3px;
 }
 
 .actionMenuButton {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 4px;  
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin: 0;
+  border-radius: 20px;
+}
+
+.actionMenuButton svg { 
+  transform: translateX(-0.28px); 
 }
 
 .renameButton {
   display: flex;
+  gap: 1px;
   flex-direction: row;
   align-items: center;
   padding: 4px;
@@ -24,6 +31,7 @@
 
 .moveButton {
   display: flex;
+  gap: 1px;
   flex-direction: row;
   align-items: center;
   padding: 4px;
@@ -31,8 +39,16 @@
 }
 
 .actionMenuWrapper {
-    position: absolute;
-    gap: 1px;
-    right: -25px;
-    bottom: 25px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: end;
+  position: absolute;
+  gap: 1px;
+  right: -10px;
+  bottom: 30px;
+}
+
+.buttonLabel {
+  padding: 0 2px;;
 }

@@ -33,9 +33,11 @@ export function ConfirmModal({mainLabel, confirmBtnLabel='Confirm', itemCount, m
 
   const modalContent = (<form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()} className={styles.modal}>
                                 <div className={styles.modalWrapper}>
-                                <div>{mainLabel ?? defaultMainLabel}</div>
-                                <button type="submit">{confirmBtnLabel}</button>
-                                <button type="button" onClick={onClose}>Cancel</button>
+                                <div className={styles.modalLabel}>{mainLabel ?? defaultMainLabel}</div>
+                                <div className={styles.modalButtonsWrapper}>
+                                  <button type="submit">{confirmBtnLabel}</button>
+                                  <button type="button" onClick={onClose}>Cancel</button>
+                                </div>
                                 </div>
                             </form>);
 

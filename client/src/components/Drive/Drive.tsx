@@ -114,8 +114,8 @@ export function Drive({getSpaceUsed}: DriveProps) {
       <SearchBar value={query} setValue={setQuery}/>
       <Breadcrumb path={path} onNavigate={handleBreadcrumbClick}/>
       {(modal?.mode === 'create' || modal?.mode === 'rename') && <InputModal { ...(modal.mode === 'create' ?
-                                      {initialValue: '', mode: modal.mode, onConfirm: handleCreateFolder, confirmBtnLabel:'Create folder' } 
-                                      : {initialValue: modal.item.name, mode:modal.mode, onConfirm: handleRenameItem, confirmBtnLabel:'Rename item' })} 
+                                      {initialValue: '', mode: modal.mode, onConfirm: handleCreateFolder, confirmBtnLabel:'Create' } 
+                                      : {initialValue: modal.item.name, mode:modal.mode, onConfirm: handleRenameItem, confirmBtnLabel:'Rename' })} 
                                       onClose={handleCancelClick} />}
       {(modal?.mode === 'confirm') && <ConfirmModal mode={modal.action} itemCount={modal.count} onConfirm={() => handleDeleteConfirm(modal.ids)} onClose={handleCancelClick}/>}
       {(modal?.mode === 'move' && <NavigationModal initialPath={path} excludedIds={modal.ids} onConfirm={handleMoveConfirm} onClose={handleCancelClick} />)}

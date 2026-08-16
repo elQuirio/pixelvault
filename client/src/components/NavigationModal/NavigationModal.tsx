@@ -1,7 +1,7 @@
 import { Modal } from "../Modal/Modal";
 import { useState } from "react";
 import { useItems } from "../../hooks/useItems";
-import { ArrowBigLeft } from "lucide-react";
+import { ArrowBigLeft, Folder, File } from "lucide-react";
 import styles from './NavigationModal.module.css';
 
 type NavigationModalProps = {
@@ -38,13 +38,16 @@ export function NavigationModal({initialPath, excludedIds, onConfirm, onClose}: 
   const modalContent = (<form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()} className={styles.modal}>
                                 <div className={styles.modalWrapper}>
                                     <div className={styles.header}>
-                                      <button type='button' className={styles.backButton} disabled={path.length===1} onClick={handleNavigateBack}><div><ArrowBigLeft size={18}/></div></button>
+                                      <button type='button' className={styles.backButton} disabled={path.length===1} onClick={handleNavigateBack}><ArrowBigLeft size={18}/></button>
                                       <div className={styles.title}>{path.at(-1)?.name}</div>
                                     </div>
                                     <div className={styles.navigationWrapper}>
                                         {filteredItems.length>0 ? filteredItems.map((i) => {
-                                                return <button className={styles.folderButton} key={i.id} type='button' onClick={() => handleFolderClick(i.id, i.visibleName)}><div>{i.visibleName}</div></button>
-                                        }) : <div className={styles.empty}>Empty folder</div>
+                                                return  <button className={styles.folderButton} key={i.id} type='button' onClick={() => handleFolderClick(i.id, i.visibleName)}>
+                                                          <div className={styles.folderLabel}>{i.visibleName}</div>
+                                                          <div className={styles.folderStats}><div className={styles.itemsStatsWrapper}><File className={styles.modalIcon} size={15}/>{i.childCount}</div><div className={styles.folderStatsWrapper}><Folder className={styles.modalIcon} size={15}/>{i.folderCount}</div></div>
+                                                        </button>
+                                        }) : <div className={styles.empty}>No subfolders</div>
                                         }
                                     </div>
                                     <div className={styles.modalButtons}>

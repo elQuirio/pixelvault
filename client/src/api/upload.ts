@@ -17,13 +17,14 @@ export type Item = {
   id: string;
   url: string;
   thumbnail: string | null;
-  originalName: string;
+  originalName: string | null;
   visibleName: string;
   size: number;
   itemType: string;
   createdAt: string;
   metadata: Record<string, unknown | null>;
-
+  childCount: number;
+  folderCount: number;
 };
 
 export type ItemsResponse = {

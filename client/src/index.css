@@ -17,6 +17,10 @@
   --radius: 12px;
 }
 
+button, input, select, textarea {
+  font: inherit;
+}
+
 body {
   font-family:
     system-ui,

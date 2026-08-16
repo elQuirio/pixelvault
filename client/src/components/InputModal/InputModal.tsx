@@ -29,10 +29,12 @@ export function InputModal({initialValue, mainLabel, mode, confirmBtnLabel, onCo
 
   const modalContent = (<form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()} className={styles.modal}>
                                 <div className={styles.modalWrapper}>
-                                <label htmlFor="input-value">{mainLabel ?? defaultMainLabel}</label>
-                                <input id='input-value' type="text" value={input} onChange={(e) => setInput(e.target.value)} autoFocus autoComplete="off"></input>
-                                <button type="submit">{confirmBtnLabel}</button>
-                                <button type="button" onClick={onClose}>Cancel</button>
+                                <label className={styles.modalLabel} htmlFor="input-value">{mainLabel ?? defaultMainLabel}</label>
+                                <input className={styles.modalInput} id='input-value' type="text" value={input} onChange={(e) => setInput(e.target.value)} autoFocus autoComplete="off"></input>
+                                <div className={styles.modalButtonsWrapper}>
+                                  <button type="submit">{confirmBtnLabel}</button>
+                                  <button type="button" onClick={onClose}>Cancel</button>
+                                </div>
                                 </div>
                             </form>);
 
