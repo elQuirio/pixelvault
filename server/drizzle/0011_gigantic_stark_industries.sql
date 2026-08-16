@@ -1,0 +1,1 @@
+ALTER TABLE "items" ALTER COLUMN "visible_name" SET NOT NULL;

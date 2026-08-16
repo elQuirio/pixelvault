@@ -78,6 +78,13 @@
       "when": 1786800106158,
       "tag": "0010_perfect_enchantress",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1786866477620,
+      "tag": "0011_gigantic_stark_industries",
+      "breakpoints": true
     }
   ]
 }

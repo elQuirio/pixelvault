@@ -9,7 +9,7 @@ import staticPlugin from "@fastify/static";
 import sharp from "sharp";
 import { db } from "./db";
 import { items, users } from "./schema";
-import { eq, asc, desc, and, isNull, isNotNull, inArray, sum, notExists, count } from "drizzle-orm";
+import { eq, asc, desc, and, isNull, isNotNull, inArray, sum, notExists, count, getTableColumns, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import argon2 from 'argon2';
 import cookie from '@fastify/cookie';
@@ -133,7 +133,10 @@ app.get("/items", {preHandler: [app.authenticate]},  async (req, reply) => {
 
   const orderBy = (sortBy && sortBy in sortMap) ? sortMap[sortBy] : desc(items.createdAt);
 
-  const rows = (await db.select().from(items).where(and(...conditions)).orderBy(orderBy));
+  const rows = await (db.select({...getTableColumns(items), 
+                  childCount: sql<number>`(select count(*) from ${items} c where c.parent_id = "items"."id" and c.deleted_at is null)`.mapWith(Number).as('child_count'), 
+                  folderCount:  sql<number>`(select count(*) from ${items} c where c.parent_id = "items"."id" and c.deleted_at is null and c.item_type = 'folder')`.mapWith(Number).as('folder_count')}
+                ).from(items).where(and(...conditions)).orderBy(orderBy));
 
   return {data: {
     items: rows.map((f) => ({
@@ -146,6 +149,8 @@ app.get("/items", {preHandler: [app.authenticate]},  async (req, reply) => {
       itemType: f.itemType,
       createdAt: f.createdAt,
       metadata: f.metadata,
+      childCount: f.childCount,
+      folderCount: f.folderCount,
     })),
   }};
 });

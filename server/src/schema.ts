@@ -16,7 +16,7 @@ export const items = pgTable("items", {
   itemType: text('item_type').notNull().default('image'),
   ext: text("ext"),
   originalName: text("original_name"),
-  visibleName: text('visible_name'),
+  visibleName: text('visible_name').notNull(),
   size: integer("size"),
   userId: integer('user_id').notNull().references(() => users.id),
   metadata: jsonb('metadata'),
