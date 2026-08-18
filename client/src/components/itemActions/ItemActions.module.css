@@ -52,3 +52,12 @@
 .buttonLabel {
   padding: 0 2px;;
 }
+
+.deleteButton {
+  display: flex;
+  gap: 1px;
+  flex-direction: row;
+  align-items: center;
+  padding: 4px;
+  margin-top: 2px;
+}

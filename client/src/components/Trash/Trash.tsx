@@ -22,7 +22,7 @@ export function Trash({getSpaceUsed}: TrashProps) {
       const count = await getItemCount({selectedIds: ids, mode:'permanent'});
       setModal({mode: 'confirm', action: 'permanent', count: count, ids});
     } catch (err) {
-      console.log('Delete failed', err);
+      console.error(err);
       showToast('Delete failed', 'error');
     }
   }
@@ -35,7 +35,7 @@ export function Trash({getSpaceUsed}: TrashProps) {
       setModal(null);
       reload();
     } catch (err) {
-      console.log('Delete failed', err);
+      console.error(err);
       showToast('Delete failed', 'error');
     }
   }
@@ -45,7 +45,7 @@ export function Trash({getSpaceUsed}: TrashProps) {
       const count = await getItemCount({selectedIds: ids, mode: 'restore'});
       setModal({mode:'confirm', action: 'restore', count, ids});
     } catch (err) {
-      console.log('Restore failed', err);
+      console.error(err);
       showToast('Restore failed', 'error');
     }
   }
@@ -57,7 +57,7 @@ export function Trash({getSpaceUsed}: TrashProps) {
       setModal(null);
       reload();
     } catch (err) {
-      console.log('Restore failed', err);
+      console.error(err);
       showToast('Restore failed', 'error');
     }
   }
