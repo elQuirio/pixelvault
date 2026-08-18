@@ -28,7 +28,7 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
       removeItems(ids);
       setModal(null);
     } catch (err) {
-      console.log('Delete failed', err);
+      console.error(err);
       showToast('Delete failed', 'error');
     }
   }
@@ -38,7 +38,7 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
         const count = await getItemCount({mode:'soft', selectedIds: ids});
         setModal({mode: 'confirm', action:'soft', count, ids});
       } catch (err) {
-        console.log(err);
+        console.error(err);
         showToast('Delete failed', 'error');
       }
     }
@@ -50,7 +50,7 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
       patchItem(modal.item.id, {visibleName: newName.trim()});
       setModal(null);
     } catch (err) {
-      console.log('Rename failed', err);
+      console.error(err);
       showToast('Rename failed', 'error');
     }
   }

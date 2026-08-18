@@ -70,10 +70,10 @@ export function ItemGrid({ items, onDelete, onDeleteBulk, sortBy, setSortBy, onR
             {u.thumbnail ? (
               <img className={styles.thumbnail} src={`${API_BASE}${u.thumbnail}`} alt={u.id} onClick={() => handleClick(u)}/>
             ) : (
-              <TypeIcon itemType={u.itemType} onClick={() => handleClick(u)}/>
+              <TypeIcon itemType={u.itemType} onClick={() => handleClick(u)} itemCount={u.childCount}/>
             )}
             <div className={styles.itemName}>{u.visibleName}</div>
-            <ItemActions item={u} onRename={onRename} onMove={onMoveBulk} />
+            {!isSelectMode && <ItemActions item={u} onRename={onRename} onMove={onMoveBulk} onDelete={onDelete} />}
           </div>
         ))}
         {lightBoxIndex !== null && (

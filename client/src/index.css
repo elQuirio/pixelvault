@@ -15,6 +15,8 @@
   --accent-hover: #9333ea;
   --accent-soft: rgba(168, 85, 247, 0.15);
   --radius: 12px;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
 }
 
 button, input, select, textarea {

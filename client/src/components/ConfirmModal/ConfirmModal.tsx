@@ -35,7 +35,7 @@ export function ConfirmModal({mainLabel, confirmBtnLabel='Confirm', itemCount, m
                                 <div className={styles.modalWrapper}>
                                 <div className={styles.modalLabel}>{mainLabel ?? defaultMainLabel}</div>
                                 <div className={styles.modalButtonsWrapper}>
-                                  <button type="submit">{confirmBtnLabel}</button>
+                                  <button type="submit" className={mode === 'permanent' ? styles.dangerButton : undefined}>{confirmBtnLabel}</button>
                                   <button type="button" onClick={onClose}>Cancel</button>
                                 </div>
                                 </div>

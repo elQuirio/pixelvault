@@ -18,7 +18,7 @@ export function useItems({ parentId, deleted, type }: useItemsProps) {
     getItems({ sortBy, parentId, deleted, type}).then((res) => {
       setItems(res.data.items);
     }).catch((err) => {
-      console.log(err);
+      console.error(err);
       showToast('Error loading files', 'error');
     });
   }

@@ -35,7 +35,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
       removeItems(ids);
       setModal(null);
     } catch (err) {
-      console.log('Delete failed', err);
+      console.error(err);
       showToast('Delete failed', 'error');
     }
   }
@@ -45,7 +45,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
       const count = await getItemCount({mode:'soft', selectedIds: ids});
       setModal({mode: 'confirm', action: 'soft', count, ids});
     } catch (err) {
-      console.log(err);
+      console.error(err);
       showToast('Delete failed', 'error');
     }
   }
@@ -67,7 +67,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
       setModal(null);
       reload();
     } catch (err) {
-      console.log('Create folder failed', err);
+      console.error(err);
       showToast('Create folder failed', 'error');
     }
   }
@@ -87,7 +87,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
       patchItem(modal.item.id, {visibleName: newName.trim()})
       setModal(null);
     } catch (err) {
-      console.log('Rename failed', err);
+      console.error(err);
       showToast('Rename failed','error');
     }
   }
@@ -99,7 +99,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
         await updateItem({id, parentId});
       }
     } catch (err) {
-      console.log('Move failed', err);
+      console.error(err);
       showToast('Move failed', 'error');
     }
     finally {
