@@ -20,8 +20,8 @@
   animation: slideIn 0.25s ease;
 }
 
-.success { border-left: 4px solid #22c55e; }
-.error   { border-left: 4px solid #ef4444; }
+.success { border-left: 4px solid var(--success); }
+.error   { border-left: 4px solid var(--danger); }
 .info    { border-left: 4px solid var(--accent); }
 
 @keyframes slideIn {

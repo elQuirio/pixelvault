@@ -39,7 +39,7 @@ Example: deleting separately `photo.jpg` and the folder that contains it produce
 **No `ON DELETE CASCADE`.** Consistency of the DB is enforced by server logic not by DB triggers. When deleting a parent folder, relying on the on delete cascade statement would delete all the entries from the DB but ignore all the files in the disk storage.
 All the descendants are collected from the server route and used both to delete entries from the DB and to remove files from disk storage.
 
-**`ON DELETE SET NULL`.** On delete set null is used instead as self referencing foreign key. This covers the only case that survives a delete: an item deleted in its own batch, whose parent folder is then permanently deleted. 
+**`ON DELETE SET NULL`.** The self referencing foreign key on `parentId` uses `ON DELETE SET NULL` instead, so that the relationship with the parent is deleted when the parent is permanently deleted. This covers the only case that survives a delete: an item deleted in its own batch, whose parent folder is then permanently deleted.
 Example: I delete `photo.jpg`, then later delete the folder `Holidays` that contains it, then permanently delete `Holidays`.
 The photo is not destroyed, because it belongs to a different batch. Without `SET NULL` the photo's `parentId` would point to a row that no longer exists. With `SET NULL` the photo is unlinked, and it goes back to the trash root level and can still be restored.
 
