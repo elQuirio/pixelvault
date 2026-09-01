@@ -36,10 +36,10 @@ export function UploadArea({ accept, multiple, onComplete, parentId }: UploadAre
       onDrop={handleDrop}
     >
     { isUploading ? (<>
-                      <p className="status">Uploading...{done}/{total}</p>
+                      <p className={styles.dropzoneLabel}>Uploading...{done}/{total}</p>
                       <Gauge done={done} total={total}/>
                     </>)
-      : <span>Drop here your files...</span>
+      : <span className={styles.dropzoneLabel}>Drop here your files...</span>
       }
 
       <input type="file" onChange={handleChange} multiple={multiple ?? true} accept={accept ?? "*"} hidden></input>

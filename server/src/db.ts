@@ -1,6 +1,10 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const DATABASE_URL = process.env.DATABASE_URL;
+
+if (!DATABASE_URL) throw new Error('Database url is missing');
+
+const pool = new Pool({ connectionString: DATABASE_URL });
 
 export const db = drizzle(pool);
