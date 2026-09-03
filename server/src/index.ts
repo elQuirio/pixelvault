@@ -2,7 +2,7 @@ import "dotenv/config";
 import Fastify from "fastify";
 import multipart from "@fastify/multipart";
 import cors from "@fastify/cors";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, rename, readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import staticPlugin from "@fastify/static";
@@ -15,8 +15,10 @@ import argon2 from 'argon2';
 import cookie from '@fastify/cookie';
 import jwt from '@fastify/jwt';
 import exifr from 'exifr';
-import { fileTypeFromBuffer } from "file-type";
+import { fileTypeFromFile } from "file-type";
 import convert from 'heic-convert';
+import { pipeline } from "node:stream/promises";
+import { createWriteStream } from "node:fs";
 import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail, collectSubtree } from "./utility";
 
 const UPLOAD_DIR = join(process.cwd(), "uploads");
@@ -52,8 +54,8 @@ await app.register(cors, { origin: ["http://localhost:5173", "http://192.168.1.1
 
 await app.register(multipart, {
   limits: {
-    fileSize: 50 * 1024 * 1024, //50MB
-    files: 20,
+    fileSize: 5000 * 1024 * 1024, //5GB
+    files: 200,
   },
 });
 
@@ -185,32 +187,39 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req, reply) => {
     const fileUuid = randomUUID();
     const originalName = part.filename;
     try {
-      let buffer = await part.toBuffer();
-      const originalBuffer = buffer;
-      const buffFileType = await fileTypeFromBuffer(buffer);
-      const isHeic = buffFileType?.mime === 'image/heic' || buffFileType?.mime ==='image/heif';
-      const isPhoto = isHeic || buffFileType?.mime.startsWith('image/');
-      const isVideo = buffFileType?.mime.startsWith('video/');
+      const tmpPath = join(ORIGINAL_DIR, `${fileUuid}.part`);
+      await pipeline(part.file, createWriteStream(tmpPath));
+
+      if (part.file.truncated) {
+        await safeUnlink(tmpPath);
+        continue;
+      }
+
+      const fileType = await fileTypeFromFile(tmpPath);
+      const isHeic = fileType?.mime === 'image/heic' || fileType?.mime ==='image/heif';
+      const isPhoto = isHeic || fileType?.mime.startsWith('image/');
+      const isVideo = fileType?.mime.startsWith('video/');
       const itemType = isPhoto ? 'image' : (isVideo ? 'video' : 'file');
-      const ext = isHeic ? 'jpg' : (buffFileType?.ext ?? 'bin');
+      const ext = isHeic ? 'jpg' : (fileType?.ext ?? 'bin');
   
       const filepath = join(ORIGINAL_DIR, `${fileUuid}.${ext}`);
 
       if (isHeic) {
-        buffer = Buffer.from(await convert({
-          buffer: buffer,
+        const buffer = Buffer.from(await convert({
+          buffer: await readFile(tmpPath),
           format: 'JPEG',
           quality: 0.9,
         }));
+        await writeFile(filepath, buffer);
+      } else {
+        await rename(tmpPath, filepath);
       }
-
-      await writeFile(filepath, buffer);
       
       let metadata = null;
 
       if (isPhoto) {
-        metadata = (await exifr.parse(isHeic ? originalBuffer : buffer, {gps: true}) ?? null) as Record<string, unknown> | null;
-        await sharp(buffer)
+        metadata = (await exifr.parse(isHeic ? tmpPath : filepath, {gps: true}) ?? null) as Record<string, unknown> | null;
+        await sharp(filepath)
           .resize(200, 200, { fit: "cover" })
           .webp({ quality: 80 })
           .toFile(join(THUMBNAIL_DIR, `${fileUuid}.webp`));
@@ -219,15 +228,18 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req, reply) => {
         await generateVideoThumbnail(filepath, fileUuid, THUMBNAIL_DIR);
       }
 
+      const { size } = await stat(filepath);
+      await safeUnlink(tmpPath);
+      
       await db
         .insert(items)
-        .values({ fileUuid, ext, originalName, parentId, visibleName: originalName, size: buffer.length, userId, metadata, itemType });
+        .values({ fileUuid, ext, originalName, parentId, visibleName: originalName, size: size, userId, metadata, itemType });
 
       saved.push({
         id: fileUuid,
         itemType,
         originalName,
-        size: buffer.length,
+        size: size,
         url: `/uploads/originals/${fileUuid}.${ext}`,
         thumbnail: isPhoto ? `/uploads/thumbnails/${fileUuid}.webp` : null,
       });
