@@ -21,7 +21,12 @@ import { pipeline } from "node:stream/promises";
 import { createWriteStream } from "node:fs";
 import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail, collectSubtree } from "./utility";
 
-const UPLOAD_DIR = join(process.cwd(), "uploads");
+const STORAGE_DIR = process.env.STORAGE_DIR;
+if (!STORAGE_DIR) {
+  throw new Error('Missing mandatory storage dir!');
+}
+
+const UPLOAD_DIR = join(STORAGE_DIR, "uploads");
 const ORIGINAL_DIR = join(UPLOAD_DIR, "originals");
 const THUMBNAIL_DIR = join(UPLOAD_DIR, "thumbnails");
 await mkdir(ORIGINAL_DIR, { recursive: true });
