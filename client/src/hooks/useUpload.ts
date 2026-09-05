@@ -25,11 +25,17 @@ export function useUpload({onComplete}: useUploadProps) {
             })
           });
     
-          await Promise.allSettled(promises);
+          const resp = await Promise.allSettled(promises);
+          const failed = resp.filter((r) => r.status === 'rejected');
+
+          if (failed.length > 0) {
+            showToast(`${failed.length}/${newFiles.length} failed to upload`, 'error');
+          }
+
           onComplete?.();
         } catch (err) {
           console.error("Upload failed:", err);
-          showToast('Upload fallito', 'error');
+          showToast('Upload failed', 'error');
         } finally {
           setIsUploading(false);
         }
