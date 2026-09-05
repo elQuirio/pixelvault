@@ -4,8 +4,8 @@ import ffmpeg from "fluent-ffmpeg";
 import ffprobeStatic from 'ffprobe-static';
 import ffmpegStatic from 'ffmpeg-static';
 import sharp from "sharp";
-import { db } from "./db";
-import { items } from "./schema";
+import { db } from "./db.js";
+import { items } from "./schema.js";
 import { eq, and } from "drizzle-orm";
 
 ffmpeg.setFfprobePath(ffprobeStatic.path);

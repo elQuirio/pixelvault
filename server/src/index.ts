@@ -7,8 +7,8 @@ import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import staticPlugin from "@fastify/static";
 import sharp from "sharp";
-import { db } from "./db";
-import { items, users } from "./schema";
+import { db } from "./db.js";
+import { items, users } from "./schema.js";
 import { eq, asc, desc, and, isNull, isNotNull, inArray, sum, notExists, count, getTableColumns, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import argon2 from 'argon2';
@@ -19,7 +19,7 @@ import { fileTypeFromFile } from "file-type";
 import convert from 'heic-convert';
 import { pipeline } from "node:stream/promises";
 import { createWriteStream } from "node:fs";
-import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail, collectSubtree } from "./utility";
+import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail, collectSubtree } from "./utility.js";
 
 const STORAGE_DIR = process.env.STORAGE_DIR;
 if (!STORAGE_DIR) {
