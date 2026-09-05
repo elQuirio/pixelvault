@@ -95,8 +95,13 @@ export function Drive({getSpaceUsed}: DriveProps) {
   async function handleMoveConfirm(parentId: string) {
     if (modal?.mode !== 'move') return;
     try {
-      for (const id of modal.ids) {
-        await updateItem({id, parentId});
+
+      const promises = modal.ids.map((id) => updateItem({id, parentId}));
+      const resp = await Promise.allSettled(promises);
+      const failed = resp.filter((r) => r.status === 'rejected');
+      
+      if (failed.length > 0) {
+        showToast(`${failed.length}/${modal.ids.length} failed to move`, 'error');
       }
     } catch (err) {
       console.error(err);
