@@ -9,8 +9,8 @@ import { items } from "./schema.js";
 import { eq, and } from "drizzle-orm";
 
 ffmpeg.setFfprobePath(ffprobeStatic.path);
-ffmpeg.setFfmpegPath(ffmpegStatic!);
-
+// ffmpeg-static ships an incorrect default export declaration for a CommonJS module
+ffmpeg.setFfmpegPath(ffmpegStatic as unknown as string);
 
 export async function safeUnlink(path: string) {
   try {

@@ -34,7 +34,7 @@
   border: 2px solid var(--border);
   border-radius: 6px;
   accent-color: var(--accent);
-  z-index: 100;
+  z-index: 10;
 }
 
 
