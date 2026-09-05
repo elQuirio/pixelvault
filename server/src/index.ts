@@ -238,13 +238,13 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req, reply) => {
       
       await db
         .insert(items)
-        .values({ fileUuid, ext, originalName, parentId, visibleName: originalName, size: size, userId, metadata, itemType });
+        .values({ fileUuid, ext, originalName, parentId, visibleName: originalName, size, userId, metadata, itemType });
 
       saved.push({
         id: fileUuid,
         itemType,
         originalName,
-        size: size,
+        size,
         url: `/uploads/originals/${fileUuid}.${ext}`,
         thumbnail: isPhoto ? `/uploads/thumbnails/${fileUuid}.webp` : null,
       });

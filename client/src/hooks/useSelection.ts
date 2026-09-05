@@ -7,16 +7,12 @@ export function useSelection() {
 
   const toggleSelectMode = () => {
     setIsSelectMode((prev: boolean) => !prev);
+    setSelectedIds([]);
   };
-
 
   const toggleSelection = (id: string) => {
-    if (selectedIds.includes(id)) {
-      setSelectedIds((prev) => [...prev.filter((i) => i !== id)]);
-    } else {
-      setSelectedIds((prev) => [...prev, id]);
-    }
+    setSelectedIds((prev) => prev.includes(id) ? [...prev.filter((i) => i !== id)] : [...prev, id]);
   };
-
-  return { isSelectMode, setIsSelectMode, selectedIds, setSelectedIds, toggleSelectMode, toggleSelection};
+  
+  return { isSelectMode, setIsSelectMode, selectedIds, setSelectedIds, toggleSelectMode, toggleSelection };
 }
