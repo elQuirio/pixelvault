@@ -2,3 +2,11 @@
 .mainContainer {
     padding-left: 54px; /* sidePanel offset */
 }
+
+
+@media (max-width: 768px) {
+    .mainContainer {
+        padding-left: 0px;
+        padding-bottom: calc(var(--bottombar-height) + env(safe-area-inset-bottom)); /* bottom offset for smartphone nav bar */
+    }
+}

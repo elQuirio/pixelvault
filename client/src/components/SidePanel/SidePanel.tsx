@@ -32,7 +32,7 @@ export function SidePanel({
     <aside className={`${styles.wrapper} ${isOpen ? styles.open : ''}`}>
       <button className={styles.hamburger} onClick={() => setIsOpen((prev) => !prev)}>☰</button>
       <div className={`${styles.content} ${isOpen ? styles.open : ''}`}>
-        <div>Space used: {spaceUsed}</div>
+        <div className={styles.spaceUsed}>Space used: {spaceUsed}</div>
         <button onClick={() => {
             setView("gallery");
             setIsOpen((prev) => !prev);

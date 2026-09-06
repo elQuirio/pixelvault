@@ -5,6 +5,7 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
+  padding-top: 15px;
 }
 
 .thumbnail {
@@ -48,3 +49,11 @@
   font-size: 13px;
   margin-top: 2px;
 }
+
+
+
+@media (max-width: 768px) {
+    .gridContainer {
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    }
+  }
