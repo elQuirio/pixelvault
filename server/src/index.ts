@@ -224,7 +224,7 @@ app.post("/upload", {preHandler: [app.authenticate]}, async (req, reply) => {
 
       if (isPhoto) {
         metadata = (await exifr.parse(isHeic ? tmpPath : filepath, {gps: true}) ?? null) as Record<string, unknown> | null;
-        await sharp(filepath)
+        await sharp(filepath).rotate()
           .resize(200, 200, { fit: "cover" })
           .webp({ quality: 80 })
           .toFile(join(THUMBNAIL_DIR, `${fileUuid}.webp`));
