@@ -11,8 +11,23 @@
   gap: 8px;
 }
 
+.selectWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.selectWrap .caret {
+  position: absolute;
+  right: 8px;
+  width: 16px;
+  height: 16px;
+  color: var(--text);
+  pointer-events: none;
+}
+
 .select {
-  padding: 8px 14px;
+  padding: 8px 28px 8px 12px;
   font-size: 14px;
   color: var(--text);
   background: var(--surface);
@@ -20,6 +35,32 @@
   border-radius: var(--radius);
   cursor: pointer;
   outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.active {
+  color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.toolbarIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.toolbarButton {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.toolbarButton::after {
+  content: "";
+  position: absolute;
+  inset: -6px 0;
 }
 
 

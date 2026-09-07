@@ -1,4 +1,5 @@
 import styles from './Toolbar.module.css';
+import { ChevronDown, Trash, Move, FolderPlus, CircleCheck, Undo2, Shredder } from 'lucide-react';
 
 type ToolbarProps = {
     isSelectMode: boolean;
@@ -19,18 +20,21 @@ export function Toolbar({isSelectMode, onToggleSelectMode, sortBy, setSortBy, on
 
 
     return <div className={styles.toolbar}>
-            <button className={`${styles.selectModeBtn} ${isSelectMode ? styles.active : ""}`} onClick={onToggleSelectMode}>Select...</button>
-            <select className={styles.select} value={sortBy} onChange={(e) => setSortBy(e.target.value)} >
-                {sortMap.map((s) => ( <option key={s.sortkey} value={s.sortkey}>{s.label}</option> ))}
-            </select>
-            {onCreateFolder &&  <button onClick={onCreateFolder}>Create folder</button>}
+            <button className={`${styles.toolbarButton} ${isSelectMode ? styles.active : ""}`} onClick={onToggleSelectMode} aria-label="Select items" title="Select items"><CircleCheck className={styles.toolbarIcon}/></button>
+            <span className={styles.selectWrap}>
+                <select className={styles.select} value={sortBy} onChange={(e) => setSortBy(e.target.value)} >
+                    {sortMap.map((s) => ( <option key={s.sortkey} value={s.sortkey}>{s.label}</option> ))}
+                </select>
+                <ChevronDown className={styles.caret}/>
+            </span>
+            
+            {onCreateFolder &&  <button className={styles.toolbarButton} onClick={onCreateFolder} aria-label="Create new folder" title="Create new folder"><FolderPlus className={styles.toolbarIcon}/></button>}
             {isSelectMode && (<>
-                                <button onClick={() => onDeleteBulk()}>Delete</button>
-                                    {onRestoreBulk && (<button onClick={() => onRestoreBulk()} >Restore</button>)}
-                                    {onMoveBulk && <button onClick={() => onMoveBulk()} >Move</button>}
+                                <button className={styles.toolbarButton} onClick={() => onDeleteBulk()} aria-label={onRestoreBulk ? "Delete permanently" : "Delete selected"} title={onRestoreBulk ? "Delete permanently" : "Delete selected"}>{onRestoreBulk ? <Shredder className={styles.toolbarIcon}/> : <Trash className={styles.toolbarIcon}/>}</button>
+                                    {onRestoreBulk && (<button className={styles.toolbarButton} onClick={() => onRestoreBulk()} aria-label="Restore selected" title="Restore selected"><Undo2 className={styles.toolbarIcon}/></button>)}
+                                    {onMoveBulk && <button className={styles.toolbarButton} onClick={() => onMoveBulk()} aria-label="Move selected" title="Move selected"><Move className={styles.toolbarIcon}/></button>}
                             </>)
             }
-            
         </div>
 
 }
