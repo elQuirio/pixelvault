@@ -3,6 +3,7 @@ import styles from "./LightBox.module.css";
 import { useEffect } from "react";
 import { API_BASE } from "../../config/api";
 import { formatSize } from "../../helpers/helpers";
+import { useRef } from "react";
 
 type LightBoxTypes = {
   items: Item[];
@@ -15,23 +16,64 @@ type LightBoxTypes = {
 
 export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, onDelete, onRestore }: LightBoxTypes) {
   const item = items[lightBoxIndex];
+  const pointerDownRef = useRef<null | {x: number, y:number}>(null);
+  const swipedRef = useRef<boolean>(false);
+
+  const goLeft = () => {
+    if (lightBoxIndex === 0) {
+      onClose();
+    } else {
+      setLightBoxIndex(lightBoxIndex - 1);
+    }
+  };
+
+  const goRight = () => {
+    if (lightBoxIndex === items.length - 1) {
+      onClose();
+    } else {
+      setLightBoxIndex(lightBoxIndex + 1);
+    }
+  }
+
+  function handleOnClose() {
+    if (swipedRef.current) {
+      swipedRef.current = false;
+      return;
+    }
+    onClose();
+  }
+
+  function handleOnPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (!e.isPrimary) return;
+    pointerDownRef.current = {x: e.clientX, y: e.clientY};
+    swipedRef.current = false;
+  }
+
+  function handleOnPointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    if (!e.isPrimary) return;
+    if (pointerDownRef.current === null) return;
+
+    const dx = pointerDownRef.current.x - e.clientX;
+    const dy = pointerDownRef.current.y - e.clientY;
+    if (Math.abs(dx) >= 50 && Math.abs(dx) > Math.abs(dy)) {
+      swipedRef.current = true;
+      if (dx > 0) {
+        goRight();
+      } else {
+        goLeft();
+      }
+    }
+    pointerDownRef.current = null;
+  }
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
       } else if (e.key === "ArrowLeft") {
-        if (lightBoxIndex === 0) {
-          onClose();
-        } else {
-          setLightBoxIndex(lightBoxIndex - 1);
-        }
+        goLeft();
       } else if (e.key === "ArrowRight") {
-        if (lightBoxIndex === items.length - 1) {
-          onClose();
-        } else {
-          setLightBoxIndex(lightBoxIndex + 1);
-        }
+        goRight();
       }
     };
 
@@ -42,7 +84,7 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, onDe
   if(!item) return null;
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
+    <div className={styles.overlay} onClick={handleOnClose} onPointerDown={handleOnPointerDown} onPointerUp={handleOnPointerUp}>
       <div className={styles.detailsContainer} onClick={(e) => e.stopPropagation()}>
         <p>Item name: {item.originalName}</p>
         <p>Weight: {formatSize(item.size)}{!! item.metadata?.ExifImageHeight && ` - Resolution: ${String(item.metadata.ExifImageWidth)} x ${String(item.metadata?.ExifImageHeight)}`}</p>
