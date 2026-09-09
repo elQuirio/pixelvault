@@ -44,23 +44,26 @@ export function ItemGrid({ items, onDelete, onDeleteBulk, sortBy, setSortBy, onR
   };
 
   function handleDeleteBulk(selectedIds: string[]) {
+    if (selectedIds.length === 0) return;
     onDeleteBulk(selectedIds);
     toggleSelectMode();
   }
 
   function handleRestoreBulk(selectedIds: string[]) {
+    if (selectedIds.length === 0) return;
     onRestoreBulk?.(selectedIds);
     toggleSelectMode();
   }
 
   function handleMoveBulk(selectedIds: string[]) {
+    if (selectedIds.length === 0) return;
     onMoveBulk?.(selectedIds);
     toggleSelectMode();
   }
 
   return (
     <div>
-      <Toolbar isSelectMode={isSelectMode} onToggleSelectMode={toggleSelectMode} sortBy={sortBy} setSortBy={setSortBy} onDeleteBulk={() => handleDeleteBulk(selectedIds)} onRestoreBulk={onRestoreBulk && (() => handleRestoreBulk(selectedIds))} onMoveBulk={onMoveBulk && (() => handleMoveBulk(selectedIds))} onCreateFolder={onCreateFolder && (onCreateFolder)} />
+      <Toolbar isSelectMode={isSelectMode} selectedCount={selectedIds.length} onToggleSelectMode={toggleSelectMode} sortBy={sortBy} setSortBy={setSortBy} onDeleteBulk={() => handleDeleteBulk(selectedIds)} onRestoreBulk={onRestoreBulk && (() => handleRestoreBulk(selectedIds))} onMoveBulk={onMoveBulk && (() => handleMoveBulk(selectedIds))} onCreateFolder={onCreateFolder && (onCreateFolder)} />
       <div className={styles.gridContainer}>
         {items.map((u) => (
           <div key={u.id} className={styles.thumbnailContainer}>
