@@ -39,6 +39,12 @@
   appearance: none;
 }
 
+.selectionCheckbox {
+  width: 26px;
+  height: 26px;
+  margin: 0 2px;
+}
+
 .active {
   color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);

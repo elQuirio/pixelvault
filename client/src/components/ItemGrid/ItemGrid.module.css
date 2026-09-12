@@ -26,15 +26,14 @@
   margin-right: 1px;
 }
 
+
 .selectionCheckbox {
   position: absolute;
   top: 4px;
   left: 4px;
   width: 20px;
   height: 20px;
-  border: 2px solid var(--border);
-  border-radius: 6px;
-  accent-color: var(--accent);
+  border-width: 1px;
   z-index: 10;
 }
 
@@ -49,7 +48,6 @@
   font-size: 13px;
   margin-top: 2px;
 }
-
 
 
 @media (max-width: 768px) {

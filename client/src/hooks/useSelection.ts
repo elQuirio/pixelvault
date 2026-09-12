@@ -13,6 +13,10 @@ export function useSelection() {
   const toggleSelection = (id: string) => {
     setSelectedIds((prev) => prev.includes(id) ? [...prev.filter((i) => i !== id)] : [...prev, id]);
   };
+
+  const toggleSelectAll = (ids: string[]) => {
+    setSelectedIds((prev) => prev.length === ids.length ? [] : ids);
+  }
   
-  return { isSelectMode, setIsSelectMode, selectedIds, setSelectedIds, toggleSelectMode, toggleSelection };
+  return { isSelectMode, setIsSelectMode, selectedIds, setSelectedIds, toggleSelectMode, toggleSelection, toggleSelectAll };
 }
