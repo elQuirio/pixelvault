@@ -8,7 +8,7 @@ import { useItems } from "../../hooks/useItems.ts";
 import { useSearch } from "../../hooks/useSearch.ts";
 import { SearchBar } from "../SearchBar/SearchBar.tsx";
 import { useToast } from '../../context/useToast.tsx';
-import { updateItem, getItemCount } from '../../api/upload.ts';
+import { renameItem, getItemCount, moveItems } from '../../api/upload.ts';
 
 import { InputModal } from "../InputModal/InputModal.tsx";
 import { ConfirmModal } from "../ConfirmModal/ConfirmModal.tsx";
@@ -83,7 +83,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
   async function handleRenameItem(newName: string) {
     if (modal?.mode !== 'rename') return;
     try {
-      await updateItem({id: modal.item.id, visibleName: newName.trim()});
+      await renameItem({id: modal.item.id, visibleName: newName.trim()});
       patchItem(modal.item.id, {visibleName: newName.trim()})
       setModal(null);
     } catch (err) {
@@ -96,13 +96,9 @@ export function Drive({getSpaceUsed}: DriveProps) {
     if (modal?.mode !== 'move') return;
     try {
 
-      const promises = modal.ids.map((id) => updateItem({id, parentId}));
-      const resp = await Promise.allSettled(promises);
-      const failed = resp.filter((r) => r.status === 'rejected');
+      await moveItems({ids: modal.ids, parentId});
+      showToast(`${modal.ids.length} items moved`, 'success');
       
-      if (failed.length > 0) {
-        showToast(`${failed.length}/${modal.ids.length} failed to move`, 'error');
-      }
     } catch (err) {
       console.error(err);
       showToast('Move failed', 'error');

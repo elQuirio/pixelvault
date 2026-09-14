@@ -379,6 +379,59 @@ export async function buildApp() {
   });
 
 
+  app.patch('/items', {preHandler: [app.authenticate]}, async (req, reply) => {
+
+    const { ids, parentId: parentUUID } = req.body as {ids: string[], parentId: string};
+    const userId = req.user.id;
+
+    if(!parentUUID) {
+      return reply.code(400).send({message: 'Missing mandatory data'});
+    }
+
+    const invalidUUIDs = ids.map((i) => !isUuid(i));
+
+    if (invalidUUIDs.length > 0 || (parentUUID && parentUUID !== 'root' && !isUuid(parentUUID))) {
+      return reply.code(404).send({message: 'Resource not found'});
+    }
+
+    if (ids.includes(parentUUID)) {
+      return reply.code(400).send({message: 'Cannot move an item into itself'});
+    }
+    
+    for (const id of ids) {
+      const updateData : {parentId: null | number} = {parentId: null};
+
+      if (parentUUID) {
+        if (parentUUID === 'root') {
+          updateData.parentId = null;
+        } else {
+          const [parentData] = await db.select({id: items.id}).from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, parentUUID), isNull(items.deletedAt), eq(items.itemType, 'folder')));
+          if(!parentData){
+            return reply.code(404).send({message: 'Resource not found'});
+          }
+
+          const [itemMoved] = await db.select({id: items.id, fileType: items.itemType}).from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, id), isNull(items.deletedAt)));
+          if (!itemMoved){
+            return reply.code(404).send({message: 'Resource not found'});
+          }
+          if (itemMoved.fileType === 'folder') {
+            
+          }
+          updateData.parentId = parentData.id;
+        }
+      }
+
+      const [row] = await db.update(items).set(updateData).where(and(eq(items.userId, userId), eq(items.fileUuid, id))).returning({id: items.fileUuid});
+
+      if (!row) {
+        return reply.code(404).send({message: 'Resource not found'});
+      }
+  }
+    
+    return reply.code(200).send({data:{item: {ids: row.id}}});
+  })
+
+
   app.patch('/items/:id', {preHandler: [app.authenticate]}, async (req, reply) => {
     const { id } = req.params as {id: string};
     const { visibleName: newVisibleName, parentId: parentUUID } = req.body as {visibleName?: string, parentId?: string};

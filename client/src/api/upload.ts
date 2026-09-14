@@ -163,16 +163,13 @@ export async function getStorage() {
 }
 
 
-export async function updateItem({id, parentId, visibleName}: {id:string, parentId?: string, visibleName?: string }) {
-  const body = {} as {parentId?: string, visibleName?: string};
-  if (parentId) body.parentId = parentId;
-  if (visibleName) body.visibleName = visibleName;
+export async function renameItem({id, visibleName}: {id:string, visibleName: string }) {
 
   const resp = await fetch(`${API_BASE}/items/${id}`, {
     method: 'PATCH',
     headers: { "Content-type": "application/json" },
     credentials: 'include',
-    body: JSON.stringify(body),
+    body: JSON.stringify({visibleName}),
   });
 
   if (!resp.ok) throw new Error(`Error updating item: ${resp.status} ${resp.statusText}`);
@@ -180,6 +177,21 @@ export async function updateItem({id, parentId, visibleName}: {id:string, parent
   const {data} = await resp.json() as {data: {item: {id: string}}};
 
   return data.item.id;
+}
+
+
+export async function moveItems({ids, parentId}: {ids: string[], parentId: string}) {
+
+  const resp = await fetch(`${API_BASE}/items`, {
+    method: 'PATCH',
+    headers: { "Content-type": "application/json" },
+    credentials: 'include',
+    body: JSON.stringify({ids, parentId}),
+  });
+
+  if (!resp.ok) throw new Error(`Error moving items: ${resp.status} ${resp.statusText}`);
+
+  return;
 }
 
 

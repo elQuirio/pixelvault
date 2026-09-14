@@ -6,7 +6,7 @@ import ffmpegStatic from 'ffmpeg-static';
 import sharp from "sharp";
 import { db } from "./db.js";
 import { items } from "./schema.js";
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 
 ffmpeg.setFfprobePath(ffprobeStatic.path);
 // ffmpeg-static ships an incorrect default export declaration for a CommonJS module
@@ -80,4 +80,20 @@ export async function collectSubtree({rootId, userId, deletedAt}: {rootId: numbe
     });
   }
   return [...subtreeList];
+};
+
+
+export async function collectAncestors({destinationId, userId}: { destinationId: number, userId: number}) {
+
+  let curr : number | null = destinationId;
+  const result : number[] = [];
+
+  while (curr !== null) {
+    
+    result.push(curr);
+    
+    const [ancestor] = await db.select({parentId: items.parentId}).from(items).where(and(eq(items.userId, userId), eq(items.id, curr), isNull(items.deletedAt), eq(items.itemType, 'folder')));
+    curr = ancestor?.parentId ?? null;
+  }
+  return result;
 };
