@@ -1,6 +1,6 @@
 import { UploadArea } from '../UploadArea/UploadArea.tsx'
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
-import { deleteItemsBulk, updateItem, getItemCount } from "../../api/upload.ts";
+import { deleteItemsBulk, renameItem, getItemCount } from "../../api/upload.ts";
 //import styles from './Gallery.module.css';
 import { useItems } from "../../hooks/useItems.ts";
 import { useSearch } from '../../hooks/useSearch.ts';
@@ -46,7 +46,7 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
   async function handleConfirmRename(newName: string) {
     try {
       if (modal?.mode !== 'rename') return;
-      await updateItem({id: modal.item.id, visibleName: newName.trim()});
+      await renameItem({id: modal.item.id, visibleName: newName.trim()});
       patchItem(modal.item.id, {visibleName: newName.trim()});
       setModal(null);
     } catch (err) {

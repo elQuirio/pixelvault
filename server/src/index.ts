@@ -19,7 +19,7 @@ import { fileTypeFromFile } from "file-type";
 import convert from 'heic-convert';
 import { pipeline } from "node:stream/promises";
 import { createWriteStream } from "node:fs";
-import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail, collectSubtree } from "./utility.js";
+import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail, collectSubtree, collectAncestors } from "./utility.js";
 
 
 declare module 'fastify' {
@@ -377,6 +377,58 @@ export async function buildApp() {
     const [insertData] = await db.insert(items).values({parentId: parentFolder?.id ?? null, itemType: 'folder', visibleName, userId }).returning();
     return reply.code(201).send({data: {item: {id: insertData.fileUuid, itemType: insertData.itemType, visibleName: insertData.visibleName, createdAt: insertData.createdAt }}});
   });
+
+
+  app.patch('/items', {preHandler: [app.authenticate]}, async (req, reply) => {
+
+    const { ids, parentId: parentUUID } = req.body as {ids: string[], parentId: string};
+    const userId = req.user.id;
+
+    if(!parentUUID || ids.length === 0) {
+      return reply.code(400).send({message: 'Missing mandatory data'});
+    }
+
+    const invalidUUIDs = ids.filter((i) => !isUuid(i));
+
+    if (invalidUUIDs.length > 0 || (parentUUID && parentUUID !== 'root' && !isUuid(parentUUID))) {
+      return reply.code(404).send({message: 'Resource not found'});
+    }
+
+    if (ids.includes(parentUUID)) {
+      return reply.code(400).send({message: 'Cannot move an item into itself'});
+    }
+
+    const updateData : {parentId: null | number} = {parentId: null};
+    if (parentUUID === 'root') {
+      updateData.parentId = null;
+    } else {
+      const [destination] = await db.select({id: items.id}).from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, parentUUID), isNull(items.deletedAt), eq(items.itemType, 'folder')));
+      if(!destination) {
+        return reply.code(404).send({message: 'Resource not found'});
+      }
+      updateData.parentId = destination.id;
+    }
+
+    const ancestors = await collectAncestors({destinationId: updateData.parentId, userId})
+    const movingItems = [];
+    
+    for (const id of ids) {
+      const [itemMoved] = await db.select({id: items.id, fileType: items.itemType, itemUUID: items.fileUuid}).from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, id), isNull(items.deletedAt)));
+      if (!itemMoved) {
+        return reply.code(404).send({message: 'Resource not found'});
+      }
+      if (itemMoved.fileType === 'folder') {
+        if (ancestors.includes(itemMoved.id)) {
+          return reply.code(400).send({message: 'Cannot move an ancestor item into his child'});
+        }
+      }
+    movingItems.push(itemMoved.itemUUID)
+    }
+
+    await db.update(items).set(updateData).where(and(eq(items.userId, userId), inArray(items.fileUuid, movingItems)));
+    
+    return reply.code(204).send();
+  })
 
 
   app.patch('/items/:id', {preHandler: [app.authenticate]}, async (req, reply) => {

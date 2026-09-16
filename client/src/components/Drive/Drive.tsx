@@ -8,7 +8,7 @@ import { useItems } from "../../hooks/useItems.ts";
 import { useSearch } from "../../hooks/useSearch.ts";
 import { SearchBar } from "../SearchBar/SearchBar.tsx";
 import { useToast } from '../../context/useToast.tsx';
-import { updateItem, getItemCount } from '../../api/upload.ts';
+import { renameItem, getItemCount, moveItems } from '../../api/upload.ts';
 
 import { InputModal } from "../InputModal/InputModal.tsx";
 import { ConfirmModal } from "../ConfirmModal/ConfirmModal.tsx";
@@ -25,7 +25,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
   const [modal, setModal] = useState< {mode:'rename', item:{id: string, name: string}, } | {mode: 'move', ids: string[]} | {mode: 'create'} | {mode: 'confirm', action: 'soft', count: number, ids: string[]} | null > (null);
   const { showToast } = useToast();
 
-  const {items, removeItems, reload, sortBy, setSortBy, patchItem } = useItems({parentId: currentFolder});
+  const {items, removeItems, reload, sortBy, setSortBy, patchItem, loading } = useItems({parentId: currentFolder});
 
   const {query, setQuery, filtered} = useSearch(items);
 
@@ -52,12 +52,14 @@ export function Drive({getSpaceUsed}: DriveProps) {
 
 
   function handleOpenFolder(id: string, name: string) {
-    setPath((prev) => [...prev, {id: id, name: name}])
+    setPath((prev) => [...prev, {id: id, name: name}]);
+    setQuery('');
   }
 
   function handleBreadcrumbClick(id: string|null) {
     const breadIndex = path.findIndex((p) => p.id === id);
     setPath((prev) => prev.slice(0, breadIndex+1));
+    setQuery('');
   }
 
 
@@ -83,7 +85,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
   async function handleRenameItem(newName: string) {
     if (modal?.mode !== 'rename') return;
     try {
-      await updateItem({id: modal.item.id, visibleName: newName.trim()});
+      await renameItem({id: modal.item.id, visibleName: newName.trim()});
       patchItem(modal.item.id, {visibleName: newName.trim()})
       setModal(null);
     } catch (err) {
@@ -96,13 +98,9 @@ export function Drive({getSpaceUsed}: DriveProps) {
     if (modal?.mode !== 'move') return;
     try {
 
-      const promises = modal.ids.map((id) => updateItem({id, parentId}));
-      const resp = await Promise.allSettled(promises);
-      const failed = resp.filter((r) => r.status === 'rejected');
+      await moveItems({ids: modal.ids, parentId});
+      showToast(`${modal.ids.length} items moved`, 'success');
       
-      if (failed.length > 0) {
-        showToast(`${failed.length}/${modal.ids.length} failed to move`, 'error');
-      }
     } catch (err) {
       console.error(err);
       showToast('Move failed', 'error');
@@ -124,7 +122,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
                                       onClose={handleCancelClick} />}
       {(modal?.mode === 'confirm') && <ConfirmModal mode={modal.action} itemCount={modal.count} onConfirm={() => handleDeleteConfirm(modal.ids)} onClose={handleCancelClick}/>}
       {(modal?.mode === 'move' && <NavigationModal initialPath={path} excludedIds={modal.ids} onConfirm={handleMoveConfirm} onClose={handleCancelClick} />)}
-      <ItemGrid
+      {loading ? <div>Loading</div> : <ItemGrid
         key={currentFolder}
         items={filtered}
         onDelete={handleDeleteClick}
@@ -135,7 +133,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
         onRename={(item) => setModal({mode: 'rename', item})}
         onMoveBulk={handleMoveClick}
         onCreateFolder={() => setModal({mode:'create'})}
-      />
+      />}
     </>
   );
 
