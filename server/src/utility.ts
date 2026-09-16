@@ -83,7 +83,7 @@ export async function collectSubtree({rootId, userId, deletedAt}: {rootId: numbe
 };
 
 
-export async function collectAncestors({destinationId, userId}: { destinationId: number, userId: number}) {
+export async function collectAncestors({destinationId, userId}: { destinationId: number | null, userId: number}) {
 
   let curr : number | null = destinationId;
   const result : number[] = [];

@@ -12,15 +12,17 @@ type useItemsProps = {
 export function useItems({ parentId, deleted, type }: useItemsProps) {
   const [items, setItems] = useState<Item[]>([]);
   const [sortBy, setSortBy] = useState("creationDateDesc");
+  const [loadedFor, setLoadedFor] = useState<string | undefined>(undefined);
   const { showToast } = useToast();
 
   function loadItems() {
-    getItems({ sortBy, parentId, deleted, type}).then((res) => {
+    getItems({ sortBy, parentId, deleted, type }).then((res) => {
       setItems(res.data.items);
+      setLoadedFor(parentId);
     }).catch((err) => {
       console.error(err);
       showToast('Error loading files', 'error');
-    });
+    })
   }
 
   useEffect(() => {
@@ -35,6 +37,8 @@ export function useItems({ parentId, deleted, type }: useItemsProps) {
     setItems((prev) => prev.map((f) => f.id === id ? {...f, ...patch} : f ));
   }
 
+  const loading = loadedFor !== parentId;
+
   return {
     items,
     sortBy,
@@ -42,5 +46,6 @@ export function useItems({ parentId, deleted, type }: useItemsProps) {
     removeItems,
     reload: loadItems,
     patchItem,
+    loading
   };
 }

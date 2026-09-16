@@ -25,7 +25,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
   const [modal, setModal] = useState< {mode:'rename', item:{id: string, name: string}, } | {mode: 'move', ids: string[]} | {mode: 'create'} | {mode: 'confirm', action: 'soft', count: number, ids: string[]} | null > (null);
   const { showToast } = useToast();
 
-  const {items, removeItems, reload, sortBy, setSortBy, patchItem } = useItems({parentId: currentFolder});
+  const {items, removeItems, reload, sortBy, setSortBy, patchItem, loading } = useItems({parentId: currentFolder});
 
   const {query, setQuery, filtered} = useSearch(items);
 
@@ -52,12 +52,14 @@ export function Drive({getSpaceUsed}: DriveProps) {
 
 
   function handleOpenFolder(id: string, name: string) {
-    setPath((prev) => [...prev, {id: id, name: name}])
+    setPath((prev) => [...prev, {id: id, name: name}]);
+    setQuery('');
   }
 
   function handleBreadcrumbClick(id: string|null) {
     const breadIndex = path.findIndex((p) => p.id === id);
     setPath((prev) => prev.slice(0, breadIndex+1));
+    setQuery('');
   }
 
 
@@ -120,7 +122,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
                                       onClose={handleCancelClick} />}
       {(modal?.mode === 'confirm') && <ConfirmModal mode={modal.action} itemCount={modal.count} onConfirm={() => handleDeleteConfirm(modal.ids)} onClose={handleCancelClick}/>}
       {(modal?.mode === 'move' && <NavigationModal initialPath={path} excludedIds={modal.ids} onConfirm={handleMoveConfirm} onClose={handleCancelClick} />)}
-      <ItemGrid
+      {loading ? <div>Loading</div> : <ItemGrid
         key={currentFolder}
         items={filtered}
         onDelete={handleDeleteClick}
@@ -131,7 +133,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
         onRename={(item) => setModal({mode: 'rename', item})}
         onMoveBulk={handleMoveClick}
         onCreateFolder={() => setModal({mode:'create'})}
-      />
+      />}
     </>
   );
 
