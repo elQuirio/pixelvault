@@ -68,25 +68,25 @@ export function ItemGrid({ items, onDelete, onDeleteBulk, sortBy, setSortBy, onR
   return (
     <div>
       <Toolbar isSelectMode={isSelectMode} selectedCount={selectedIds.length} itemsCount={items.length} onToggleSelectMode={toggleSelectMode} onToggleSelectAll={handleToggleSelectAll} sortBy={sortBy} setSortBy={setSortBy} onDeleteBulk={() => handleDeleteBulk(selectedIds)} onRestoreBulk={onRestoreBulk && (() => handleRestoreBulk(selectedIds))} onMoveBulk={onMoveBulk && (() => handleMoveBulk(selectedIds))} onCreateFolder={onCreateFolder && (onCreateFolder)} />
-      <div className={styles.gridContainer}>
+{items.length > 0 ? <div className={styles.gridContainer}>
         {items.map((u) => (
-          <div key={u.id} className={styles.thumbnailContainer}>
-            {isSelectMode && (
-              <input type="checkbox" className={styles.selectionCheckbox} checked={selectedIds.includes(u.id)} onChange={() => toggleSelection(u.id)} />
-            )}
-            {u.thumbnail ? (
-              <img className={styles.thumbnail} src={`${API_BASE}${u.thumbnail}`} alt={u.id} onClick={() => handleClick(u)}/>
-            ) : (
-              <TypeIcon itemType={u.itemType} onClick={() => handleClick(u)} itemCount={u.childCount}/>
-            )}
-            <div className={styles.itemName}>{u.visibleName}</div>
-            {!isSelectMode && <ItemActions item={u} onRename={onRename} onMove={onMoveBulk} onDelete={onDelete} />}
-          </div>
+            <div key={u.id} className={styles.thumbnailContainer}>
+              {isSelectMode && (
+                <input type="checkbox" className={styles.selectionCheckbox} checked={selectedIds.includes(u.id)} onChange={() => toggleSelection(u.id)} />
+              )}
+              {u.thumbnail ? (
+                <img className={styles.thumbnail} src={`${API_BASE}${u.thumbnail}`} alt={u.id} onClick={() => handleClick(u)}/>
+              ) : (
+                <TypeIcon itemType={u.itemType} onClick={() => handleClick(u)} itemCount={u.childCount}/>
+              )}
+              <div className={styles.itemName}>{u.visibleName}</div>
+              {!isSelectMode && <ItemActions item={u} onRename={onRename} onMove={onMoveBulk} onDelete={onDelete} />}
+            </div>
         ))}
         {lightBoxIndex !== null && (
           <LightBox items={mediaItems} lightBoxIndex={lightBoxIndex} setLightBoxIndex={setLightBoxIndex} onClose={closeLightBox} onDelete={onDelete} onRestore={onRestore}/>
         )}
-      </div>
+      </div> : <div className={styles.emptyFolder}>Empty folder</div>}
     </div>
   );
 }

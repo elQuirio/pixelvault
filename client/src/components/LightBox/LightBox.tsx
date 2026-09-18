@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { API_BASE } from "../../config/api";
 import { formatSize } from "../../helpers/helpers";
 import { useRef } from "react";
+import { downloadOne } from '../../api/download';
 
 type LightBoxTypes = {
   items: Item[];
@@ -18,6 +19,7 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, onDe
   const item = items[lightBoxIndex];
   const pointerDownRef = useRef<null | {x: number, y:number}>(null);
   const swipedRef = useRef<boolean>(false);
+  const clickedDownRef = useRef<boolean>(false);
 
   const goLeft = () => {
     if (lightBoxIndex === 0) {
@@ -36,6 +38,7 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, onDe
   }
 
   function handleOnClose() {
+    if (!clickedDownRef.current) return;
     if (swipedRef.current) {
       swipedRef.current = false;
       return;
@@ -45,6 +48,7 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, onDe
 
   function handleOnPointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if (!e.isPrimary) return;
+    clickedDownRef.current = e.target === e.currentTarget;
     pointerDownRef.current = {x: e.clientX, y: e.clientY};
     swipedRef.current = false;
   }
@@ -85,7 +89,7 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, onDe
 
   return (
     <div className={styles.overlay} onClick={handleOnClose} onPointerDown={handleOnPointerDown} onPointerUp={handleOnPointerUp}>
-      <div className={styles.detailsContainer} onClick={(e) => e.stopPropagation()}>
+      <div className={styles.detailsContainer} onClick={(e)=> e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()} onPointerUp={(e) => e.stopPropagation()}>
         <p>Item name: {item.originalName}</p>
         <p>Weight: {formatSize(item.size)}{!! item.metadata?.ExifImageHeight && ` - Resolution: ${String(item.metadata.ExifImageWidth)} x ${String(item.metadata?.ExifImageHeight)}`}</p>
         <p>Created at: {new Date(item.createdAt).toLocaleDateString("it-IT", {
@@ -104,9 +108,10 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, onDe
 
         {!! item.metadata?.Make && <p>{String(item.metadata.Make)} {String(item.metadata?.Model)}</p>}
       </div>
-      {item.itemType === 'video' ? (<video key={item.id} className={styles.image} src={`${API_BASE}${item.url}`} controls autoPlay muted={true} onClick={(e) => e.stopPropagation()}></video>) :( <img key={item.id} className={styles.image} src={`${API_BASE}${item.url}`} alt={item.id} onClick={(e) => e.stopPropagation()} />)}
+      {item.itemType === 'video' ? (<video key={item.id} className={styles.image} src={`${API_BASE}${item.url}`} controls autoPlay muted={true} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}></video>) : (<img key={item.id} className={styles.image} src={`${API_BASE}${item.url}`} alt={item.id} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}/>)}
       <div>
           <button className={styles.deleteButton} onClick={(e) => {onDelete([item.id]); e.stopPropagation()}} >Delete</button>
+          <button className={styles.downloadButton} onClick={() => downloadOne({url: item.url, fileName: item.visibleName})}>Download</button>
           {onRestore && (<button onClick={() => onRestore([item.id])}>Restore</button>)}
       </div>
     </div>

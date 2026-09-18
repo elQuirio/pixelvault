@@ -17,6 +17,7 @@ export function useItems({ parentId, deleted, type }: useItemsProps) {
 
   function loadItems() {
     getItems({ sortBy, parentId, deleted, type }).then((res) => {
+      console.log(res.data.items);
       setItems(res.data.items);
       setLoadedFor(parentId);
     }).catch((err) => {
