@@ -142,10 +142,12 @@ export async function buildApp() {
     }
 
     const orderBy = (sortBy && sortBy in sortMap) ? sortMap[sortBy] : desc(items.createdAt);
+    
+    const childFilter = deleted === 'true' ? sql`c.deleted_at = "items"."deleted_at"` : sql`c.deleted_at is null`;
 
     const rows = await (db.select({...getTableColumns(items), 
-                    childCount: sql<number>`(select count(*) from ${items} c where c.parent_id = "items"."id" and c.deleted_at is null)`.mapWith(Number).as('child_count'), 
-                    folderCount:  sql<number>`(select count(*) from ${items} c where c.parent_id = "items"."id" and c.deleted_at is null and c.item_type = 'folder')`.mapWith(Number).as('folder_count')}
+                    childCount: sql<number>`(select count(*) from ${items} c where c.parent_id = "items"."id" and ${childFilter})`.mapWith(Number).as('child_count'), 
+                    folderCount:  sql<number>`(select count(*) from ${items} c where c.parent_id = "items"."id" and ${childFilter} and c.item_type = 'folder')`.mapWith(Number).as('folder_count')}
                   ).from(items).where(and(...conditions)).orderBy(orderBy));
 
     return {data: {
