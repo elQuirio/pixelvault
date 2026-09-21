@@ -1,23 +1,22 @@
 import { useState, useEffect } from "react";
-import type { Item } from "../api/upload.ts";
+import type { ItemType, Item } from "../types/types.ts";
 import { getItems } from "../api/upload.ts";
 import { useToast } from "../context/useToast.tsx";
 
 type useItemsProps = {
   parentId?: string;
   deleted?: boolean;
-  type?: string[];
+  type?: ItemType[];
 };
 
 export function useItems({ parentId, deleted, type }: useItemsProps) {
   const [items, setItems] = useState<Item[]>([]);
   const [sortBy, setSortBy] = useState("creationDateDesc");
-  const [loadedFor, setLoadedFor] = useState<string | undefined>(undefined);
+  const [loadedFor, setLoadedFor] = useState<string | null | undefined>(null);
   const { showToast } = useToast();
 
   function loadItems() {
     getItems({ sortBy, parentId, deleted, type }).then((res) => {
-      console.log(res.data.items);
       setItems(res.data.items);
       setLoadedFor(parentId);
     }).catch((err) => {
@@ -44,6 +43,7 @@ export function useItems({ parentId, deleted, type }: useItemsProps) {
     items,
     sortBy,
     setSortBy,
+    type,
     removeItems,
     reload: loadItems,
     patchItem,

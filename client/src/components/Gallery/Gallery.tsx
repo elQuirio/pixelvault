@@ -9,14 +9,15 @@ import { useToast } from '../../context/useToast.tsx';
 import { useState } from 'react';
 import { InputModal } from '../InputModal/InputModal.tsx';
 import { ConfirmModal } from '../ConfirmModal/ConfirmModal.tsx';
+import type { ItemType } from '../../types/types.ts';
 
 type GalleryProps = {
   getSpaceUsed: () => void;
 }
 
 export function Gallery({getSpaceUsed}: GalleryProps) {
-  
-  const {items, removeItems, sortBy, setSortBy, reload, patchItem } = useItems({type: ['image', 'video']});
+  const [itemType, setItemType] = useState<ItemType | 'all'>('all');
+  const {items, removeItems, sortBy, setSortBy, reload, patchItem, loading } = useItems({type: itemType === 'all' ? ['image', 'video'] : [itemType]});
   const {query, setQuery, filtered} = useSearch(items);
   const [modal, setModal] = useState< {mode:'rename', item:{id: string, name: string}, } | {mode:'confirm', action:'soft', count: number, ids: string[]} | null > (null);
 
@@ -63,10 +64,14 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
       {(modal?.mode === 'confirm') && <ConfirmModal mode={modal.action} itemCount={modal.count} onConfirm={() => handleDeleteConfirm(modal.ids)} onClose={() => setModal(null)} />}
       <ItemGrid
         items={filtered}
+        isLoading={loading}
         onDelete={handleDeleteClick}
         onDeleteBulk={handleDeleteClick}
         sortBy={sortBy}
         setSortBy={setSortBy}
+        itemType={itemType}
+        setItemType={setItemType}
+        typeOptions={['video', 'image']}
         onRename={(item) => setModal({mode:'rename', item})}
       />
     </>

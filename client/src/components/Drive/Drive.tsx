@@ -14,6 +14,7 @@ import { InputModal } from "../InputModal/InputModal.tsx";
 import { ConfirmModal } from "../ConfirmModal/ConfirmModal.tsx";
 import { NavigationModal } from "../NavigationModal/NavigationModal.tsx";
 import { Breadcrumb } from "../Breadcrumb/Breadcrumb.tsx";
+import type { ItemType } from "../../types/types.ts";
 
 type DriveProps = {
   getSpaceUsed: () => void;
@@ -21,11 +22,12 @@ type DriveProps = {
 
 export function Drive({getSpaceUsed}: DriveProps) {
   const [path, setPath] = useState<{id: string, name: string}[]>([{id: 'root', name: 'Home'}]);
+  const [itemType, setItemType] = useState<ItemType | 'all'>('all');
   const currentFolder = path.at(-1)?.id ?? 'root';
   const [modal, setModal] = useState< {mode:'rename', item:{id: string, name: string}, } | {mode: 'move', ids: string[]} | {mode: 'create'} | {mode: 'confirm', action: 'soft', count: number, ids: string[]} | null > (null);
   const { showToast } = useToast();
 
-  const {items, removeItems, reload, sortBy, setSortBy, patchItem, loading } = useItems({parentId: currentFolder});
+  const {items, removeItems, reload, sortBy, setSortBy, patchItem, loading } = useItems({parentId: currentFolder, type: itemType === 'all' ? undefined : [itemType]});
 
   const {query, setQuery, filtered} = useSearch(items);
 
@@ -122,18 +124,21 @@ export function Drive({getSpaceUsed}: DriveProps) {
                                       onClose={handleCancelClick} />}
       {(modal?.mode === 'confirm') && <ConfirmModal mode={modal.action} itemCount={modal.count} onConfirm={() => handleDeleteConfirm(modal.ids)} onClose={handleCancelClick}/>}
       {(modal?.mode === 'move' && <NavigationModal initialPath={path} excludedIds={modal.ids} onConfirm={handleMoveConfirm} onClose={handleCancelClick} />)}
-      {loading ? <div>Loading</div> : <ItemGrid
+      <ItemGrid
         key={currentFolder}
         items={filtered}
+        isLoading={loading}
         onDelete={handleDeleteClick}
         onDeleteBulk={handleDeleteClick}
         sortBy={sortBy}
         setSortBy={setSortBy}
+        itemType={itemType}
+        setItemType={setItemType}
         onFolderOpen={handleOpenFolder}
         onRename={(item) => setModal({mode: 'rename', item})}
         onMoveBulk={handleMoveClick}
         onCreateFolder={() => setModal({mode:'create'})}
-      />}
+      />
     </>
   );
 

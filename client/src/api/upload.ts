@@ -1,48 +1,6 @@
 import { API_BASE } from "../config/api";
+import type {UploadResponse, ItemsResponse, ItemResponse} from '../types/types.ts';
 
-type UploadedFile = {
-  id: string;
-  originalName: string;
-  size: number;
-  url: string;
-};
-
-type UploadResponse = {
-  data: {
-    uploaded: UploadedFile[];
-  };
-};
-
-export type Item = {
-  id: string;
-  url: string;
-  thumbnail: string | null;
-  originalName: string | null;
-  visibleName: string;
-  size: number;
-  itemType: string;
-  createdAt: string;
-  metadata: Record<string, unknown | null>;
-  childCount: number;
-  folderCount: number;
-};
-
-export type ItemsResponse = {
-  data: {
-    items: Item[];
-  };
-};
-
-export type ItemResponse = {
-  data: {
-    item: {
-      id: string, 
-      itemType: string, 
-      visibleName: string, 
-      createdAt: string 
-    };
-  }
-}
 
 
 export async function uploadOne(file: File, parentId: string | null = null) {

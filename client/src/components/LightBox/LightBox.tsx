@@ -1,4 +1,4 @@
-import type { Item } from "../../api/upload";
+import type { Item } from "../../types/types.ts";
 import styles from "./LightBox.module.css";
 import { useEffect } from "react";
 import { API_BASE } from "../../config/api";

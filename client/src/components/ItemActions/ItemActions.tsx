@@ -1,7 +1,7 @@
 
 import { FolderPen, Move, CircleEllipsis, Trash } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import type { Item } from "../../api/upload";
+import type { Item } from "../../types/types.ts";
 import styles from './ItemActions.module.css';
 import type { ReactNode } from "react";
 
