@@ -1,5 +1,5 @@
 import styles from "./ItemGrid.module.css";
-import type { Item } from "../../api/upload";
+import type { Item, ItemType } from "../../types/types.ts";
 import { LightBox } from "../LightBox/LightBox";
 import { API_BASE } from "../../config/api";
 import { TypeIcon } from "../TypeIcon/TypeIcon";
@@ -12,19 +12,23 @@ import { ItemActions } from "../ItemActions/ItemActions";
 
 type ItemGridProps = {
   items: Item[];
+  isLoading: boolean;
   onDelete: (ids: string[]) => void;
   onDeleteBulk: (ids: string[]) => void;
   onRestore?: (ids: string[]) => void;
   onRestoreBulk?: (ids: string[]) => void;
   sortBy: string;
   setSortBy: (sortBy: string) => void;
+  itemType: ItemType | 'all';
+  setItemType: (itemType: ItemType | 'all') => void;
+  typeOptions?: ItemType[];
   onFolderOpen?: (id: string, name: string) => void;
   onCreateFolder?: () => void;
   onRename?: (item: { id: string, name: string }) => void;
   onMoveBulk?: (ids: string[]) => void;
 };
 
-export function ItemGrid({ items, onDelete, onDeleteBulk, sortBy, setSortBy, onRestore, onRestoreBulk, onFolderOpen, onRename, onMoveBulk, onCreateFolder }: ItemGridProps) {
+export function ItemGrid({ items, isLoading, onDelete, onDeleteBulk, sortBy, setSortBy, itemType, setItemType, typeOptions, onRestore, onRestoreBulk, onFolderOpen, onRename, onMoveBulk, onCreateFolder }: ItemGridProps) {
   const {isSelectMode, toggleSelectMode, selectedIds, toggleSelection, toggleSelectAll} = useSelection();
 
   const mediaItems = items.filter((f) => f.itemType !== "folder");
@@ -67,8 +71,8 @@ export function ItemGrid({ items, onDelete, onDeleteBulk, sortBy, setSortBy, onR
 
   return (
     <div>
-      <Toolbar isSelectMode={isSelectMode} selectedCount={selectedIds.length} itemsCount={items.length} onToggleSelectMode={toggleSelectMode} onToggleSelectAll={handleToggleSelectAll} sortBy={sortBy} setSortBy={setSortBy} onDeleteBulk={() => handleDeleteBulk(selectedIds)} onRestoreBulk={onRestoreBulk && (() => handleRestoreBulk(selectedIds))} onMoveBulk={onMoveBulk && (() => handleMoveBulk(selectedIds))} onCreateFolder={onCreateFolder && (onCreateFolder)} />
-{items.length > 0 ? <div className={styles.gridContainer}>
+      <Toolbar isSelectMode={isSelectMode} selectedCount={selectedIds.length} itemsCount={items.length} onToggleSelectMode={toggleSelectMode} onToggleSelectAll={handleToggleSelectAll} sortBy={sortBy} setSortBy={setSortBy} itemType={itemType} setItemType={setItemType} typeOptions={typeOptions} onDeleteBulk={() => handleDeleteBulk(selectedIds)} onRestoreBulk={onRestoreBulk && (() => handleRestoreBulk(selectedIds))} onMoveBulk={onMoveBulk && (() => handleMoveBulk(selectedIds))} onCreateFolder={onCreateFolder && (onCreateFolder)} />
+{isLoading ? (<div>Loading</div>) : items.length > 0 ? <div className={styles.gridContainer}>
         {items.map((u) => (
             <div key={u.id} className={styles.thumbnailContainer}>
               {isSelectMode && (

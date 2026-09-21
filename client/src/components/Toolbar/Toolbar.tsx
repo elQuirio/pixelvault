@@ -1,5 +1,6 @@
 import styles from './Toolbar.module.css';
 import { ChevronDown, Trash, Move, FolderPlus, SquareMousePointer, Undo2, Shredder,  } from 'lucide-react';
+import { type ItemType } from '../../types/types.ts';
 
 type ToolbarProps = {
     isSelectMode: boolean;
@@ -9,16 +10,26 @@ type ToolbarProps = {
     onToggleSelectAll: () => void;
     sortBy: string;
     setSortBy: (sortBy: string) => void;
+    itemType: ItemType | 'all';
+    setItemType: (itemType: ItemType | 'all') => void;
+    typeOptions?: ItemType[];
     onDeleteBulk: () => void;
     onRestoreBulk?: () => void;
     onMoveBulk?: () => void;
     onCreateFolder?: () => void;
 }
 
-export function Toolbar({isSelectMode, selectedCount, itemsCount, onToggleSelectMode, onToggleSelectAll, sortBy, setSortBy, onDeleteBulk, onRestoreBulk, onMoveBulk, onCreateFolder }: ToolbarProps) {
+export function Toolbar({isSelectMode, selectedCount, itemsCount, onToggleSelectMode, onToggleSelectAll, sortBy, setSortBy, itemType, setItemType, typeOptions, onDeleteBulk, onRestoreBulk, onMoveBulk, onCreateFolder }: ToolbarProps) {
     const sortMap = [
         { sortkey: "creationDateDesc", label: "New first" },
         { sortkey: "creationDateAsc", label: "Old first" },
+    ];
+
+    const itemTypeMap : {itemTypekey: ItemType , label: string}[] = [
+        { itemTypekey: "file", label: "File" },
+        { itemTypekey: "video", label: "Video" },
+        { itemTypekey: "image", label: "Image" },
+        { itemTypekey: "folder", label: "Folder" },
     ];
 
 
@@ -28,6 +39,13 @@ export function Toolbar({isSelectMode, selectedCount, itemsCount, onToggleSelect
             <span className={styles.selectWrap}>
                 <select className={styles.select} value={sortBy} onChange={(e) => setSortBy(e.target.value)} >
                     {sortMap.map((s) => ( <option key={s.sortkey} value={s.sortkey}>{s.label}</option> ))}
+                </select>
+                <ChevronDown className={styles.caret}/>
+            </span>
+            <span className={styles.selectWrap}>
+                <select className={styles.select} value={itemType} onChange={(e) => setItemType(e.target.value as ItemType | 'all')} >
+                    <option key={'all'} value={'all'}>{'-'}</option>
+                    {itemTypeMap.filter((s) => !typeOptions || typeOptions.includes(s.itemTypekey)).map((s) => <option key={s.itemTypekey} value={s.itemTypekey}>{s.label}</option> )}
                 </select>
                 <ChevronDown className={styles.caret}/>
             </span>

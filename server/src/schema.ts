@@ -13,7 +13,7 @@ export const items = pgTable("items", {
   id: serial("id").primaryKey(),
   fileUuid: uuid("file_uuid").defaultRandom().notNull().unique(),
   parentId: integer('parent_id').references((): AnyPgColumn => items.id, {onDelete: 'set null'}),
-  itemType: text('item_type').notNull().default('image'),
+  itemType: text('item_type', {enum: ['folder', 'image', 'file', 'video']}).notNull().default('image'),
   ext: text("ext"),
   originalName: text("original_name"),
   visibleName: text('visible_name').notNull(),

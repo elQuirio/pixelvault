@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Item } from "../api/upload";
+import type { Item } from "../types/types.ts";
 
 export function useLightBox (mediaItems: Item[]) {
     const [lightBoxIndex, setLightBoxIndex] = useState<number | null>(null);

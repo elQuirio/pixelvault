@@ -5,15 +5,17 @@ import { useState } from "react";
 import { useItems } from "../../hooks/useItems.ts";
 import { ConfirmModal } from "../ConfirmModal/ConfirmModal.tsx";
 import { Breadcrumb } from "../Breadcrumb/Breadcrumb.tsx";
+import type { ItemType } from "../../types/types.ts";
 
 type TrashProps = {
   getSpaceUsed: () => void;
 }
 
 export function Trash({getSpaceUsed}: TrashProps) {
+  const [itemType, setItemType] = useState<ItemType | 'all'>('all');
   const [path, setPath] = useState<{id: string | null, name: string}[]>([{id: null, name: 'Home'}]);
   const currentFolder = path.at(-1)?.id ?? undefined;
-  const {items, removeItems, sortBy, setSortBy, reload } = useItems({parentId: currentFolder, deleted: true});
+  const {items, removeItems, sortBy, setSortBy, reload, loading } = useItems({parentId: currentFolder, deleted: true, type: itemType === 'all' ? undefined : [itemType]});
   const { showToast } = useToast();
   const [modal, setModal] = useState<{mode:'confirm', action: 'restore'|'permanent', count: number, ids: string[]} | null>(null);
 
@@ -85,12 +87,15 @@ export function Trash({getSpaceUsed}: TrashProps) {
       <ItemGrid
         key={currentFolder ?? 'home'}
         items={items}
+        isLoading={loading}
         onDelete={handlePermanentClick}
         onDeleteBulk={handlePermanentClick}
         onRestore={handleRestoreClick}
         onRestoreBulk={handleRestoreClick}
         sortBy={sortBy}
         setSortBy={setSortBy}
+        itemType={itemType}
+        setItemType={setItemType}
         onFolderOpen={handleOpenFolder}
       />
     </>
