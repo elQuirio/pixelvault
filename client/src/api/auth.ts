@@ -1,5 +1,5 @@
 import { API_BASE } from "../config/api";
-import type { Result } from "./result";
+import type { Result } from "../types/types.js";
 
 type RegisterBodyType = {
     name: string, 

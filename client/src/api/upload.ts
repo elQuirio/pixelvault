@@ -168,3 +168,18 @@ export async function getItemCount({selectedIds, mode}: {selectedIds: string[], 
   const {data} = await resp.json() as {data: {count: number}};
   return data.count;
 }
+
+export async function registerView({itemUUID} : {itemUUID: string}) {
+  try {
+    const resp = await fetch(`${API_BASE}/items/${itemUUID}/view`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+
+    if (!resp.ok) throw new Error(`Error updating item view: ${resp.status} ${resp.statusText}`);
+
+    return;
+  } catch (err) {
+    console.error(err);
+  }
+}
