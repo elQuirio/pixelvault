@@ -21,7 +21,6 @@ import { pipeline } from "node:stream/promises";
 import { createWriteStream } from "node:fs";
 import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail, collectSubtree, collectAncestors } from "./utility.js";
 import type { ItemType } from "./types/types.js";
-import { datetime } from "drizzle-orm/mysql-core";
 
 
 declare module 'fastify' {
