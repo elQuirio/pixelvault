@@ -7,6 +7,7 @@ import { Toolbar } from "../Toolbar/Toolbar";
 import { useLightBox } from "../../hooks/useLightBox";
 import { useSelection } from "../../hooks/useSelection";
 import { ItemActions } from "../ItemActions/ItemActions";
+import { registerView } from "../../api/upload.ts";
 
 
 
@@ -44,6 +45,7 @@ export function ItemGrid({ items, isLoading, onDelete, onDeleteBulk, sortBy, set
       onFolderOpen?.(u.id, u.visibleName);
       return;
     }
+    registerView({itemUUID: u.id});
     setLightBoxIndex(mediaItems.findIndex((m) => u.id === m.id));
   };
 

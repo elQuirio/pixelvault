@@ -20,6 +20,8 @@ import convert from 'heic-convert';
 import { pipeline } from "node:stream/promises";
 import { createWriteStream } from "node:fs";
 import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail, collectSubtree, collectAncestors } from "./utility.js";
+import type { ItemType } from "./types/types.js";
+import { datetime } from "drizzle-orm/mysql-core";
 
 
 declare module 'fastify' {
@@ -120,7 +122,7 @@ export async function buildApp() {
     }
 
     if(type) {
-      conditions.push(inArray(items.itemType, type.split(',')));
+      conditions.push(inArray(items.itemType, type.split(',') as ItemType[]));
     }
   // deletedAt is both a flag and a BATCH id.
   // Every item trashed in the same request shares the exact same timestamp.
@@ -542,6 +544,22 @@ export async function buildApp() {
   })
 
 
+  app.post('/items/:uuid/view', {preHandler: [app.authenticate]}, async (req, reply) => {
+    const { uuid: itemUUID } = req.params as {uuid: string};
+    const userId = req.user.id;
+
+    if (!isUuid(itemUUID)) return reply.code(400).send({message: 'Missing mandatory data'});
+
+    const [updatedId] = await db.update(items).set({ lastViewedAt: new Date(), viewCount: sql`${items.viewCount} +1`}).where(
+      and(eq(items.fileUuid, itemUUID), isNull(items.deletedAt), eq(items.userId, userId))
+      ).returning({id: items.id});
+
+    if (!updatedId) return reply.code(404).send();
+
+    return reply.code(204).send();
+  });
+
+
   //////////////////////////// AUTH ////////////////////////////////
 
   app.post('/auth/register', async (req, reply) => {
@@ -599,8 +617,6 @@ export async function buildApp() {
   });
 
 
-
-
   ///////////////////////////// UTILS //////////////////////////////
 
   app.get('/storage', {preHandler: [app.authenticate]}, async (req, reply) => {
@@ -610,6 +626,7 @@ export async function buildApp() {
 
     return reply.code(200).send({data: {used: Number(row.sizeTotal ?? 0)}});
   });
+
 
   return app;
 };

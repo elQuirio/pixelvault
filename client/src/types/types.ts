@@ -44,3 +44,5 @@ export type ItemResponse = {
 }
 
 export type ItemType = 'folder' | 'image' | 'video' | 'file';
+
+export type Result<T, E> = | { ok: true, data: T } | { ok: false, error: E };
