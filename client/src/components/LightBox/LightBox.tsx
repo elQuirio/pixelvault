@@ -5,6 +5,7 @@ import { API_BASE } from "../../config/api";
 import { formatSize } from "../../helpers/helpers";
 import { useRef } from "react";
 import { downloadOne } from '../../api/download';
+import { registerView } from "../../api/upload.ts";
 
 type LightBoxTypes = {
   items: Item[];
@@ -20,6 +21,7 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, onDe
   const pointerDownRef = useRef<null | {x: number, y:number}>(null);
   const swipedRef = useRef<boolean>(false);
   const clickedDownRef = useRef<boolean>(false);
+  const firstRef = useRef<boolean>(true);
 
   const goLeft = () => {
     if (lightBoxIndex === 0) {
@@ -84,6 +86,18 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, onDe
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose, setLightBoxIndex, lightBoxIndex]);
+
+  useEffect(() => {
+    if (firstRef.current) {
+      firstRef.current = false;
+      return;
+    }
+    const id = items[lightBoxIndex]?.id;
+    if (!id) return;
+
+    const timer = setTimeout(() => registerView({itemUUID: id}), 5000);
+    return () => clearTimeout(timer);
+  }, [lightBoxIndex]);
 
   if(!item) return null;
 

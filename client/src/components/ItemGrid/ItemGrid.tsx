@@ -20,6 +20,7 @@ type ItemGridProps = {
   onRestoreBulk?: (ids: string[]) => void;
   sortBy: string;
   setSortBy: (sortBy: string) => void;
+  query?: string;
   itemType: ItemType | 'all';
   setItemType: (itemType: ItemType | 'all') => void;
   typeOptions?: ItemType[];
@@ -29,7 +30,7 @@ type ItemGridProps = {
   onMoveBulk?: (ids: string[]) => void;
 };
 
-export function ItemGrid({ items, isLoading, onDelete, onDeleteBulk, sortBy, setSortBy, itemType, setItemType, typeOptions, onRestore, onRestoreBulk, onFolderOpen, onRename, onMoveBulk, onCreateFolder }: ItemGridProps) {
+export function ItemGrid({ items, isLoading, onDelete, onDeleteBulk, sortBy, setSortBy, query, itemType, setItemType, typeOptions, onRestore, onRestoreBulk, onFolderOpen, onRename, onMoveBulk, onCreateFolder }: ItemGridProps) {
   const {isSelectMode, toggleSelectMode, selectedIds, toggleSelection, toggleSelectAll} = useSelection();
 
   const mediaItems = items.filter((f) => f.itemType !== "folder");
@@ -92,7 +93,9 @@ export function ItemGrid({ items, isLoading, onDelete, onDeleteBulk, sortBy, set
         {lightBoxIndex !== null && (
           <LightBox items={mediaItems} lightBoxIndex={lightBoxIndex} setLightBoxIndex={setLightBoxIndex} onClose={closeLightBox} onDelete={onDelete} onRestore={onRestore}/>
         )}
-      </div> : <div className={styles.emptyFolder}>Empty folder</div>}
+      </div> : (itemType !== 'all') ? <div className={styles.emptyType}>No {itemType}s here</div> 
+      : (query !== '') ? <div className={styles.emptyType}>No search results</div>
+      : <div className={styles.emptyFolder}>Empty folder</div>}
     </div>
   );
 }

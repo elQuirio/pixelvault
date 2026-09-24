@@ -11,7 +11,7 @@ type useItemsProps = {
 
 export function useItems({ parentId, deleted, type }: useItemsProps) {
   const [items, setItems] = useState<Item[]>([]);
-  const [sortBy, setSortBy] = useState("creationDateDesc");
+  const [sortBy, setSortBy] = useState(localStorage.getItem('sortBy') ?? 'creationDateDesc');
   const [loadedFor, setLoadedFor] = useState<string | null | undefined>(null);
   const { showToast } = useToast();
 
@@ -29,6 +29,11 @@ export function useItems({ parentId, deleted, type }: useItemsProps) {
     loadItems();
   }, [sortBy, parentId, deleted, type?.join(',')]);
 
+  const handleSetSortBy = (value: string) => {
+    setSortBy(value);
+    localStorage.setItem('sortBy', value);
+  }
+
   const removeItems = (ids: string[]) => {
     setItems((prev) => prev.filter((f) => !ids.includes(f.id)));
   }
@@ -42,7 +47,7 @@ export function useItems({ parentId, deleted, type }: useItemsProps) {
   return {
     items,
     sortBy,
-    setSortBy,
+    setSortBy: handleSetSortBy,
     type,
     removeItems,
     reload: loadItems,
