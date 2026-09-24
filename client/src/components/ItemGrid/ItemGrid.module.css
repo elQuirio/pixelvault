@@ -49,7 +49,7 @@
   margin-top: 2px;
 }
 
-.emptyFolder {
+.emptyFolder, .emptyType{
   display: flex;
   flex-direction: column;
   align-items: center;

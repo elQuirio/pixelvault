@@ -56,12 +56,14 @@ export function Drive({getSpaceUsed}: DriveProps) {
   function handleOpenFolder(id: string, name: string) {
     setPath((prev) => [...prev, {id: id, name: name}]);
     setQuery('');
+    setItemType('all');
   }
 
   function handleBreadcrumbClick(id: string|null) {
     const breadIndex = path.findIndex((p) => p.id === id);
     setPath((prev) => prev.slice(0, breadIndex+1));
     setQuery('');
+    setItemType('all');
   }
 
 
@@ -132,6 +134,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
         onDeleteBulk={handleDeleteClick}
         sortBy={sortBy}
         setSortBy={setSortBy}
+        query={query}
         itemType={itemType}
         setItemType={setItemType}
         onFolderOpen={handleOpenFolder}

@@ -69,6 +69,7 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
         onDeleteBulk={handleDeleteClick}
         sortBy={sortBy}
         setSortBy={setSortBy}
+        query={query}
         itemType={itemType}
         setItemType={setItemType}
         typeOptions={['video', 'image']}
