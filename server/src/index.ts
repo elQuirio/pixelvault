@@ -19,7 +19,7 @@ import { fileTypeFromFile } from "file-type";
 import convert from 'heic-convert';
 import { pipeline } from "node:stream/promises";
 import { createWriteStream } from "node:fs";
-import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail, collectSubtree, collectAncestors } from "./utility.js";
+import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail, collectSubtree, collectAncestors, hashItem } from "./utility.js";
 import type { ItemType } from "./types/types.js";
 
 
@@ -180,6 +180,10 @@ export async function buildApp() {
       url: string;
       thumbnail: string | null;
     }[] = [];
+    const skipped: {
+      itemType: string;
+      originalName: string;
+    }[] = [];
 
     const {parentId: parentUUID} = req.query as {parentId: string};
     let parentId : number | null = null;
@@ -187,6 +191,7 @@ export async function buildApp() {
       if (!isUuid(parentUUID)) {
         return reply.code(404).send({message: 'Resource not found'});
       }
+      // parent uuid belongs to user and is not deleted and is a folder
       const [parentData] = await db.select({id: items.id}).from(items).where(and(eq(items.userId, userId), eq(items.fileUuid, parentUUID), isNull(items.deletedAt), eq(items.itemType, 'folder')));
       if(!parentData){
         return reply.code(404).send({message: 'Resource not found'});
@@ -225,6 +230,22 @@ export async function buildApp() {
         } else {
           await rename(tmpPath, filepath);
         }
+
+        // check duplicates
+        const itemHash = await hashItem(filepath);
+        const [duplicate] = await db.select({id: items.id}).from(items).where(and(
+          eq(items.itemHash, itemHash),
+          eq(items.userId, userId),
+          parentId === null ? isNull(items.parentId) : eq(items.parentId, parentId),
+          isNull(items.deletedAt))).limit(1);
+
+        if (duplicate) {
+          await safeUnlink(filepath);
+          await safeUnlink(tmpPath);
+          skipped.push({itemType, originalName})
+          continue;
+        }
+
         
         let metadata = null;
 
@@ -244,7 +265,7 @@ export async function buildApp() {
         
         await db
           .insert(items)
-          .values({ fileUuid, ext, originalName, parentId, visibleName: originalName, size, userId, metadata, itemType });
+          .values({ fileUuid, ext, originalName, parentId, visibleName: originalName, size, userId, metadata, itemType, itemHash });
 
         saved.push({
           id: fileUuid,
@@ -254,12 +275,13 @@ export async function buildApp() {
           url: `/uploads/originals/${fileUuid}.${ext}`,
           thumbnail: isPhoto ? `/uploads/thumbnails/${fileUuid}.webp` : null,
         });
+
       } catch (err) {
         req.log.error({ err, file: part.filename }, 'skipping failed file');
         continue;
       }
     }
-    return { data: {uploaded: saved }};
+    return { data: {uploaded: saved, skipped }};
   });
 
 

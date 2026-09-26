@@ -6,7 +6,8 @@ import {
   serial,
   timestamp,
   jsonb,
-  AnyPgColumn
+  AnyPgColumn,
+  index
 } from "drizzle-orm/pg-core";
 
 import { ITEM_TYPES } from './types/types.js';
@@ -25,12 +26,15 @@ export const items = pgTable("items", {
   metadata: jsonb('metadata'),
   viewCount: integer('view_count').notNull().default(0),
   lastViewedAt: timestamp('last_viewed_at'),
+  itemHash: text("item_hash"),
   createdAt: timestamp("created_at").defaultNow(),
   deletedAt: timestamp('deleted_at'),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => new Date()),
-});
+}, (table) => [
+  index("items_item_hash_idx").on(table.itemHash),
+]);
 
 
 export const users = pgTable('users', {
