@@ -6,9 +6,15 @@ export type UploadedFile = {
   url: string;
 };
 
+export type SkippedFile = {
+  itemType: string;
+  originalName: string;
+}
+
 export type UploadResponse = {
   data: {
     uploaded: UploadedFile[];
+    skipped: SkippedFile[];
   };
 };
 

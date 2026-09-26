@@ -3,22 +3,23 @@ import { useState, type ReactNode } from "react";
 import styles from './ToastProvider.module.css';
 
 type Toast = {
-    id: string;
+    id: number;
     message: string;
     type: 'success' | 'error' | 'info';
 }
 
-
+let toastId = 0;
 
 export function ToastProvider({children}: {children: ReactNode }) {
     const [toasts, setToasts] = useState<Toast[]>([]);
 
-    function removeToast(id: string) {
+    function removeToast(id: number) {
         setToasts((prev) => prev.filter((t) => t.id !== id));
     }
 
     function showToast (message: string, type: Toast['type']) {
-        const id = crypto.randomUUID();
+        toastId ++
+        const id = toastId;
         setToasts((prev) => [...prev, { id, message, type }]);
         setTimeout(() => removeToast(id), 3500);
     };

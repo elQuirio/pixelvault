@@ -27,9 +27,15 @@ export function useUpload({onComplete}: useUploadProps) {
     
           const resp = await Promise.allSettled(promises);
           const failed = resp.filter((r) => r.status === 'rejected');
+          const skipped = resp.filter((r) => r.status === 'fulfilled')
+          .reduce((sum, s) => sum + s.value.data.skipped.length, 0);
 
           if (failed.length > 0) {
             showToast(`${failed.length}/${newFiles.length} failed to upload`, 'error');
+          }
+
+          if (skipped > 0) {
+            showToast(`${skipped} duplicate item${skipped>1?'s':''} skipped`, 'info');
           }
 
           onComplete?.();
