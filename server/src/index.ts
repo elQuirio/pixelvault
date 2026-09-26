@@ -20,7 +20,7 @@ import convert from 'heic-convert';
 import { pipeline } from "node:stream/promises";
 import { createWriteStream } from "node:fs";
 import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail, collectSubtree, collectAncestors, hashItem } from "./utility.js";
-import type { ItemType } from "./types/types.js";
+import type { ItemType, DuplicateItem } from "./types/types.js";
 
 
 declare module 'fastify' {
@@ -167,6 +167,37 @@ export async function buildApp() {
       })),
     }};
   });
+
+  app.get('/items/duplicates', {preHandler: [app.authenticate]}, async (req, reply) => {
+    const userId = req.user.id;
+
+    const duplicateHash = db.select({hash: items.itemHash}).from(items)
+      .where(
+        and(inArray(items.itemType,['file','image','video']), eq(items.userId, userId), isNull(items.deletedAt)))
+      .groupBy(items.itemHash)
+      .having(sql`count(*)>1`);
+    const duplicateList = await db.select().from(items).where(and(inArray(items.itemHash, duplicateHash), eq(items.userId, userId), isNull(items.deletedAt))).orderBy(asc(items.createdAt));
+
+    const groups: Record<string, DuplicateItem[]> = {};
+    for (const duplicate of duplicateList) {
+      const key = duplicate.itemHash!;
+      groups[key] ??= [];
+      groups[key].push({
+        id: duplicate.fileUuid,
+        url: `/uploads/originals/${duplicate.fileUuid}.${duplicate.ext}`,
+        thumbnail: ['image', 'video'].includes(duplicate.itemType) ? `/uploads/thumbnails/${duplicate.fileUuid}.webp` : null,
+        originalName: duplicate.originalName,
+        visibleName: duplicate.visibleName,
+        size: duplicate.size,
+        itemType: duplicate.itemType,
+        createdAt: duplicate.createdAt,
+        metadata: duplicate.metadata,
+        childCount: 0,
+        folderCount: 0,
+        })
+    }
+    return reply.code(200).send({data: { groups: Object.entries(groups).map(([hash, items]) =>  ({hash, items}) )}});
+  })
 
 
   app.post("/upload", {preHandler: [app.authenticate]}, async (req, reply) => {
