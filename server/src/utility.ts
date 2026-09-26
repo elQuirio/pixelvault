@@ -7,6 +7,9 @@ import sharp from "sharp";
 import { db } from "./db.js";
 import { items } from "./schema.js";
 import { eq, and, isNull } from "drizzle-orm";
+import { pipeline } from "node:stream/promises";
+import { createHash } from "node:crypto"
+import { createReadStream } from "node:fs";
 
 ffmpeg.setFfprobePath(ffprobeStatic.path);
 // ffmpeg-static ships an incorrect default export declaration for a CommonJS module
@@ -97,3 +100,11 @@ export async function collectAncestors({destinationId, userId}: { destinationId:
   }
   return result;
 };
+
+
+export async function hashItem(path: string) {
+  const hash = createHash('sha256');
+  await pipeline(createReadStream(path), hash);
+
+  return hash.digest('hex');
+}
