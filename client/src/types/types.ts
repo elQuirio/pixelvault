@@ -49,7 +49,6 @@ export type ItemResponse = {
   }
 }
 
-
 export type DuplicatesResponse = {
   data: {
     groups: {
@@ -57,6 +56,11 @@ export type DuplicatesResponse = {
       items: Item[]
     }[]
   }
+}
+
+export type DuplicateGroup = {
+  hash: string, 
+  items: Item[]
 }
 
 export type ItemType = 'folder' | 'image' | 'video' | 'file';
