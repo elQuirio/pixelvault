@@ -1,5 +1,5 @@
 import { API_BASE } from "../config/api";
-import type {UploadResponse, ItemsResponse, ItemResponse} from '../types/types.ts';
+import type {UploadResponse, ItemsResponse, ItemResponse, DuplicatesResponse} from '../types/types.ts';
 
 
 
@@ -183,3 +183,19 @@ export async function registerView({itemUUID} : {itemUUID: string}) {
     console.error(err);
   }
 }
+
+
+export async function getDuplicates() {
+
+  const resp = await fetch(`${API_BASE}/items/duplicates`, {
+      method: 'GET',
+      credentials: 'include',
+    })
+
+    if (!resp.ok) {
+      throw new Error(`Error fetching duplicates: ${resp.status} ${resp.statusText}`);
+    }
+
+    return resp.json() as Promise<DuplicatesResponse>;
+}
+

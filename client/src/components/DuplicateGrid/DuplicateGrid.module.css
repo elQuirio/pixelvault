@@ -1,0 +1,73 @@
+.duplicateGridContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: 15px;
+}
+
+.duplicateThumbnail {
+  position: relative;
+  top: 0px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
+  z-index: 1;
+}
+
+.duplicatesRowContainer {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+
+.duplicateContainer {
+  position: relative;
+  flex: 0 0 150px;
+}
+
+
+.selectionCheckbox {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  border-width: 1px;
+  z-index: 10;
+}
+
+
+.itemName {
+  max-width: 150px;
+  height: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.emptyFolder, .emptyType{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 80px 24px;
+  color: var(--muted);
+  text-align: center;
+}
+
+
+@media (max-width: 768px) {
+    .duplicateContainer {
+      flex-basis: 80px;
+    }
+  }

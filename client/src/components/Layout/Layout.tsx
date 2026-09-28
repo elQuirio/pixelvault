@@ -7,8 +7,9 @@ import { formatSize } from "../../helpers/helpers";
 import { getStorage } from "../../api/upload";
 import { SidePanel } from "../SidePanel/SidePanel";
 import { Drive } from '../Drive/Drive';
+import { Duplicates } from '../Duplicates/Duplicates'; 
 
-export type ViewType = "gallery" | "drive" | "trash";
+export type ViewType = "gallery" | "drive" | "trash" | "duplicates";
 
 export function Layout() {
   const [spaceUsed, setSpaceUsed] = useState("");
@@ -25,6 +26,7 @@ export function Layout() {
   if (view === 'gallery') viewComponent = <Gallery getSpaceUsed={getSpaceUsed}/>; 
   else if (view === 'trash') viewComponent = <Trash getSpaceUsed={getSpaceUsed}/>;
   else if (view === 'drive') viewComponent = <Drive getSpaceUsed={getSpaceUsed}/>;
+  else if (view === 'duplicates') viewComponent = <Duplicates getSpaceUsed={getSpaceUsed}/>;
 
   return (
     <div className={styles.layoutContainer}>

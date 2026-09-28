@@ -49,6 +49,20 @@ export type ItemResponse = {
   }
 }
 
+export type DuplicatesResponse = {
+  data: {
+    groups: {
+      hash: string, 
+      items: Item[]
+    }[]
+  }
+}
+
+export type DuplicateGroup = {
+  hash: string,
+  items: Item[]
+}
+
 export type ItemType = 'folder' | 'image' | 'video' | 'file';
 
 export type Result<T, E> = | { ok: true, data: T } | { ok: false, error: E };

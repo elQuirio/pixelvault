@@ -8,8 +8,8 @@ type ToolbarProps = {
     itemsCount: number;
     onToggleSelectMode: () => void;
     onToggleSelectAll: () => void;
-    sortBy: string;
-    setSortBy: (sortBy: string) => void;
+    sortBy?: string;
+    setSortBy?: (sortBy: string) => void;
     itemType: ItemType | 'all';
     setItemType: (itemType: ItemType | 'all') => void;
     typeOptions?: ItemType[];
@@ -36,19 +36,19 @@ export function Toolbar({isSelectMode, selectedCount, itemsCount, onToggleSelect
     return <div className={styles.toolbar}>
         {<input className={`${styles.selectionCheckbox} ${!isSelectMode ? styles.disabled : ''}`} disabled={!isSelectMode} type="checkbox" checked={(selectedCount === itemsCount) && itemsCount > 0 } ref={(el) => {if (el) el.indeterminate = selectedCount > 0 && selectedCount < itemsCount;}} onChange={onToggleSelectAll} aria-label="Select all" title="Select all" />}
         <button className={`${styles.toolbarButton} ${isSelectMode ? styles.active : ""}`} onClick={onToggleSelectMode} aria-label="Select items" title="Select items"><SquareMousePointer className={styles.toolbarIcon}/></button>
-            <span className={styles.selectWrap}>
+            {(sortBy && setSortBy) && <span className={styles.selectWrap}>
                 <select className={styles.select} value={sortBy} onChange={(e) => setSortBy(e.target.value)} >
                     {sortMap.map((s) => ( <option key={s.sortkey} value={s.sortkey}>{s.label}</option> ))}
                 </select>
                 <ChevronDown className={styles.caret}/>
-            </span>
-            <span className={styles.selectWrap}>
+            </span>}
+            {itemType && <span className={styles.selectWrap}>
                 <select className={styles.select} value={itemType} onChange={(e) => setItemType(e.target.value as ItemType | 'all')} >
                     <option key={'all'} value={'all'}>{'-'}</option>
                     {itemTypeMap.filter((s) => !typeOptions || typeOptions.includes(s.itemTypekey)).map((s) => <option key={s.itemTypekey} value={s.itemTypekey}>{s.label}</option> )}
                 </select>
                 <ChevronDown className={styles.caret}/>
-            </span>
+            </span>}
             
             {(onCreateFolder && !isSelectMode) &&  <button className={styles.toolbarButton} onClick={onCreateFolder} aria-label="Create new folder" title="Create new folder"><FolderPlus className={styles.toolbarIcon}/></button>}
 
