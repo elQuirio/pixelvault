@@ -1,15 +1,10 @@
-import { UploadArea } from '../UploadArea/UploadArea.tsx'
-import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
-import { deleteItemsBulk, renameItem, getItemCount } from "../../api/upload.ts";
-//import styles from './Gallery.module.css';
-import { useItems } from "../../hooks/useItems.ts";
-import { useSearch } from '../../hooks/useSearch.ts';
-import { SearchBar } from '../SearchBar/SearchBar.tsx';
+import { DuplicateGrid } from '../DuplicateGrid/DuplicateGrid.tsx';
+import { deleteItemsBulk, getItemCount } from "../../api/upload.ts";
 import { useToast } from '../../context/useToast.tsx';
 import { useState } from 'react';
-import { InputModal } from '../InputModal/InputModal.tsx';
 import { ConfirmModal } from '../ConfirmModal/ConfirmModal.tsx';
 import type { ItemType } from '../../types/types.ts';
+import { useDuplicates } from '../../hooks/useDuplicates.ts';
 
 type DuplicatesProps = {
   getSpaceUsed: () => void;
@@ -17,17 +12,17 @@ type DuplicatesProps = {
 
 export function Duplicates({getSpaceUsed}: DuplicatesProps) {
   const [itemType, setItemType] = useState<ItemType | 'all'>('all');
-  const {items, removeItems, sortBy, setSortBy, reload, patchItem, loading } = useItems({type: itemType === 'all' ? ['image', 'video'] : [itemType]});
+  const {duplicates, loading, removeDuplicates } = useDuplicates();
 
-  const {query, setQuery, filtered} = useSearch(items);
-  const [modal, setModal] = useState< {mode:'rename', item:{id: string, name: string}, } | {mode:'confirm', action:'soft', count: number, ids: string[]} | null > (null);
+  const [modal, setModal] = useState< {mode:'confirm', action:'soft', count: number, ids: string[]} | null > (null);
 
   const { showToast } = useToast();
 
   async function handleDeleteConfirm(ids: string[]) {
     try {
       await deleteItemsBulk(ids);
-      removeItems(ids);
+      removeDuplicates(ids);
+      getSpaceUsed();
       setModal(null);
     } catch (err) {
       console.error(err);
@@ -45,37 +40,20 @@ export function Duplicates({getSpaceUsed}: DuplicatesProps) {
       }
     }
 
-  async function handleConfirmRename(newName: string) {
-    try {
-      if (modal?.mode !== 'rename') return;
-      await renameItem({id: modal.item.id, visibleName: newName.trim()});
-      patchItem(modal.item.id, {visibleName: newName.trim()});
-      setModal(null);
-    } catch (err) {
-      console.error(err);
-      showToast('Rename failed', 'error');
-    }
-  }
 
   return (
     <>
-      <UploadArea parentId={null} onComplete={() => { reload(); getSpaceUsed(); }}/>
-      <SearchBar value={query} setValue={setQuery}/>
-      {(modal?.mode === 'rename') && <InputModal initialValue={modal.item.name} mode={modal.mode} confirmBtnLabel={'Rename item'} onConfirm={handleConfirmRename} onClose={() => setModal(null)} />}
       {(modal?.mode === 'confirm') && <ConfirmModal mode={modal.action} itemCount={modal.count} onConfirm={() => handleDeleteConfirm(modal.ids)} onClose={() => setModal(null)} />}
-      <ItemGrid
-        items={filtered}
+      {duplicates?.length === 0 && <div>No duplicates</div>}
+      {duplicates && <DuplicateGrid
+        duplicates={duplicates ?? []}
         isLoading={loading}
         onDelete={handleDeleteClick}
         onDeleteBulk={handleDeleteClick}
-        sortBy={sortBy}
-        setSortBy={setSortBy}
-        query={query}
         itemType={itemType}
         setItemType={setItemType}
         typeOptions={['video', 'image']}
-        onRename={(item) => setModal({mode:'rename', item})}
-      />
+      />}
     </>
   );
 }

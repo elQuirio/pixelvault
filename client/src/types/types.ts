@@ -59,7 +59,7 @@ export type DuplicatesResponse = {
 }
 
 export type DuplicateGroup = {
-  hash: string, 
+  hash: string,
   items: Item[]
 }
 
