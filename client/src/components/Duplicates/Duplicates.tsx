@@ -44,8 +44,7 @@ export function Duplicates({getSpaceUsed}: DuplicatesProps) {
   return (
     <>
       {(modal?.mode === 'confirm') && <ConfirmModal mode={modal.action} itemCount={modal.count} onConfirm={() => handleDeleteConfirm(modal.ids)} onClose={() => setModal(null)} />}
-      {duplicates?.length === 0 && <div>No duplicates</div>}
-      {duplicates && <DuplicateGrid
+      <DuplicateGrid
         duplicates={duplicates ?? []}
         isLoading={loading}
         onDelete={handleDeleteClick}
@@ -53,7 +52,7 @@ export function Duplicates({getSpaceUsed}: DuplicatesProps) {
         itemType={itemType}
         setItemType={setItemType}
         typeOptions={['video', 'image']}
-      />}
+      />
     </>
   );
 }

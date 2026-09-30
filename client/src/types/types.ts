@@ -30,6 +30,7 @@ export type Item = {
   metadata: Record<string, unknown | null>;
   childCount: number;
   folderCount: number;
+  parentName?: string | null;
 };
 
 export type ItemsResponse = {

@@ -88,7 +88,6 @@ export function Trash({getSpaceUsed}: TrashProps) {
         key={currentFolder ?? 'home'}
         items={items}
         isLoading={loading}
-        onDelete={handlePermanentClick}
         onDeleteBulk={handlePermanentClick}
         onRestore={handleRestoreClick}
         onRestoreBulk={handleRestoreClick}

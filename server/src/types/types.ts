@@ -15,4 +15,5 @@ export type DuplicateItem = {
     metadata: unknown;
     childCount: number;
     folderCount: number;
+    parentName: string | null;
 }
