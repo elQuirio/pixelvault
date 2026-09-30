@@ -61,7 +61,7 @@ export function ItemActions({item, onRename, onMove, onDelete}: ItemActionsProps
         setIsOpen(false);
     }
 
-    if (onRename || onMove) {
+    if (onRename || onMove || onDelete) {
         body = (<div className={styles.actionMenuWrapper}>
                     {onRename && <button className={styles.renameButton} onClick={handleRename}><FolderPen size={14}/><div className={styles.buttonLabel}>Rename</div></button>}
                     {onMove && <button className={styles.moveButton} onClick={handleMove}><Move size={14}/><div className={styles.buttonLabel}>Move</div></button>}

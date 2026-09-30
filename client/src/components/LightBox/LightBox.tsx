@@ -11,7 +11,7 @@ type LightBoxTypes = {
   items: Item[];
   lightBoxIndex: number;
   setLightBoxIndex: (i: number) => void;
-  onDelete: (ids: string[]) => void;
+  onDelete?: (ids: string[]) => void;
   onRestore?: (ids: string[]) => void;
   onClose: () => void;
 };
@@ -124,7 +124,7 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, onDe
       </div>
       {item.itemType === 'video' ? (<video key={item.id} className={styles.image} src={`${API_BASE}${item.url}`} controls autoPlay muted={true} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}></video>) : (<img key={item.id} className={styles.image} src={`${API_BASE}${item.url}`} alt={item.id} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}/>)}
       <div>
-          <button className={styles.deleteButton} onClick={(e) => {onDelete([item.id]); e.stopPropagation()}} >Delete</button>
+          {onDelete && <button className={styles.deleteButton} onClick={(e) => {onDelete([item.id]); e.stopPropagation()}} >Delete</button>}
           <button className={styles.downloadButton} onClick={() => downloadOne({url: item.url, fileName: item.visibleName})}>Download</button>
           {onRestore && (<button onClick={() => onRestore([item.id])}>Restore</button>)}
       </div>

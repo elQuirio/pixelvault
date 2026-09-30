@@ -14,7 +14,7 @@ import { registerView } from "../../api/upload.ts";
 type ItemGridProps = {
   items: Item[];
   isLoading: boolean;
-  onDelete: (ids: string[]) => void;
+  onDelete?: (ids: string[]) => void;
   onDeleteBulk: (ids: string[]) => void;
   onRestore?: (ids: string[]) => void;
   onRestoreBulk?: (ids: string[]) => void;
