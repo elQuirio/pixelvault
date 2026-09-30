@@ -26,6 +26,10 @@
   margin-right: 1px;
 }
 
+.thumbnailWrapper {
+  position: relative;
+}
+
 
 .selectionCheckbox {
   position: absolute;

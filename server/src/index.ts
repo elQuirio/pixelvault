@@ -176,7 +176,9 @@ export async function buildApp() {
         and(inArray(items.itemType,['file','image','video']), eq(items.userId, userId), isNull(items.deletedAt)))
       .groupBy(items.itemHash)
       .having(sql`count(*)>1`);
-    const duplicateList = await db.select().from(items).where(and(inArray(items.itemHash, duplicateHash), eq(items.userId, userId), isNull(items.deletedAt))).orderBy(asc(items.createdAt));
+    
+    const parent = alias(items, 'parent');
+    const duplicateList = await db.select({...getTableColumns(items), parentName: parent.visibleName}).from(items).leftJoin(parent, eq(parent.id, items.parentId)).where(and(inArray(items.itemHash, duplicateHash), eq(items.userId, userId), isNull(items.deletedAt))).orderBy(asc(items.createdAt));
 
     const groups: Record<string, DuplicateItem[]> = {};
     for (const duplicate of duplicateList) {
@@ -194,6 +196,7 @@ export async function buildApp() {
         metadata: duplicate.metadata,
         childCount: 0,
         folderCount: 0,
+        parentName: duplicate.parentName,
         })
     }
     return reply.code(200).send({data: { groups: Object.entries(groups).map(([hash, items]) =>  ({hash, items}) )}});

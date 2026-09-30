@@ -6,6 +6,7 @@ import { useLightBox } from "../../hooks/useLightBox";
 import { useSelection } from "../../hooks/useSelection";
 import { TypeIcon } from "../TypeIcon/TypeIcon.tsx";
 import { ItemActions } from "../ItemActions/ItemActions.tsx";
+import { Folder } from "lucide-react";
 import { API_BASE } from "../../config/api.ts";
 import styles from './DuplicateGrid.module.css';
 
@@ -59,11 +60,15 @@ export function DuplicateGrid({ duplicates, isLoading, onDelete, onDeleteBulk, i
             <div key={d.hash} className={styles.duplicatesRowContainer}>
               {d.items.map((i) => <div key={i.id} className={styles.duplicateContainer}>
                                     {isSelectMode && (<input type="checkbox" className={styles.selectionCheckbox} checked={selectedIds.includes(i.id)} onChange={() => toggleSelection(i.id)}/>)}
-                                  {i.thumbnail ? <img className={styles.duplicateThumbnail} src={`${API_BASE}${i.thumbnail}`} alt={i.id} onClick={() => handleClick(i)}/> :
-                                  <TypeIcon itemType={i.itemType} onClick={() => handleClick(i)}/>
+                                  <div className={styles.thumbnailWrapper}>
+                                  {i.thumbnail ? 
+                                      <img className={styles.duplicateThumbnail} src={`${API_BASE}${i.thumbnail}`} alt={i.id} onClick={() => handleClick(i)}/> 
+                                      : <TypeIcon itemType={i.itemType} onClick={() => handleClick(i)}/>
                                   }
-                                  <div className={styles.itemName}>{i.visibleName}</div>
                                   {!isSelectMode &&  <ItemActions item={i} onDelete={onDelete} />}
+                                  </div>
+                                  <div className={styles.itemName}>{i.visibleName}</div>
+                                  <div className={styles.parentName}><Folder size={13}/>{i.parentName === null ? 'Root' : i.parentName}</div>
                                   </div>)}
             </div>))}
         {lightBoxIndex !== null && (

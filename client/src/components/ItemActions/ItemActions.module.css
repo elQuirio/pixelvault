@@ -2,7 +2,7 @@
 .actionBtnWrapper {
   position: absolute;
   z-index: 10;
-  bottom: 20px;
+  bottom: 3px;
   right: 3px;
 }
 
