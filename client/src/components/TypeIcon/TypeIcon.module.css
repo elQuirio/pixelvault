@@ -14,7 +14,35 @@
 }
 
 
-.folderStats {
+.folderStatsFull {
     font-size: 12px;
     color: var(--muted);
+}
+
+
+
+.folderStatsMobile {
+    display: none;
+    font-size: 12px;
+    color: var(--muted);
+    flex-direction: row;
+    align-items: center;
+    gap: 3px;
+}
+
+
+@media (max-width: 768px) { 
+    .folderStatsMobile {
+        display: flex;
+    }
+    .folderStatsFull {
+        display: none;
+    }
+      .typeIconContainer {
+        padding-bottom: 8px;
+    }
+    .typeIcon {
+        width: 34px;
+        height: 34px;
+    }
 }
