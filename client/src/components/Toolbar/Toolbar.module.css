@@ -39,6 +39,24 @@
   appearance: none;
 }
 
+.iconSelect {
+  width: 56px;
+  color: transparent;
+}
+
+.iconSelect option {
+  color: var(--text);
+}
+
+.selectWrap .selectIcon {
+  position: absolute;
+  left: 10px;
+  width: 18px;
+  height: 18px;
+  color: var(--text);
+  pointer-events: none;
+}
+
 .selectionCheckbox {
   width: 26px;
   height: 26px;

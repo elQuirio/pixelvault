@@ -1,4 +1,4 @@
-import { FileText, Folder, Video } from "lucide-react";
+import { FileText, Folder, Video, PackageOpen } from "lucide-react";
 import styles from './TypeIcon.module.css';
 
 type TypeIconProps = {
@@ -14,7 +14,14 @@ export function TypeIcon({itemType, onClick, itemCount}: TypeIconProps) {
     const getIcon = (itemType: string) => {
 
         switch (itemType){
-            case 'folder': return <><Folder className={styles.typeIcon} size={50}/><div className={styles.folderStats}>{itemString}</div></>
+            case 'folder': return <><Folder className={styles.typeIcon} size={50}/>
+                                        <div className={styles.folderStatsFull}>
+                                            <div>{itemString}</div>
+                                        </div>
+                                        <div className={styles.folderStatsMobile}> 
+                                            <PackageOpen size={16}/>{itemCount}
+                                        </div>
+                                    </>
             case 'video': return <Video className={styles.typeIcon} size={50}/>
             default: return <FileText className={styles.typeIcon} size={50}/>
         }

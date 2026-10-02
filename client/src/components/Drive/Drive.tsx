@@ -103,7 +103,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
     try {
 
       await moveItems({ids: modal.ids, parentId});
-      showToast(`${modal.ids.length} items moved`, 'success');
+      showToast(`${modal.ids.length} item${modal.ids.length >1 ? 's' : ''} moved`, 'success');
       
     } catch (err) {
       console.error(err);
