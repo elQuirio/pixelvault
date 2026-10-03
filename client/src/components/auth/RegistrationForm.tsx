@@ -28,6 +28,11 @@ export function RegistrationForm({ setIsRegistration }: RegistrationFormProps) {
         case 'name_taken':
           showToast('Name already taken', 'error');
           break;
+        case 'registration_blocked':
+          showToast('Registration not allowed', 'error');
+          break;
+        case 'too_many_attempts':
+          showToast('Too many attempts', 'error');
       }
     }
   }
@@ -46,7 +51,7 @@ export function RegistrationForm({ setIsRegistration }: RegistrationFormProps) {
       </div>
       <div className={styles.inputWrapper}>
         <label htmlFor="registration-password">Password</label>
-        <input id="registration-password" type="password" className={styles.input} value={password} onChange={(e) => setPassword(e.target.value)}/>
+        <input id="registration-password" type="password" className={styles.input} value={password} minLength={8} onChange={(e) => setPassword(e.target.value)}/>
       </div>
       <div>
         <button className={styles.formButton} type='submit'>Confirm</button>

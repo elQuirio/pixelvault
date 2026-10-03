@@ -30,6 +30,8 @@ export function LoginForm({ setIsRegistration }: LoginFormProps) {
         case 'invalid_input':
           showToast('Invalid input', 'error');
           break;
+        case 'too_many_attempts':
+          showToast('Too many attempts', 'error');
       }
     }
   }
