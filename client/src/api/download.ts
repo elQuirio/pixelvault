@@ -1,25 +1,10 @@
 import { API_BASE } from "../config/api";
 
 
-export async function downloadOne({url, fileName} : {url: string, fileName: string}): Promise<void> {
-
-    const res = await fetch(`${API_BASE}${url}`, {
-        method: "GET",
-        credentials: "include",
-    });
-
-    if (!res.ok) {
-    throw new Error(`Download failed: ${res.status} ${res.statusText}`);
-    }
-
-    const blob = await res.blob();
-    const objectUrl = URL.createObjectURL(blob);
-
+export function downloadOne({url} : {url: string}) {
     const a = document.createElement('a');
-    a.href = objectUrl;
-    a.download = fileName;
+    a.href = API_BASE + url + '?download=1';
     document.body.appendChild(a);
     a.click();
     a.remove();
-    URL.revokeObjectURL(objectUrl);
 }
