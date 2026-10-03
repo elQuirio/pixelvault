@@ -70,7 +70,7 @@ export async function buildApp() {
 
   await app.register(staticPlugin, {
     root: UPLOAD_DIR,
-    prefix: "/uploads/",
+    serve: false,
   });
 
   await app.register(cookie);
@@ -154,8 +154,8 @@ export async function buildApp() {
     return {data: {
       items: rows.map((f) => ({
         id: f.fileUuid,
-        url: `/uploads/originals/${f.fileUuid}.${f.ext}`,
-        thumbnail: ['image', 'video'].includes(f.itemType) ? `/uploads/thumbnails/${f.fileUuid}.webp` : null,
+        url: `/items/${f.fileUuid}/original`,
+        thumbnail: ['image', 'video'].includes(f.itemType) ? `/items/${f.fileUuid}/thumbnail` : null,
         originalName: f.originalName,
         visibleName: f.visibleName,
         size: f.size,
@@ -167,6 +167,34 @@ export async function buildApp() {
       })),
     }};
   });
+
+  app.get('/items/:id/original', {preHandler: [app.authenticate]}, async (req, reply) => {
+    const { id: itemId } = req.params as {id: string};
+    const userId = req.user.id;
+
+    if (!isUuid(itemId)) return reply.code(404).send({message: 'Resource not found'});
+
+    const [item] = await db.select({fileUuid: items.fileUuid, ext: items.ext, itemType: items.itemType}).from(items).where(and(eq(items.fileUuid, itemId), eq(items.userId, userId)));
+
+    if (!item || item.itemType === 'folder') return reply.code(404).send({message: 'Resource not found'});
+
+    return reply.sendFile(`originals/${item.fileUuid}.${item.ext}`);
+  });
+
+
+  app.get('/items/:id/thumbnail', {preHandler: [app.authenticate]}, async (req, reply) => {
+    const { id: itemId } = req.params as {id: string};
+    const userId = req.user.id;
+
+    if (!isUuid(itemId)) return reply.code(404).send({message: 'Resource not found'});
+
+    const [item] = await db.select({fileUuid: items.fileUuid, itemType: items.itemType}).from(items).where(and(eq(items.fileUuid, itemId), eq(items.userId, userId)));
+
+    if (!item || (!['video','image'].includes(item.itemType))) return reply.code(404).send({message: 'Resource not found'});
+
+    return reply.sendFile(`thumbnails/${item.fileUuid}.webp`);
+  });
+
 
   app.get('/items/duplicates', {preHandler: [app.authenticate]}, async (req, reply) => {
     const userId = req.user.id;
@@ -186,8 +214,8 @@ export async function buildApp() {
       groups[key] ??= [];
       groups[key].push({
         id: duplicate.fileUuid,
-        url: `/uploads/originals/${duplicate.fileUuid}.${duplicate.ext}`,
-        thumbnail: ['image', 'video'].includes(duplicate.itemType) ? `/uploads/thumbnails/${duplicate.fileUuid}.webp` : null,
+        url: `/items/${duplicate.fileUuid}/original`,
+        thumbnail: ['image', 'video'].includes(duplicate.itemType) ? `/items/${duplicate.fileUuid}/thumbnail` : null,
         originalName: duplicate.originalName,
         visibleName: duplicate.visibleName,
         size: duplicate.size,
@@ -306,8 +334,8 @@ export async function buildApp() {
           itemType,
           originalName,
           size,
-          url: `/uploads/originals/${fileUuid}.${ext}`,
-          thumbnail: isPhoto ? `/uploads/thumbnails/${fileUuid}.webp` : null,
+          url: `/items/${fileUuid}/original`,
+          thumbnail: isPhoto || isVideo ? `/items/${fileUuid}/thumbnail` : null,
         });
 
       } catch (err) {
