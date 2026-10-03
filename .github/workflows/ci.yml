@@ -35,6 +35,7 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: server/package-lock.json
+      - run: npm audit --audit-level=high
       - run: npm ci
       - run: npx tsc --noEmit
       - run: npm run lint
@@ -53,6 +54,7 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: client/package-lock.json
+      - run: npm audit --audit-level=high
       - run: npm ci
       - run: npx tsc -b
       - run: npm run lint

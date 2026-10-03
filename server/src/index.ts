@@ -21,6 +21,8 @@ import { pipeline } from "node:stream/promises";
 import { createWriteStream } from "node:fs";
 import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail, collectSubtree, collectAncestors, hashItem } from "./utility.js";
 import type { ItemType, DuplicateItem } from "./types/types.js";
+import rateLimit from '@fastify/rate-limit';
+import helmet from '@fastify/helmet';
 
 
 declare module 'fastify' {
@@ -77,6 +79,10 @@ export async function buildApp() {
   const JWT_SECRET = process.env.JWT_SECRET;
   if (!JWT_SECRET) throw new Error('JWT_SECRET is missing')
   await app.register(jwt, {secret: JWT_SECRET, cookie: {cookieName: 'token', signed: false}} );
+
+  await app.register(rateLimit, {global: false});
+
+  await app.register(helmet, {crossOriginResourcePolicy: { policy: 'same-site' }});
 
   app.decorate('authenticate', async (req, reply) => {
     try {
@@ -654,11 +660,20 @@ export async function buildApp() {
 
   //////////////////////////// AUTH ////////////////////////////////
 
-  app.post('/auth/register', async (req, reply) => {
+  app.post('/auth/register', {config: {rateLimit: {max: 3, timeWindow: '1 hour' }}}, async (req, reply) => {
     const { name, email, password } = req.body as {name?: string, email?: string, password?: string};
+    const ALLOW_REGISTRATION = process.env.ALLOW_REGISTRATION ?? 'false';
+
+    if (ALLOW_REGISTRATION !== 'true') {
+      return reply.code(403).send({message: 'Registration not allowed'});
+    }
 
     if (!name || !email || !password) {
       return reply.code(400).send({ message: 'Missing mandatory data'});
+    }
+
+    if (password.length < 8) {
+      return reply.code(400).send({ message: 'Password too short'});
     }
 
     const passwordHash = await argon2.hash(password, {type: argon2.argon2id});
@@ -674,7 +689,7 @@ export async function buildApp() {
     }
   })
 
-  app.post('/auth/login', async (req, reply) => {
+  app.post('/auth/login', {config: {rateLimit: {max: 15, timeWindow: '1 hour' }}}, async (req, reply) => {
     const {name, password} = req.body as {name?: string, password?: string};
 
     if (!name || !password) {
@@ -690,8 +705,8 @@ export async function buildApp() {
     if (!ok) {
       return reply.code(401).send({message: 'Invalid credentials'});
     }
-    const token = app.jwt.sign({id: user.id});
-    return reply.setCookie('token', token, {httpOnly: true, sameSite: 'lax', secure: false, path: '/'}).code(200).send({data: {id: user.id}});
+    const token = app.jwt.sign({id: user.id}, {expiresIn: '3d'});
+    return reply.setCookie('token', token, {httpOnly: true, sameSite: 'lax', secure: false, path: '/', maxAge: 3*24*60*60}).code(200).send({data: {id: user.id}});
   })
 
 

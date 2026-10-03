@@ -12,9 +12,9 @@ type LoginBodyType = {
     password: string
 }
 
-type RegisterError = 'name_taken' | 'invalid_input';
+type RegisterError = 'name_taken' | 'invalid_input' | 'registration_blocked' | 'too_many_attempts';
 
-type LoginError = 'wrong_credentials' | 'invalid_input';
+type LoginError = 'wrong_credentials' | 'invalid_input' | 'too_many_attempts';
 
 type RegisterBody = {id: number};
 
@@ -40,6 +40,13 @@ export async function register(bodyContent: RegisterBodyType): Promise<Result<Re
     if (resp.status === 409) {
         return {ok: false, error: 'name_taken'};
     }
+    if (resp.status === 403) {
+        return {ok: false, error: 'registration_blocked'};
+    }
+    if (resp.status === 429) {
+        return {ok: false, error: 'too_many_attempts'};
+    }
+
     throw new Error(`Unexpected error: ${resp.status} ${resp.statusText}`);
 }
 
@@ -63,6 +70,9 @@ export async function login(bodyContent: LoginBodyType): Promise<Result<LoginBod
     }
     if (resp.status === 401) {
         return {ok: false, error: 'wrong_credentials'};
+    }
+    if (resp.status === 429) {
+        return {ok: false, error: 'too_many_attempts'};
     }
 
     throw new Error(`Unexpected error: ${resp.status} ${resp.statusText}`)
