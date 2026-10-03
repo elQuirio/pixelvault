@@ -171,12 +171,21 @@ export async function buildApp() {
   app.get('/items/:id/original', {preHandler: [app.authenticate]}, async (req, reply) => {
     const { id: itemId } = req.params as {id: string};
     const userId = req.user.id;
+    const { download } = req.query as {download: string};
 
     if (!isUuid(itemId)) return reply.code(404).send({message: 'Resource not found'});
 
-    const [item] = await db.select({fileUuid: items.fileUuid, ext: items.ext, itemType: items.itemType}).from(items).where(and(eq(items.fileUuid, itemId), eq(items.userId, userId)));
+    const [item] = await db.select({fileUuid: items.fileUuid, ext: items.ext, itemType: items.itemType, fileName: items.visibleName}).from(items).where(and(eq(items.fileUuid, itemId), eq(items.userId, userId)));
 
     if (!item || item.itemType === 'folder') return reply.code(404).send({message: 'Resource not found'});
+
+    if (download === '1') {
+      const asciiName = item.fileName.replace(/[^\x20-\x7e]|"/g, '_');
+      reply.header(
+        'Content-Disposition',
+        `attachment; filename="${asciiName}"; filename*=UTF-8''${encodeURIComponent(item.fileName)}`
+      );
+    }
 
     return reply.sendFile(`originals/${item.fileUuid}.${item.ext}`);
   });

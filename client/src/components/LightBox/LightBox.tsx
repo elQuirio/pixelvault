@@ -125,7 +125,7 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, onDe
       {item.itemType === 'video' ? (<video key={item.id} className={styles.image} src={`${API_BASE}${item.url}`} controls autoPlay muted={true} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}></video>) : (<img key={item.id} className={styles.image} src={`${API_BASE}${item.url}`} alt={item.id} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}/>)}
       <div>
           {onDelete && <button className={styles.deleteButton} onClick={(e) => {onDelete([item.id]); e.stopPropagation()}} >Delete</button>}
-          <button className={styles.downloadButton} onClick={() => downloadOne({url: item.url, fileName: item.visibleName})}>Download</button>
+          <button className={styles.downloadButton} onClick={() => downloadOne({url: item.url})}>Download</button>
           {onRestore && (<button onClick={() => onRestore([item.id])}>Restore</button>)}
       </div>
     </div>
