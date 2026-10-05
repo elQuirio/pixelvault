@@ -1,30 +1,37 @@
 # PixelVault
 
-A self-hosted media vault: upload photos and videos, arrange them into folders, and restore them from the bin when you delete the wrong item.
+A self-hosted cloud storage for photos, videos and files, used every day from a phone and running in production on a Linux server at home.
 
-Built as a full-stack project with no framework scaffolding. The folder tree, the trash semantics and the move logic are all hand-rolled, which is where most of the work and the decisions live.
+Built as a full-stack project with no framework scaffolding. The folder tree, the trash semantics, deduplication and file access are all hand-rolled, which is where most of the work and the decisions live.
 
-![PixelVault](docs/screenshot.jpg)
+<p align="center">
+  <img src="docs/Desktop.png" alt="PixelVault on desktop" width="72%">
+  &nbsp;
+  <img src="docs/iPhone.png" alt="PixelVault on iPhone" width="22%">
+</p>
 
 ## Stack
 
-**Frontend** — React, TypeScript, Vite, CSS Modules. No external UI library. No state manager by design: local states are kept in components and custom hooks. Shared state is propagated over context.
+**Frontend:** React, TypeScript, Vite, CSS Modules. No external UI library. No state manager by design: local state lives in components and custom hooks, and shared state is propagated through context.
 
-**Backend** — Fastify, TypeScript, Drizzle ORM, PostgreSQL. JWT auth over httpOnly cookies. Thumbnails generated with sharp, video probing with ffprobe.
+**Backend:** Fastify, TypeScript, Drizzle ORM, PostgreSQL. JWT auth over httpOnly cookies, rate limiting and security headers. Thumbnails generated with sharp, video probing and thumbnails with ffmpeg.
+
+**Testing and deployment:** Vitest integration tests against a real PostgreSQL database, run in GitHub Actions together with type checks, lint and dependency audits. Deployed on a home Ubuntu server, with files stored on an external disk.
 
 ## What it does
 
-- Upload images and videos, with thumbnails generated server-side
-- Navigate down into folder trees with breadcrumb navigation
-- Rename, single and bulk move with navigation modal
+- Upload photos, videos and files up to 5 GB, streamed to disk, with thumbnails generated server-side
+- Navigate folder trees with breadcrumbs, filter by type, search and sort
+- Rename, single and bulk move, select all, bulk delete
 - Trash with restore and permanent delete, both scoped to the same batch
-- Search, sort, storage usage
-- Lightbox for images and video playback
-- Registration and login
+- Duplicate detection: identical files are skipped when uploaded into the same folder, and a dedicated view groups the existing duplicates
+- Lightbox with swipe navigation for photos and video playback
+- Downloads with the original file names
+- Mobile-first interface: icon toolbar, touch targets, swipe gestures
 
 ## Design decisions
 
-**The trash is a flag, not a folder.** When an item is deleted, `deletedAt` is set to the current timestamp. Nothing moves and no reference to parent folder is updated. On the other hand, some important products (like MEGA) implement the bin as a real node, so deleting is a real move. But in this way the app needs to store the reference to the original parent in order to do a restore in place. 
+**The trash is a flag, not a folder.** When an item is deleted, `deletedAt` is set to the current timestamp. Nothing moves and no reference to parent folder is updated. On the other hand, some other important products implement the bin as a real node, so deleting is a real move. But in this way the app needs to store the reference to the original parent in order to do a restore in place. 
 So keeping the item in the same position with a deleted flag lets the app keep such reference without having to save it separately.
 
 **Timestamp is the batch id.** All the items deleted in the same request share the exact same `deletedAt` value. This is because in the same request a single `new Date()` value is calculated at the beginning of the execution and kept the same through the whole update process.
@@ -50,13 +57,19 @@ This could not be done in the DB as foreign keys can't control over multi-rows c
 Example: Bulk restoring together a folder and one of its children, both deleted in different batches. If the child is processed first the parent is still deleted, so the link is cleared and the child ends up at root level. If the folder is processed first the link is kept and the child stays inside. Same request, same items, different result only because of the order the ids arrived in. 
 Now the route collects the whole affected subtree first, and bulk updates the set so the order of the ids does not matter.
 
+**Uploads are streamed, then analysed from disk.** Buffering a whole upload in memory capped the file size at the server's RAM, and real videos are several gigabytes. The upload is now streamed straight to a temporary file, and every later step (file type detection, metadata, thumbnail, hash) reads from that file. The order changed, not the steps: most libraries already accept a path instead of a buffer.
+
+**Duplicates are detected by content, not by name.** Every file is hashed with a streamed SHA-256 after it reaches its final form on disk, so a converted HEIC is hashed as the JPEG that is actually stored. The same file is skipped when uploaded into the same folder, but accepted in a different one: the check guards the entry point, and a dedicated view shows the duplicates that already exist. In that view, selecting all picks every copy except the oldest, so a bulk delete can never remove all of them.
+
+**Files are served only through authenticated routes.** There is no public static folder. Originals and thumbnails are streamed by routes that check the session and the owner, and an id that belongs to another user returns 404 instead of 403, so the response does not reveal that the file exists.
+
 ## Roadmap
 
-- **v1.1** — responsive layout and improved UI/UX (desktop only for now)
-- Deployment
-- Encryption: files encrypted before upload, server stores ciphertext it cannot read
-- Semantic search over image content
+- HTTPS on the local network and remote access through a self-hosted VPN
+- Semantic search over image content with CLIP embeddings and pgvector
+- Background workers for heavy processing, starting with video compression
+- Map view of photos from their GPS metadata
 
 ## Status
 
-Stable v1 with basic drive manager functions. No automated tests yet.
+In daily use, deployed on a home Linux server. The trash and folder tree logic is covered by integration tests that run in CI on every push to main and on pull requests; the tests for authentication and file access are next.
