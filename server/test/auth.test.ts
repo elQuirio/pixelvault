@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { db } from "../src/db.js";
-import { sql, inArray, eq } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { seed } from "./helpers.js";
 import { buildApp } from '../src/index.js';
-import { items } from "../src/schema.js";
 
 
 beforeEach(async () => {
@@ -13,6 +12,10 @@ beforeEach(async () => {
 
 
 describe('POST /auth/register', () => {
+  afterEach(() => {
+    delete process.env.ALLOW_REGISTRATION;
+  });
+  
   it('returns 403 when registration is not allowed', async () => {
     process.env.ALLOW_REGISTRATION='false';
     const app = await buildApp();
@@ -138,6 +141,25 @@ describe('POST /auth/login', () => {
             payload: {name: userName, password: 'wrongPassword'}
         });
     expect(resp.statusCode).toBe(401);
+  });
+
+  it('it returns a 429 after 15 wrong attempts', async () => {
+    const {userName} = await seed();
+    const app = await buildApp();
+    for (let i=1; i<= 15; i++) {
+      const resp = await app.inject({
+        method: "POST",
+        url: "/auth/login",
+        payload: {name: userName, password: 'wrongPassword'}
+      });
+      expect(resp.statusCode).toBe(401);
+    }
+    const resp = await app.inject({
+        method: "POST",
+        url: "/auth/login",
+        payload: {name: userName, password: 'wrongPassword'}
+      });
+    expect(resp?.statusCode).toBe(429);
   });
 
   it('it returns 200 when user and password are correct', async () => {
