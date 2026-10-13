@@ -31,7 +31,7 @@ describe('DELETE /items', () => {
         const {userId, uuidA, idA, idB, idC} = await seed();
         const app = await buildApp();
         const token = app.jwt.sign({id: userId})
-        const res = await app.inject({
+        await app.inject({
             method: "DELETE",
             url: "/items",
             payload: { ids: [uuidA] },
@@ -46,7 +46,7 @@ describe('DELETE /items', () => {
     })
 
     it('it only deletes subtree items', async () => {
-        const {userId, uuidA, idA, idB, idC, idZ} = await seed();
+        const {userId, uuidA, idZ} = await seed();
         const app = await buildApp();
         const token = app.jwt.sign({id: userId})
         const res = await app.inject({
