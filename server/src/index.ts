@@ -41,6 +41,7 @@ declare module '@fastify/jwt' {
 export async function buildApp() {
 
   const app = Fastify({
+    trustProxy: '127.0.0.1',
     logger: {
       transport: {
         target: "pino-pretty",
@@ -706,7 +707,7 @@ export async function buildApp() {
       return reply.code(401).send({message: 'Invalid credentials'});
     }
     const token = app.jwt.sign({id: user.id}, {expiresIn: '3d'});
-    return reply.setCookie('token', token, {httpOnly: true, sameSite: 'lax', secure: false, path: '/', maxAge: 3*24*60*60}).code(200).send({data: {id: user.id}});
+    return reply.setCookie('token', token, {httpOnly: true, sameSite: 'lax', secure: process.env.COOKIE_SECURE === 'true', path: '/', maxAge: 3*24*60*60}).code(200).send({data: {id: user.id}});
   })
 
 
