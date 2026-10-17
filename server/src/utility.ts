@@ -108,3 +108,24 @@ export async function hashItem(path: string) {
 
   return hash.digest('hex');
 }
+
+
+export async function getEmbedding(path: string): Promise<number[] | null> {
+  try {
+    const resp = await fetch(`${process.env.ML_URL}/embed/image`, {
+      method: 'POST',
+      headers: {"Content-Type": 'application/json'},
+      body: JSON.stringify({path: path}),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!resp.ok) throw new Error(`ML service responded ${resp.status}`);
+
+    const respJson = await resp.json() as { "embeddings": number[] };
+    return respJson.embeddings;
+
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
