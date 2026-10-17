@@ -8,7 +8,8 @@ import {
   timestamp,
   jsonb,
   AnyPgColumn,
-  index
+  index,
+  vector
 } from "drizzle-orm/pg-core";
 
 import { ITEM_TYPES } from './types/types.js';
@@ -28,6 +29,7 @@ export const items = pgTable("items", {
   viewCount: integer('view_count').notNull().default(0),
   lastViewedAt: timestamp('last_viewed_at'),
   itemHash: text("item_hash"),
+  itemVector: vector("item_vector", { dimensions: 768 }),
   createdAt: timestamp("created_at").defaultNow(),
   deletedAt: timestamp('deleted_at'),
   updatedAt: timestamp("updated_at")

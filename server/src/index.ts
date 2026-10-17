@@ -19,7 +19,7 @@ import { fileTypeFromFile } from "file-type";
 import convert from 'heic-convert';
 import { pipeline } from "node:stream/promises";
 import { createWriteStream } from "node:fs";
-import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail, collectSubtree, collectAncestors, hashItem } from "./utility.js";
+import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail, collectSubtree, collectAncestors, hashItem, getEmbedding } from "./utility.js";
 import type { ItemType, DuplicateItem } from "./types/types.js";
 import rateLimit from '@fastify/rate-limit';
 import helmet from '@fastify/helmet';
@@ -326,9 +326,11 @@ export async function buildApp() {
 
         
         let metadata = null;
+        let vector: number[] | null = null
 
         if (isPhoto) {
           metadata = (await exifr.parse(isHeic ? tmpPath : filepath, {gps: true}) ?? null) as Record<string, unknown> | null;
+          vector = await getEmbedding(filepath);
           await sharp(filepath).rotate()
             .resize(200, 200, { fit: "cover" })
             .webp({ quality: 80 })
@@ -343,7 +345,7 @@ export async function buildApp() {
         
         await db
           .insert(items)
-          .values({ fileUuid, ext, originalName, parentId, visibleName: originalName, size, userId, metadata, itemType, itemHash });
+          .values({ fileUuid, ext, originalName, parentId, visibleName: originalName, size, userId, metadata, itemType, itemHash, itemVector: vector });
 
         saved.push({
           id: fileUuid,
