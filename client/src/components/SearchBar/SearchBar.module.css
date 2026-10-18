@@ -1,8 +1,10 @@
 .searchBarWrapper {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  justify-content: center;
   padding: 2rem;
+  gap: 15px;
 }
 
 .searchBarInput {
@@ -47,6 +49,14 @@
   color: var(--muted);
 }
 
+.semanticSearchButton {
+  height: 38px;
+}
+
+.active {
+  color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
 
 @media (max-width: 768px) {
   .inputWrapper {

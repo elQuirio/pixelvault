@@ -18,7 +18,7 @@ type GalleryProps = {
 export function Gallery({getSpaceUsed}: GalleryProps) {
   const [itemType, setItemType] = useState<ItemType | 'all'>('all');
   const {items, removeItems, sortBy, setSortBy, reload, patchItem, loading } = useItems({type: itemType === 'all' ? ['image', 'video'] : [itemType]});
-  const {query, setQuery, filtered} = useSearch(items);
+  const {query, setQuery, filtered, runSemanticSearch, isSemantic} = useSearch(items);
   const [modal, setModal] = useState< {mode:'rename', item:{id: string, name: string}, } | {mode:'confirm', action:'soft', count: number, ids: string[]} | null > (null);
 
   const { showToast } = useToast();
@@ -59,7 +59,7 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
   return (
     <>
       <UploadArea parentId={null} onComplete={() => { reload(); getSpaceUsed(); }}/>
-      <SearchBar value={query} setValue={setQuery}/>
+      <SearchBar value={query} setValue={setQuery} runSemanticSearch={runSemanticSearch} isSemantic={isSemantic}/>
       {(modal?.mode === 'rename') && <InputModal initialValue={modal.item.name} mode={modal.mode} confirmBtnLabel={'Rename item'} onConfirm={handleConfirmRename} onClose={() => setModal(null)} />}
       {(modal?.mode === 'confirm') && <ConfirmModal mode={modal.action} itemCount={modal.count} onConfirm={() => handleDeleteConfirm(modal.ids)} onClose={() => setModal(null)} />}
       <ItemGrid

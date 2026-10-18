@@ -9,7 +9,7 @@ import staticPlugin from "@fastify/static";
 import sharp from "sharp";
 import { db } from "./db.js";
 import { items, users } from "./schema.js";
-import { eq, asc, desc, and, isNull, isNotNull, inArray, sum, notExists, count, getTableColumns, sql } from "drizzle-orm";
+import { eq, asc, desc, and, isNull, isNotNull, inArray, sum, notExists, count, getTableColumns, sql, cosineDistance } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import argon2 from 'argon2';
 import cookie from '@fastify/cookie';
@@ -330,7 +330,7 @@ export async function buildApp() {
 
         if (isPhoto) {
           metadata = (await exifr.parse(isHeic ? tmpPath : filepath, {gps: true}) ?? null) as Record<string, unknown> | null;
-          vector = await getEmbedding(filepath);
+          vector = await getEmbedding({type: 'image', value: filepath});
           await sharp(filepath).rotate()
             .resize(200, 200, { fit: "cover" })
             .webp({ quality: 80 })
@@ -659,6 +659,51 @@ export async function buildApp() {
 
     return reply.code(204).send();
   });
+
+
+  /////////////////////////// SEARCH ////////////////////////////////
+
+  app.get('/search', {preHandler: [app.authenticate]}, async (req, reply) => {
+    const userId = req.user.id;
+    const { q: queryString } = req.query as {q: string};
+
+    if (!queryString?.trim()) return reply.code(400).send({message: 'Missing mandatory data'});
+
+    const embedding = await getEmbedding({type: 'text', value: queryString});
+
+    if (!embedding) return reply.code(503).send({message: 'Error calling text embedding service'});
+
+    const rows = await db.select({id: items.id, 
+                                  fileUuid: items.fileUuid, 
+                                  itemType: items.itemType, 
+                                  originalName: items.originalName, 
+                                  visibleName: items.visibleName,
+                                  size: items.size,
+                                  createdAt: items.createdAt,
+                                  metadata: items.metadata,
+                                  distance: cosineDistance(items.itemVector, embedding)})
+      .from(items)
+      .where(and(isNotNull(items.itemVector), eq(items.userId, userId), isNull(items.deletedAt)))
+      .orderBy(asc(cosineDistance(items.itemVector, embedding)))
+      .limit(100);
+
+    return {data: {
+      items: rows.map((f) => ({
+        id: f.fileUuid,
+        url: `/items/${f.fileUuid}/original`,
+        thumbnail: ['image', 'video'].includes(f.itemType) ? `/items/${f.fileUuid}/thumbnail` : null,
+        originalName: f.originalName,
+        visibleName: f.visibleName,
+        size: f.size,
+        itemType: f.itemType,
+        createdAt: f.createdAt,
+        metadata: f.metadata,
+        childCount: 0,
+        folderCount: 0,
+        distance: f.distance
+      })),
+    }};
+  })
 
 
   //////////////////////////// AUTH ////////////////////////////////

@@ -64,6 +64,13 @@ export type DuplicateGroup = {
   items: Item[]
 }
 
+
+export type SemanticSearchResponse = {
+  data: {
+    items: Item[]
+  }
+}
+
 export type ItemType = 'folder' | 'image' | 'video' | 'file';
 
 export type Result<T, E> = | { ok: true, data: T } | { ok: false, error: E };
