@@ -51,11 +51,26 @@
 
 .semanticSearchButton {
   height: 38px;
+  width: 140px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+}
+
+.searchSpinner {
+  animation: spin 1s linear infinite;
+  stroke-width: 3px;
 }
 
 .active {
   color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 @media (max-width: 768px) {
