@@ -19,7 +19,7 @@ class ImageRequest(BaseModel):
 
 @app.post("/embed/text")
 def embed_text(req: TextRequest):
-    inputs = processor(text=[req.text], padding="max_length", max_length=64, return_tensors="pt")
+    inputs = processor(text=[req.text.strip().lower()], padding="max_length", max_length=64, return_tensors="pt")
     with torch.no_grad():
         vector = model.get_text_features(**inputs)
     vector = vector / vector.norm(dim=-1, keepdim=True)

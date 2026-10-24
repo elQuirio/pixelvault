@@ -42,7 +42,7 @@ export function LoginForm({ setIsRegistration }: LoginFormProps) {
       <div className={styles.loginFormLabel}>Login</div>
       <div className={styles.inputWrapper}>
         <label htmlFor="login-username">Username</label>
-        <input id="login-username" type="text" className={styles.input} value={username} onChange={(e) => setUsername(e.target.value)} />
+        <input id="login-username" type="text" autoCapitalize='none' className={styles.input} value={username} onChange={(e) => setUsername(e.target.value)} />
       </div>
       <div className={styles.inputWrapper}>
         <label htmlFor="login-password">Password</label>

@@ -43,7 +43,7 @@ export function RegistrationForm({ setIsRegistration }: RegistrationFormProps) {
       <div className={styles.registrationFormLabel}>Registration</div>
       <div className={styles.inputWrapper}>
         <label htmlFor="registration-username">Username</label>
-        <input id="registration-username" type="text" className={styles.input} value={username} onChange={(e) => setUsername(e.target.value)}/>
+        <input id="registration-username" type="text" autoCapitalize='none' className={styles.input} value={username} onChange={(e) => setUsername(e.target.value)}/>
       </div>
       <div className={styles.inputWrapper}>
         <label htmlFor="registration-email">Email</label>
