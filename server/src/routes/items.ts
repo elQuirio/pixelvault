@@ -1,11 +1,11 @@
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyPluginCallback } from 'fastify';
 import { ORIGINAL_DIR, THUMBNAIL_DIR } from "../config.js";
 import { writeFile, rename, readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
 import { db } from "../db.js";
-import { items, users } from "../schema.js";
+import { items } from "../schema.js";
 import { eq, asc, desc, and, isNull, isNotNull, inArray, notExists, count, getTableColumns, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import exifr from 'exifr';
@@ -18,7 +18,7 @@ import type { ItemType, DuplicateItem } from "../types/types.js";
 
 
 
-export const itemsRoutes: FastifyPluginAsync = async (app) => { 
+export const itemsRoutes: FastifyPluginCallback = (app, _opts, done) => { 
     const sortMap = {
     'creationDateDesc': desc(items.createdAt),
     'creationDateAsc': asc(items.createdAt),
@@ -579,4 +579,5 @@ export const itemsRoutes: FastifyPluginAsync = async (app) => {
     return reply.code(204).send();
     });
 
+    done();
 };

@@ -1,11 +1,11 @@
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyPluginCallback } from 'fastify';
 import { db } from "../db.js";
 import { users } from "../schema.js";
 import { eq } from "drizzle-orm";
 import argon2 from 'argon2';
 
 
-export const authRoutes: FastifyPluginAsync = async (app) => {
+export const authRoutes: FastifyPluginCallback = (app, _opts, done) => {
 
   app.post('/auth/register', {config: {rateLimit: {max: 3, timeWindow: '1 hour' }}}, async (req, reply) => {
     const { name, email, password } = req.body as {name?: string, email?: string, password?: string};
@@ -70,6 +70,6 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     }
   });
 
-
+  done();
 };
 

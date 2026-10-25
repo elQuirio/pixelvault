@@ -1,11 +1,11 @@
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyPluginCallback } from 'fastify';
 import { db } from "../db.js";
 import { items } from "../schema.js";
 import { eq, asc, and, isNull, isNotNull, cosineDistance } from "drizzle-orm";
 import { getEmbedding } from "../utility.js";
 
 
-export const searchRoutes: FastifyPluginAsync = async (app) => {
+export const searchRoutes: FastifyPluginCallback = (app, _opts, done) => {
     app.get('/search', {preHandler: [app.authenticate]}, async (req, reply) => {
     const userId = req.user.id;
     const { q: queryString } = req.query as {q: string};
@@ -47,6 +47,8 @@ export const searchRoutes: FastifyPluginAsync = async (app) => {
       })),
     }};
   })
+
+  done();
 };
 
 
