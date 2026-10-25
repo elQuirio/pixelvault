@@ -11,7 +11,7 @@ beforeEach(async () => {
 
 
 
-describe('POST /auth/register', () => {
+describe('POST /api/auth/register', () => {
   afterEach(() => {
     delete process.env.ALLOW_REGISTRATION;
   });
@@ -21,7 +21,7 @@ describe('POST /auth/register', () => {
     const app = await buildApp();
     const resp = await app.inject({
             method: "POST",
-            url: "/auth/register",
+            url: "/api/auth/register",
             payload: {name: 'testName', email: 'testemail@email.com', password: 'testPassword'}
         });
     expect(resp.statusCode).toBe(403);
@@ -32,7 +32,7 @@ describe('POST /auth/register', () => {
     const app = await buildApp();
     const resp = await app.inject({
             method: "POST",
-            url: "/auth/register",
+            url: "/api/auth/register",
             payload: {name: '', email: 'testemail@email.com', password: 'testPassword'}
         });
     expect(resp.statusCode).toBe(400);
@@ -43,7 +43,7 @@ describe('POST /auth/register', () => {
     const app = await buildApp();
     const resp = await app.inject({
             method: "POST",
-            url: "/auth/register",
+            url: "/api/auth/register",
             payload: {name: 'testName', email: 'testemail@email.com', password: ''}
         });
     expect(resp.statusCode).toBe(400);
@@ -54,7 +54,7 @@ describe('POST /auth/register', () => {
     const app = await buildApp();
     const resp = await app.inject({
             method: "POST",
-            url: "/auth/register",
+            url: "/api/auth/register",
             payload: {name: 'testName', email: '', password: 'testPassword'}
         });
     expect(resp.statusCode).toBe(400);
@@ -65,7 +65,7 @@ describe('POST /auth/register', () => {
     const app = await buildApp();
     const resp = await app.inject({
             method: "POST",
-            url: "/auth/register",
+            url: "/api/auth/register",
             payload: {name: 'testName', email: 'testemail@email.com', password: '123456'}
         });
     expect(resp.statusCode).toBe(400);
@@ -77,7 +77,7 @@ describe('POST /auth/register', () => {
     const app = await buildApp();
     const resp = await app.inject({
             method: "POST",
-            url: "/auth/register",
+            url: "/api/auth/register",
             payload: {name: userName, email: 'testemail@email.com', password: 'testPassword'}
         });
     expect(resp.statusCode).toBe(409);
@@ -88,7 +88,7 @@ describe('POST /auth/register', () => {
     const app = await buildApp();
     const resp = await app.inject({
             method: "POST",
-            url: "/auth/register",
+            url: "/api/auth/register",
             payload: {name: 'testName', email: 'testemail@email.com', password: 'testPassword'}
         });
     expect(resp.statusCode).toBe(201);
@@ -98,13 +98,13 @@ describe('POST /auth/register', () => {
 
 
 
-describe('POST /auth/login', () => {
+describe('POST /api/auth/login', () => {
   it('it returns 400 when user is missing', async () => {
 
     const app = await buildApp();
     const resp = await app.inject({
             method: "POST",
-            url: "/auth/login",
+            url: "/api/auth/login",
             payload: {name: '', password: 'testPassword'}
         });
     expect(resp.statusCode).toBe(400);
@@ -115,7 +115,7 @@ describe('POST /auth/login', () => {
     const app = await buildApp();
     const resp = await app.inject({
             method: "POST",
-            url: "/auth/login",
+            url: "/api/auth/login",
             payload: {name: 'fakeName', password: ''}
         });
     expect(resp.statusCode).toBe(400);
@@ -126,7 +126,7 @@ describe('POST /auth/login', () => {
     const app = await buildApp();
     const resp = await app.inject({
             method: "POST",
-            url: "/auth/login",
+            url: "/api/auth/login",
             payload: {name: 'fakeUser', password: 'wrongPassword'}
         });
     expect(resp.statusCode).toBe(401);
@@ -137,7 +137,7 @@ describe('POST /auth/login', () => {
     const app = await buildApp();
     const resp = await app.inject({
             method: "POST",
-            url: "/auth/login",
+            url: "/api/auth/login",
             payload: {name: userName, password: 'wrongPassword'}
         });
     expect(resp.statusCode).toBe(401);
@@ -149,14 +149,14 @@ describe('POST /auth/login', () => {
     for (let i=1; i<= 15; i++) {
       const resp = await app.inject({
         method: "POST",
-        url: "/auth/login",
+        url: "/api/auth/login",
         payload: {name: userName, password: 'wrongPassword'}
       });
       expect(resp.statusCode).toBe(401);
     }
     const resp = await app.inject({
         method: "POST",
-        url: "/auth/login",
+        url: "/api/auth/login",
         payload: {name: userName, password: 'wrongPassword'}
       });
     expect(resp?.statusCode).toBe(429);
@@ -167,7 +167,7 @@ describe('POST /auth/login', () => {
     const app = await buildApp();
     const resp = await app.inject({
             method: "POST",
-            url: "/auth/login",
+            url: "/api/auth/login",
             payload: {name: userName, password: userPassword}
         });
     expect(resp.statusCode).toBe(200);
@@ -179,12 +179,12 @@ describe('POST /auth/login', () => {
 })
 
 
-describe('GET /auth/me', () => {
+describe('GET /api/auth/me', () => {
   it('it returns 401 when not authenticated', async () => {
     const app = await buildApp();
     const resp = await app.inject({
             method: "GET",
-            url: "/auth/me",
+            url: "/api/auth/me",
         });
     expect(resp.statusCode).toBe(401);
   })
@@ -195,7 +195,7 @@ describe('GET /auth/me', () => {
     const token = app.jwt.sign({id: userId});
     const resp = await app.inject({
             method: "GET",
-            url: "/auth/me",
+            url: "/api/auth/me",
             cookies: {token}
         });
     expect(resp.statusCode).toBe(200);
@@ -210,7 +210,7 @@ describe('GET /auth/me', () => {
     const token = app.jwt.sign({id: userId}, {expiresIn: '1m',  clockTimestamp: Date.now() - 5*60*1000});
     const resp = await app.inject({
             method: "GET",
-            url: "/auth/me",
+            url: "/api/auth/me",
             cookies: {token}
         });
     expect(resp.statusCode).toBe(401);

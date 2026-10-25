@@ -15,14 +15,14 @@ beforeEach(async () => {
 });
 
 
-describe('GET /items', () => {
+describe('GET /api/items', () => {
   it('it returns 404 when parentId is not uuid', async () => {
     const {userId} = await seed();
     const app = await buildApp();
     const token = app.jwt.sign({id: userId})
     const resp = await app.inject({
       method: "GET",
-      url: `/items?parentId=123456`,
+      url: `/api/items?parentId=123456`,
       cookies: { token }
     });
     expect(resp.statusCode).toBe(404);
@@ -35,7 +35,7 @@ describe('GET /items', () => {
     const token = app.jwt.sign({id: userId})
     const resp = await app.inject({
       method: "GET",
-      url: `/items?parentId=${parentId}`,
+      url: `/api/items?parentId=${parentId}`,
       cookies: { token }
     });
     expect(resp.statusCode).toBe(404);
@@ -48,7 +48,7 @@ describe('GET /items', () => {
     const token = app.jwt.sign({id: userId})
     const resp = await app.inject({
       method: "GET",
-      url: `/items?parentId=${uuidA}`,
+      url: `/api/items?parentId=${uuidA}`,
       cookies: { token }
     });
     expect(resp.statusCode).toBe(200);
@@ -61,12 +61,12 @@ describe('GET /items', () => {
 
 
 
-describe('GET /items/:id/original', () => {
+describe('GET /api/items/:id/original', () => {
   it('it returns 401 when user is not authenticated', async () => {
     const app = await buildApp();
     const resp = await app.inject({
             method: "GET",
-            url: "/items/123abc/original",
+            url: "/api/items/123abc/original",
         });
     expect(resp.statusCode).toBe(401);
   });
@@ -78,7 +78,7 @@ describe('GET /items/:id/original', () => {
     const token = app.jwt.sign({id: userId})
     const resp = await app.inject({
       method: "GET",
-      url: `/items/${uuidA}/original`,
+      url: `/api/items/${uuidA}/original`,
       cookies: { token }
     });
     expect(resp.statusCode).toBe(404);
@@ -90,7 +90,7 @@ describe('GET /items/:id/original', () => {
     const token = app.jwt.sign({id: userId})
     const resp = await app.inject({
       method: "GET",
-      url: `/items/abcdefg/original`,
+      url: `/api/items/abcdefg/original`,
       cookies: { token }
     });
     expect(resp.statusCode).toBe(404);
@@ -103,7 +103,7 @@ describe('GET /items/:id/original', () => {
     const token = app.jwt.sign({id: userId})
     const resp = await app.inject({
       method: "GET",
-      url: `/items/${itemId}/original`,
+      url: `/api/items/${itemId}/original`,
       cookies: { token }
     });
     expect(resp.statusCode).toBe(404);
@@ -122,7 +122,7 @@ describe('GET /items/:id/original', () => {
     onTestFinished(() => safeUnlink(filePath));
     const resp = await app.inject({
       method: "GET",
-      url: `/items/${uuidC}/original`,
+      url: `/api/items/${uuidC}/original`,
       cookies: { token }
     });
     expect(resp.statusCode).toBe(404);
@@ -139,7 +139,7 @@ describe('GET /items/:id/original', () => {
     const token = app.jwt.sign({id: userId})
     const resp = await app.inject({
       method: "GET",
-      url: `/items/${uuidC}/original`,
+      url: `/api/items/${uuidC}/original`,
       cookies: { token }
     });
     expect(resp.statusCode).toBe(200);
@@ -150,13 +150,13 @@ describe('GET /items/:id/original', () => {
 
 
 
-describe('GET /items/:id/thumbnail', () => {
+describe('GET /api/items/:id/thumbnail', () => {
   it('it returns 401 when user is not authenticated', async () => {
 
     const app = await buildApp();
     const resp = await app.inject({
             method: "GET",
-            url: "/items/123abc/thumbnail",
+            url: "/api/items/123abc/thumbnail",
         });
     expect(resp.statusCode).toBe(401);
   });
@@ -168,7 +168,7 @@ describe('GET /items/:id/thumbnail', () => {
     const token = app.jwt.sign({id: userId})
     const resp = await app.inject({
       method: "GET",
-      url: `/items/${uuidA}/thumbnail`,
+      url: `/api/items/${uuidA}/thumbnail`,
       cookies: { token }
     });
     expect(resp.statusCode).toBe(404);
@@ -180,7 +180,7 @@ describe('GET /items/:id/thumbnail', () => {
     const token = app.jwt.sign({id: userId})
     const resp = await app.inject({
       method: "GET",
-      url: `/items/abcdefg/thumbnail`,
+      url: `/api/items/abcdefg/thumbnail`,
       cookies: { token }
     });
     expect(resp.statusCode).toBe(404);
@@ -193,7 +193,7 @@ describe('GET /items/:id/thumbnail', () => {
     const token = app.jwt.sign({id: userId})
     const resp = await app.inject({
       method: "GET",
-      url: `/items/${itemId}/thumbnail`,
+      url: `/api/items/${itemId}/thumbnail`,
       cookies: { token }
     });
     expect(resp.statusCode).toBe(404);
@@ -211,7 +211,7 @@ describe('GET /items/:id/thumbnail', () => {
     onTestFinished(() => safeUnlink(filePath));
     const resp = await app.inject({
       method: "GET",
-      url: `/items/${uuidC}/thumbnail`,
+      url: `/api/items/${uuidC}/thumbnail`,
       cookies: { token }
     });
     expect(resp.statusCode).toBe(404);
@@ -227,7 +227,7 @@ describe('GET /items/:id/thumbnail', () => {
     const token = app.jwt.sign({id: userId})
     const resp = await app.inject({
       method: "GET",
-      url: `/items/${uuidC}/thumbnail`,
+      url: `/api/items/${uuidC}/thumbnail`,
       cookies: { token }
     });
     expect(resp.statusCode).toBe(200);
