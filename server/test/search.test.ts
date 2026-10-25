@@ -15,14 +15,14 @@ vi.mock('../src/utility.js', async (importOriginal) => {
   return { ...original, getEmbedding: vi.fn() };
 });
 
-describe('/GET search', () => {
+describe('GET /api/search', () => {
     it('it returns a 400 when query string is missing', async () => {
         const {userId} = await seed();
         const app = await buildApp();
         const token = app.jwt.sign({id: userId})
         const resp = await app.inject({
             method: "GET",
-            url: `/search?q=`,
+            url: `/api/search?q=`,
             cookies: { token }
         });
         expect(resp.statusCode).toBe(400);
@@ -35,7 +35,7 @@ describe('/GET search', () => {
         const token = app.jwt.sign({id: userId})
         const resp = await app.inject({
             method: "GET",
-            url: `/search?q=searchedString`,
+            url: `/api/search?q=searchedString`,
             cookies: { token }
         });
         expect(resp.statusCode).toBe(503);
@@ -49,7 +49,7 @@ describe('/GET search', () => {
         const token = app.jwt.sign({id: userId});
         const resp = await app.inject({
             method: "GET",
-            url: `/search?q=searchedString`,
+            url: `/api/search?q=searchedString`,
             cookies: { token }
         });
         const parsedResp = await resp.json();
@@ -67,7 +67,7 @@ describe('/GET search', () => {
         const token = app.jwt.sign({id: otherUserId});
         const resp = await app.inject({
             method: "GET",
-            url: `/search?q=searchedString`,
+            url: `/api/search?q=searchedString`,
             cookies: { token }
         });
         const parsedResp = await resp.json();

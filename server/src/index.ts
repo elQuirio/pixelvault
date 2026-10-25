@@ -80,13 +80,12 @@ export async function buildApp() {
     return { data:{ status: "ok"} };
   });
 
-  await app.register(itemsRoutes);
-
-  await app.register(searchRoutes);
-
-  await app.register(authRoutes);
-
-  await app.register(storageRoutes);
+  await app.register(async (api) => {
+    await api.register(itemsRoutes);
+    await api.register(searchRoutes);
+    await api.register(authRoutes);
+    await api.register(storageRoutes);
+  }, { prefix: '/api' });
 
   return app;
 };

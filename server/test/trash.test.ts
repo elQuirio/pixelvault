@@ -12,14 +12,14 @@ beforeEach(async () => {
 
 
 
-describe('DELETE /items', () => {
+describe('DELETE /api/items', () => {
     it('it returns 204 code when successfully deleted an item', async () => {
         const {userId, uuidA} = await seed();
         const app = await buildApp();
         const token = app.jwt.sign({id: userId})
         const res = await app.inject({
             method: "DELETE",
-            url: "/items",
+            url: "/api/items",
             payload: { ids: [uuidA] },
             cookies: { token },
         });
@@ -33,7 +33,7 @@ describe('DELETE /items', () => {
         const token = app.jwt.sign({id: userId})
         await app.inject({
             method: "DELETE",
-            url: "/items",
+            url: "/api/items",
             payload: { ids: [uuidA] },
             cookies: { token },
         });
@@ -51,7 +51,7 @@ describe('DELETE /items', () => {
         const token = app.jwt.sign({id: userId})
         const res = await app.inject({
             method: "DELETE",
-            url: "/items",
+            url: "/api/items",
             payload: { ids: [uuidA] },
             cookies: { token },
         });
@@ -66,7 +66,7 @@ describe('DELETE /items', () => {
         const token = app.jwt.sign({id: userId})
         const res = await app.inject({
             method: "DELETE",
-            url: "/items",
+            url: "/api/items",
             payload: { },
             cookies: { token },
         });
@@ -79,7 +79,7 @@ describe('DELETE /items', () => {
         const app = await buildApp();
         const res = await app.inject({
             method: "DELETE",
-            url: "/items",
+            url: "/api/items",
             payload: { ids: [uuidA] },
             cookies: { },
         });
