@@ -102,6 +102,29 @@ export async function collectAncestors({destinationId, userId}: { destinationId:
 };
 
 
+export async function getFolderSizes({userId}: {userId: number}) {
+
+  const userData = await db.select().from(items).where(and(eq(items.userId, userId), isNull(items.deletedAt)));
+  const userFolders = userData.filter((d) => d.itemType === 'folder');
+
+  const folderSize = new Map<number,number>();
+
+  for (const folder of userFolders) {
+    const queue = [folder.id];
+    while (queue.length>0) {
+      const id = queue.pop();
+      userData.forEach((d) => {
+        if (d.parentId === id) {
+          if (d.itemType === 'folder') queue.push(d.id);
+          else folderSize.set(folder.id, (folderSize.get(folder.id) ?? 0) + Number(d.size));
+        }
+      })
+    }
+  }
+  return folderSize;
+}
+
+
 export async function hashItem(path: string) {
   const hash = createHash('sha256');
   await pipeline(createReadStream(path), hash);

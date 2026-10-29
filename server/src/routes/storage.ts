@@ -3,6 +3,7 @@ import { db } from "../db.js";
 import { eq, sum, and, inArray, not, isNull, desc, getTableColumns, isNotNull, sql, avg } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { items } from "../schema.js";
+import { getFolderSizes } from '../utility.js';
 
 
 export const storageRoutes: FastifyPluginCallback = (app, _opts, done) => {
@@ -27,8 +28,10 @@ export const storageRoutes: FastifyPluginCallback = (app, _opts, done) => {
 
     const itemTypeSize = await db.select({itemType: items.itemType, itemTypeSize: sum(items.size)}).from(items).where(and(eq(items.userId, userId), not(inArray(items.itemType, ['folder'])), isNull(items.deletedAt))).groupBy(items.itemType);
     
-    //top 5 folders to do placeholder
-    const topFiveFolders : [{id: number}] = [{id: 1}];
+    const folderSizes = await getFolderSizes({userId});
+    const foldersData = await db.select({id: items.id, fileUuid: items.fileUuid, name: items.visibleName}).from(items).where(and(eq(items.userId, userId), eq(items.itemType, 'folder'), isNull(items.parentId), isNull(items.deletedAt)));
+    const topFiveFolders = foldersData.map((f) => ({name: f.name, id: f.fileUuid, size: folderSizes.get(f.id)??0})).sort((a,b) => b.size-a.size).slice(0,5);
+
     const dups = db.select({itemHash: items.itemHash, duplicatesSize: sum(items.size).as('duplicatesSize'), originalSize: avg(items.size).as('originalSize')}).from(items).where(and(not(inArray(items.itemType,['folder'])), eq(items.userId, userId), isNull(items.deletedAt), isNotNull(items.itemHash))).groupBy(items.itemHash).having(sql`count(*)>1`).as('dups');
     const [duplicateRaw] = await db.select({duplicatesSize: sql`sum(${dups.duplicatesSize}) -  sum(${dups.originalSize})`}).from(dups);
     const duplicateSize = Number(duplicateRaw?.duplicatesSize ?? 0);
