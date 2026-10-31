@@ -31,6 +31,8 @@ export type Item = {
   childCount: number;
   folderCount: number;
   parentName?: string | null;
+  lastViewedAt: string | null;
+  viewCount: number;
 };
 
 export type ItemsResponse = {

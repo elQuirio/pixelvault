@@ -6,10 +6,11 @@ import ffmpegStatic from 'ffmpeg-static';
 import sharp from "sharp";
 import { db } from "./db.js";
 import { items } from "./schema.js";
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and, isNull, getTableColumns } from "drizzle-orm";
 import { pipeline } from "node:stream/promises";
 import { createHash } from "node:crypto"
 import { createReadStream } from "node:fs";
+
 
 ffmpeg.setFfprobePath(ffprobeStatic.path);
 // ffmpeg-static ships an incorrect default export declaration for a CommonJS module
@@ -124,6 +125,28 @@ export async function getFolderSizes({userId}: {userId: number}) {
   return folderSize;
 }
 
+type ToItemDtoParam = Pick<typeof items.$inferSelect, 'fileUuid' | 'originalName' | 'visibleName' | 'size' | 'itemType' | 'createdAt' | 'metadata' | 'viewCount' | 'lastViewedAt'> 
+      & { childCount?: number; folderCount?: number; parentName?: string | null };
+
+export function toItemDto(row: ToItemDtoParam) {
+  return {
+          id: row.fileUuid,
+          url: `/items/${row.fileUuid}/original`,
+          thumbnail: ['image', 'video'].includes(row.itemType) ? `/items/${row.fileUuid}/thumbnail` : null,
+          originalName: row.originalName,
+          visibleName: row.visibleName,
+          size: row.size,
+          itemType: row.itemType,
+          createdAt: row.createdAt,
+          metadata: row.metadata,
+          childCount: row.childCount ?? 0,
+          folderCount: row.folderCount ?? 0,
+          parentName: row.parentName ?? null,
+          lastViewedAt: row.lastViewedAt ?? null,
+          viewCount: row.viewCount,
+        }
+}
+
 
 export async function hashItem(path: string) {
   const hash = createHash('sha256');
@@ -152,3 +175,6 @@ export async function getEmbedding({type, value} : { type: 'image' | 'text', val
     return null;
   }
 }
+
+
+export const { itemVector: _ , ...itemColumns} = getTableColumns(items);

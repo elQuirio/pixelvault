@@ -2,7 +2,7 @@ import type { FastifyPluginCallback } from 'fastify';
 import { db } from "../db.js";
 import { items } from "../schema.js";
 import { eq, asc, and, isNull, isNotNull, cosineDistance } from "drizzle-orm";
-import { getEmbedding } from "../utility.js";
+import { getEmbedding, toItemDto } from "../utility.js";
 
 
 export const searchRoutes: FastifyPluginCallback = (app, _opts, done) => {
@@ -24,28 +24,15 @@ export const searchRoutes: FastifyPluginCallback = (app, _opts, done) => {
                                   size: items.size,
                                   createdAt: items.createdAt,
                                   metadata: items.metadata,
+                                  viewCount: items.viewCount,
+                                  lastViewedAt: items.lastViewedAt,
                                   distance: cosineDistance(items.itemVector, embedding)})
       .from(items)
       .where(and(isNotNull(items.itemVector), eq(items.userId, userId), isNull(items.deletedAt)))
       .orderBy(asc(cosineDistance(items.itemVector, embedding)))
       .limit(100);
 
-    return {data: {
-      items: rows.map((f) => ({
-        id: f.fileUuid,
-        url: `/items/${f.fileUuid}/original`,
-        thumbnail: ['image', 'video'].includes(f.itemType) ? `/items/${f.fileUuid}/thumbnail` : null,
-        originalName: f.originalName,
-        visibleName: f.visibleName,
-        size: f.size,
-        itemType: f.itemType,
-        createdAt: f.createdAt,
-        metadata: f.metadata,
-        childCount: 0,
-        folderCount: 0,
-        distance: f.distance
-      })),
-    }};
+    return {data: { items: rows.map((r) => ({...toItemDto(r), distance: r.distance})) }};
   })
 
   done();
