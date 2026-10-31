@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Item } from "../types/types.ts";
-import { getSemanticSearch } from "../api/upload.ts";
+import { getSemanticSearch } from "../api/search.ts";
 import { useToast } from "../context/useToast.tsx";
 
 export function useSearch(items: Item[]) {

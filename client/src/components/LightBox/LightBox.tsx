@@ -5,7 +5,7 @@ import { API_BASE } from "../../config/api";
 import { formatSize } from "../../helpers/helpers";
 import { useRef } from "react";
 import { downloadOne } from '../../api/download';
-import { registerView } from "../../api/upload.ts";
+import { registerView } from "../../api/items.ts";
 
 type LightBoxTypes = {
   items: Item[];

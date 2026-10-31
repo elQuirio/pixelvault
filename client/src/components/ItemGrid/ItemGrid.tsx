@@ -7,7 +7,7 @@ import { Toolbar } from "../Toolbar/Toolbar";
 import { useLightBox } from "../../hooks/useLightBox";
 import { useSelection } from "../../hooks/useSelection";
 import { ItemActions } from "../ItemActions/ItemActions";
-import { registerView } from "../../api/upload.ts";
+import { registerView } from "../../api/items.ts"
 
 
 

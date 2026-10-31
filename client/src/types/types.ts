@@ -76,3 +76,13 @@ export type SemanticSearchResponse = {
 export type ItemType = 'folder' | 'image' | 'video' | 'file';
 
 export type Result<T, E> = | { ok: true, data: T } | { ok: false, error: E };
+
+
+export type StorageDetails = {
+  totalSize: number;
+  binSize: number;
+  itemTypeSize: { itemType: ItemType; itemTypeSize: number }[];
+  topTenItems: Item[];
+  topFiveFolders: { id: string; name: string; size: number }[];
+  duplicateSize: number;
+};

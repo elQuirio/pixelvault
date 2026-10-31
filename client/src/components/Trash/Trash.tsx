@@ -1,5 +1,5 @@
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
-import { getItemCount, permanentDeleteBulk, restoreItemsBulk } from "../../api/upload.ts";
+import { getItemCount, permanentDeleteBulk, restoreItemsBulk } from "../../api/items.ts";
 import { useToast } from "../../context/useToast.tsx";
 import { useState } from "react";
 import { useItems } from "../../hooks/useItems.ts";

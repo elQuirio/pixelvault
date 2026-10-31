@@ -4,12 +4,13 @@ import { useState } from "react";
 import { Gallery } from "../Gallery/Gallery";
 import { Trash } from "../Trash/Trash";
 import { formatSize } from "../../helpers/helpers";
-import { getStorage } from "../../api/upload";
+import { getStorage } from "../../api/storage";
 import { SidePanel } from "../SidePanel/SidePanel";
 import { Drive } from '../Drive/Drive';
 import { Duplicates } from '../Duplicates/Duplicates'; 
+import { Storage } from "../Storage/Storage";
 
-export type ViewType = "gallery" | "drive" | "trash" | "duplicates";
+export type ViewType = "gallery" | "drive" | "trash" | "duplicates" | "storage";
 
 export function Layout() {
   const [spaceUsed, setSpaceUsed] = useState("");
@@ -27,6 +28,7 @@ export function Layout() {
   else if (view === 'trash') viewComponent = <Trash getSpaceUsed={getSpaceUsed}/>;
   else if (view === 'drive') viewComponent = <Drive getSpaceUsed={getSpaceUsed}/>;
   else if (view === 'duplicates') viewComponent = <Duplicates getSpaceUsed={getSpaceUsed}/>;
+  else if (view === 'storage') viewComponent = <Storage />;
 
   return (
     <div className={styles.layoutContainer}>
