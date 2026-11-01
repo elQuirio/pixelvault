@@ -18,8 +18,8 @@ type ItemGridProps = {
   onDeleteBulk: (ids: string[]) => void;
   onRestore?: (ids: string[]) => void;
   onRestoreBulk?: (ids: string[]) => void;
-  sortBy: string;
-  setSortBy: (sortBy: string) => void;
+  sortBy?: string;
+  setSortBy?: (sortBy: string) => void;
   query?: string;
   itemType: ItemType | 'all';
   setItemType: (itemType: ItemType | 'all') => void;

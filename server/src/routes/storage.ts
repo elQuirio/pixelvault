@@ -22,12 +22,12 @@ export const storageRoutes: FastifyPluginCallback = (app, _opts, done) => {
 
     const [totalSize] = await db.select({totalSize: sum(items.size)}).from(items).where(and(eq(items.userId, userId), isNull(items.deletedAt)));
     const [binSize] = await db.select({binSize: sum(items.size)}).from(items).where(and(eq(items.userId, userId), isNotNull(items.deletedAt)));
-        
+
     const parent = alias(items, 'parent');
     const topTenItems = await db.select({...itemColumns, parentName: parent.visibleName}).from(items).leftJoin(parent, eq(parent.id, items.parentId)).where(and(not(inArray(items.itemType,['folder'])), eq(items.userId, userId), isNull(items.deletedAt))).orderBy(desc(items.size)).limit(10);
 
     const itemTypeSize = await db.select({itemType: items.itemType, itemTypeSize: sum(items.size)}).from(items).where(and(eq(items.userId, userId), not(inArray(items.itemType, ['folder'])), isNull(items.deletedAt))).groupBy(items.itemType);
-    
+
     const folderSizes = await getFolderSizes({userId});
     const foldersData = await db.select({id: items.id, fileUuid: items.fileUuid, name: items.visibleName}).from(items).where(and(eq(items.userId, userId), eq(items.itemType, 'folder'), isNull(items.parentId), isNull(items.deletedAt)));
     const topFiveFolders = foldersData.map((f) => ({name: f.name, id: f.fileUuid, size: folderSizes.get(f.id)??0})).sort((a,b) => b.size-a.size).slice(0,5);
