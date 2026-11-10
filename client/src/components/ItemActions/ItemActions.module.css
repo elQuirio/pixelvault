@@ -17,7 +17,7 @@
 }
 
 .actionMenuButton svg { 
-  transform: translateX(-0.28px); 
+  display: block;
 }
 
 .renameButton {

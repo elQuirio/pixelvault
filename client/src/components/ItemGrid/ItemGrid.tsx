@@ -7,8 +7,8 @@ import { Toolbar } from "../Toolbar/Toolbar";
 import { useLightBox } from "../../hooks/useLightBox";
 import { useSelection } from "../../hooks/useSelection";
 import { ItemActions } from "../ItemActions/ItemActions";
-import { registerView } from "../../api/items.ts"
-
+import { registerView } from "../../api/items.ts";
+import { getVideoDuration, formatDuration } from "../../helpers/helpers.ts";
 
 
 type ItemGridProps = {
@@ -83,7 +83,10 @@ export function ItemGrid({ items, isLoading, onDelete, onDeleteBulk, sortBy, set
               )}
               <div className={styles.thumbnailWrapper}>
               {u.thumbnail ? (
-                <img className={styles.thumbnail} src={`${API_BASE}${u.thumbnail}`} alt={u.id} onClick={() => handleClick(u)}/>
+                (<>
+                  <img className={styles.thumbnail} src={`${API_BASE}${u.thumbnail}`} alt={u.id} onClick={() => handleClick(u)}/>
+                  {getVideoDuration(u) !== null && (<span className={styles.durationBadge}>{formatDuration(getVideoDuration(u)!)}</span>)}
+                </>)
               ) : (
                 <TypeIcon itemType={u.itemType} onClick={() => handleClick(u)} itemCount={u.childCount}/>
               )}
