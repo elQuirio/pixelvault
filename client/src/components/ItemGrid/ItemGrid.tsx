@@ -8,7 +8,8 @@ import { useLightBox } from "../../hooks/useLightBox";
 import { useSelection } from "../../hooks/useSelection";
 import { ItemActions } from "../ItemActions/ItemActions";
 import { registerView } from "../../api/items.ts";
-import { getVideoDuration, formatDuration } from "../../helpers/helpers.ts";
+import { getVideoDuration, formatDuration, formatSize } from "../../helpers/helpers.ts";
+import { HardDrive } from 'lucide-react';
 
 
 type ItemGridProps = {
@@ -93,6 +94,7 @@ export function ItemGrid({ items, isLoading, onDelete, onDeleteBulk, sortBy, set
               {!isSelectMode && <ItemActions item={u} onRename={onRename} onMove={onMoveBulk} onDelete={onDelete} />}
               </div>
               <div className={styles.itemName}>{u.visibleName}</div>
+              {u.size !== null && <div className={styles.itemSize}><HardDrive size={13}/>{formatSize(u.size)}</div>}
             </div>
         ))}
         {lightBoxIndex !== null && (
