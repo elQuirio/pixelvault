@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import type { DuplicateGroup } from "../types/types.ts";
 import { useToast } from "../context/useToast.tsx";
-import { getDuplicates } from '../api/upload.ts';
+import { getDuplicates } from '../api/items.ts';
 
 
 export function useDuplicates() {

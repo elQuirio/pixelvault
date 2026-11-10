@@ -3,7 +3,7 @@ import { logout } from "../../api/auth";
 import { useEffect, useState } from "react";
 import type { ViewType } from "../Layout/Layout";
 import styles from "./SidePanel.module.css";
-import { Trash2, CirclePower, Image, Folder, StickyNotes } from "lucide-react";
+import { Trash2, CirclePower, Image, Folder, StickyNotes, HardDrive } from "lucide-react";
 
 type SidePanelProps = {
   setView: (viewType: ViewType) => void;
@@ -45,6 +45,10 @@ export function SidePanel({
             setView("duplicates");
             setIsOpen((prev) => !prev);
             }}><StickyNotes/><div>Duplicates</div></button>
+        <button onClick={() => {
+            setView("storage");
+            setIsOpen((prev) => !prev);
+            }}><HardDrive/><div>Storage</div></button>
         <button onClick={() => {
             setView("trash");
             setIsOpen((prev) => !prev);

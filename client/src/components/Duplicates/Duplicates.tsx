@@ -1,5 +1,5 @@
 import { DuplicateGrid } from '../DuplicateGrid/DuplicateGrid.tsx';
-import { deleteItemsBulk, getItemCount } from "../../api/upload.ts";
+import { deleteItemsBulk, getItemCount } from "../../api/items.ts";
 import { useToast } from '../../context/useToast.tsx';
 import { useState } from 'react';
 import { ConfirmModal } from '../ConfirmModal/ConfirmModal.tsx';

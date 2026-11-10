@@ -9,7 +9,7 @@ import { ItemActions } from "../ItemActions/ItemActions.tsx";
 import { Folder } from "lucide-react";
 import { API_BASE } from "../../config/api.ts";
 import styles from './DuplicateGrid.module.css';
-
+import { getVideoDuration, formatDuration } from "../../helpers/helpers.ts";
 
 
 type DuplicateGridProps = {
@@ -62,7 +62,10 @@ export function DuplicateGrid({ duplicates, isLoading, onDelete, onDeleteBulk, i
                                     {isSelectMode && (<input type="checkbox" className={styles.selectionCheckbox} checked={selectedIds.includes(i.id)} onChange={() => toggleSelection(i.id)}/>)}
                                   <div className={styles.thumbnailWrapper}>
                                   {i.thumbnail ? 
+                                    (<>
                                       <img className={styles.duplicateThumbnail} src={`${API_BASE}${i.thumbnail}`} alt={i.id} onClick={() => handleClick(i)}/> 
+                                      {getVideoDuration(i) !== null && (<span className={styles.durationBadge}>{formatDuration(getVideoDuration(i)!)}</span>)}
+                                    </>)
                                       : <TypeIcon itemType={i.itemType} onClick={() => handleClick(i)}/>
                                   }
                                   {!isSelectMode &&  <ItemActions item={i} onDelete={onDelete} />}

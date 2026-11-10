@@ -6,14 +6,14 @@ import { randomUUID } from "node:crypto";
 import sharp from "sharp";
 import { db } from "../db.js";
 import { items } from "../schema.js";
-import { eq, asc, desc, and, isNull, isNotNull, inArray, notExists, count, getTableColumns, sql } from "drizzle-orm";
+import { eq, asc, desc, and, isNull, isNotNull, inArray, notExists, count, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import exifr from 'exifr';
 import { fileTypeFromFile } from "file-type";
 import convert from 'heic-convert';
 import { pipeline } from "node:stream/promises";
 import { createWriteStream } from "node:fs";
-import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail, collectSubtree, collectAncestors, hashItem, getEmbedding } from "../utility.js";
+import { safeUnlink, isUuid, probeVideo, generateVideoThumbnail, collectSubtree, collectAncestors, hashItem, getEmbedding, toItemDto, itemColumns } from "../utility.js";
 import type { ItemType, DuplicateItem } from "../types/types.js";
 
 
@@ -22,6 +22,8 @@ export const itemsRoutes: FastifyPluginCallback = (app, _opts, done) => {
     const sortMap = {
     'creationDateDesc': desc(items.createdAt),
     'creationDateAsc': asc(items.createdAt),
+    'viewsAsc' : sql`${items.viewCount} asc, ${items.createdAt} asc`,
+    'leastRecentlyViewed': sql`${items.lastViewedAt} asc nulls first`,
     };
 
     type SortKey = keyof typeof sortMap;
@@ -72,26 +74,13 @@ export const itemsRoutes: FastifyPluginCallback = (app, _opts, done) => {
     
     const childFilter = deleted === 'true' ? sql`c.deleted_at = "items"."deleted_at"` : sql`c.deleted_at is null`;
 
-    const rows = await (db.select({...getTableColumns(items), 
+    const rows = await (db.select({ ...itemColumns,
                     childCount: sql<number>`(select count(*) from ${items} c where c.parent_id = "items"."id" and ${childFilter})`.mapWith(Number).as('child_count'), 
                     folderCount:  sql<number>`(select count(*) from ${items} c where c.parent_id = "items"."id" and ${childFilter} and c.item_type = 'folder')`.mapWith(Number).as('folder_count')}
                     ).from(items).where(and(...conditions)).orderBy(orderBy));
 
-    return {data: {
-        items: rows.map((f) => ({
-        id: f.fileUuid,
-        url: `/items/${f.fileUuid}/original`,
-        thumbnail: ['image', 'video'].includes(f.itemType) ? `/items/${f.fileUuid}/thumbnail` : null,
-        originalName: f.originalName,
-        visibleName: f.visibleName,
-        size: f.size,
-        itemType: f.itemType,
-        createdAt: f.createdAt,
-        metadata: f.metadata,
-        childCount: f.childCount,
-        folderCount: f.folderCount,
-        })),
-    }};
+    return {data: { items: rows.map(toItemDto) }};
+
     });
 
     app.get('/items/:id/original', {preHandler: [app.authenticate]}, async (req, reply) => {
@@ -141,26 +130,13 @@ export const itemsRoutes: FastifyPluginCallback = (app, _opts, done) => {
         .having(sql`count(*)>1`);
     
     const parent = alias(items, 'parent');
-    const duplicateList = await db.select({...getTableColumns(items), parentName: parent.visibleName}).from(items).leftJoin(parent, eq(parent.id, items.parentId)).where(and(inArray(items.itemHash, duplicateHash), eq(items.userId, userId), isNull(items.deletedAt))).orderBy(asc(items.createdAt));
+    const duplicateList = await db.select({...itemColumns, parentName: parent.visibleName}).from(items).leftJoin(parent, eq(parent.id, items.parentId)).where(and(inArray(items.itemHash, duplicateHash), eq(items.userId, userId), isNull(items.deletedAt))).orderBy(asc(items.createdAt));
 
     const groups: Record<string, DuplicateItem[]> = {};
     for (const duplicate of duplicateList) {
         const key = duplicate.itemHash!;
         groups[key] ??= [];
-        groups[key].push({
-        id: duplicate.fileUuid,
-        url: `/items/${duplicate.fileUuid}/original`,
-        thumbnail: ['image', 'video'].includes(duplicate.itemType) ? `/items/${duplicate.fileUuid}/thumbnail` : null,
-        originalName: duplicate.originalName,
-        visibleName: duplicate.visibleName,
-        size: duplicate.size,
-        itemType: duplicate.itemType,
-        createdAt: duplicate.createdAt,
-        metadata: duplicate.metadata,
-        childCount: 0,
-        folderCount: 0,
-        parentName: duplicate.parentName,
-        })
+        groups[key].push(toItemDto(duplicate));
     }
     return reply.code(200).send({data: { groups: Object.entries(groups).map(([hash, items]) =>  ({hash, items}) )}});
     })
@@ -169,14 +145,7 @@ export const itemsRoutes: FastifyPluginCallback = (app, _opts, done) => {
     app.post("/upload", {preHandler: [app.authenticate]}, async (req, reply) => {
     const userId = req.user.id;
     const parts = req.files();
-    const saved: {
-        id: string;
-        itemType: string;
-        originalName: string;
-        size: number;
-        url: string;
-        thumbnail: string | null;
-    }[] = [];
+    const saved: ReturnType<typeof toItemDto>[] = [];
     const skipped: {
         itemType: string;
         originalName: string;
@@ -262,18 +231,11 @@ export const itemsRoutes: FastifyPluginCallback = (app, _opts, done) => {
         const { size } = await stat(filepath);
         await safeUnlink(tmpPath);
         
-        await db
+        const [savedItem] = await db
             .insert(items)
-            .values({ fileUuid, ext, originalName, parentId, visibleName: originalName, size, userId, metadata, itemType, itemHash, itemVector: vector });
+            .values({ fileUuid, ext, originalName, parentId, visibleName: originalName, size, userId, metadata, itemType, itemHash, itemVector: vector }).returning();
 
-        saved.push({
-            id: fileUuid,
-            itemType,
-            originalName,
-            size,
-            url: `/items/${fileUuid}/original`,
-            thumbnail: isPhoto || isVideo ? `/items/${fileUuid}/thumbnail` : null,
-        });
+        saved.push(toItemDto(savedItem));
 
         } catch (err) {
         req.log.error({ err, file: part.filename }, 'skipping failed file');

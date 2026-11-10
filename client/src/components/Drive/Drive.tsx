@@ -1,15 +1,12 @@
 import { useState } from "react";
 import { UploadArea } from '../UploadArea/UploadArea.tsx'
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
-import { deleteItemsBulk } from "../../api/upload.ts";
 //import styles from './Drive.module.css';
-import { createFolder } from "../../api/upload.ts";
 import { useItems } from "../../hooks/useItems.ts";
 import { useSearch } from "../../hooks/useSearch.ts";
 import { SearchBar } from "../SearchBar/SearchBar.tsx";
 import { useToast } from '../../context/useToast.tsx';
-import { renameItem, getItemCount, moveItems } from '../../api/upload.ts';
-
+import { renameItem, getItemCount, moveItems, createFolder, deleteItemsBulk } from '../../api/items.ts';
 import { InputModal } from "../InputModal/InputModal.tsx";
 import { ConfirmModal } from "../ConfirmModal/ConfirmModal.tsx";
 import { NavigationModal } from "../NavigationModal/NavigationModal.tsx";

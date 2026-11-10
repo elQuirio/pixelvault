@@ -1,0 +1,71 @@
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.cardLabel {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.cardValue {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+
+.section {
+  margin-bottom: 32px;
+}
+
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 120px 1fr 80px;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+.rowLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: capitalize;
+}
+
+.bar {
+  height: 8px;
+  background: var(--surface-hover);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: var(--accent);
+}
+
+.rowValue {
+  text-align: right;
+  color: var(--muted);
+  font-size: 13px;
+}

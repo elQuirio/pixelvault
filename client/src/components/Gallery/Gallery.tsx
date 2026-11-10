@@ -1,6 +1,6 @@
 import { UploadArea } from '../UploadArea/UploadArea.tsx'
 import { ItemGrid } from "../ItemGrid/ItemGrid.tsx";
-import { deleteItemsBulk, renameItem, getItemCount } from "../../api/upload.ts";
+import { deleteItemsBulk, renameItem, getItemCount } from "../../api/items.ts";
 //import styles from './Gallery.module.css';
 import { useItems } from "../../hooks/useItems.ts";
 import { useSearch } from '../../hooks/useSearch.ts';

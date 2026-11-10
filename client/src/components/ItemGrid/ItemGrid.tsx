@@ -7,8 +7,9 @@ import { Toolbar } from "../Toolbar/Toolbar";
 import { useLightBox } from "../../hooks/useLightBox";
 import { useSelection } from "../../hooks/useSelection";
 import { ItemActions } from "../ItemActions/ItemActions";
-import { registerView } from "../../api/upload.ts";
-
+import { registerView } from "../../api/items.ts";
+import { getVideoDuration, formatDuration, formatSize } from "../../helpers/helpers.ts";
+import { HardDrive } from 'lucide-react';
 
 
 type ItemGridProps = {
@@ -18,8 +19,8 @@ type ItemGridProps = {
   onDeleteBulk: (ids: string[]) => void;
   onRestore?: (ids: string[]) => void;
   onRestoreBulk?: (ids: string[]) => void;
-  sortBy: string;
-  setSortBy: (sortBy: string) => void;
+  sortBy?: string;
+  setSortBy?: (sortBy: string) => void;
   query?: string;
   itemType: ItemType | 'all';
   setItemType: (itemType: ItemType | 'all') => void;
@@ -83,13 +84,17 @@ export function ItemGrid({ items, isLoading, onDelete, onDeleteBulk, sortBy, set
               )}
               <div className={styles.thumbnailWrapper}>
               {u.thumbnail ? (
-                <img className={styles.thumbnail} src={`${API_BASE}${u.thumbnail}`} alt={u.id} onClick={() => handleClick(u)}/>
+                (<>
+                  <img className={styles.thumbnail} src={`${API_BASE}${u.thumbnail}`} alt={u.id} onClick={() => handleClick(u)}/>
+                  {getVideoDuration(u) !== null && (<span className={styles.durationBadge}>{formatDuration(getVideoDuration(u)!)}</span>)}
+                </>)
               ) : (
                 <TypeIcon itemType={u.itemType} onClick={() => handleClick(u)} itemCount={u.childCount}/>
               )}
               {!isSelectMode && <ItemActions item={u} onRename={onRename} onMove={onMoveBulk} onDelete={onDelete} />}
               </div>
               <div className={styles.itemName}>{u.visibleName}</div>
+              {u.size !== null && <div className={styles.itemSize}><HardDrive size={13}/>{formatSize(u.size)}</div>}
             </div>
         ))}
         {lightBoxIndex !== null && (

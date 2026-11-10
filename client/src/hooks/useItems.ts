@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import type { ItemType, Item } from "../types/types.ts";
-import { getItems } from "../api/upload.ts";
+import { getItems } from "../api/items.ts";
 import { useToast } from "../context/useToast.tsx";
 
 type useItemsProps = {
