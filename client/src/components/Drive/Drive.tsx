@@ -138,6 +138,7 @@ export function Drive({getSpaceUsed}: DriveProps) {
         onRename={(item) => setModal({mode: 'rename', item})}
         onMoveBulk={handleMoveClick}
         onCreateFolder={() => setModal({mode:'create'})}
+        trackViews={true}
       />
     </>
   );
