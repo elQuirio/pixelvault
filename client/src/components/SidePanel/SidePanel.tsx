@@ -3,7 +3,8 @@ import { logout } from "../../api/auth";
 import { useEffect, useState } from "react";
 import type { ViewType } from "../Layout/Layout";
 import styles from "./SidePanel.module.css";
-import { Trash2, CirclePower, Image, Folder, StickyNotes, HardDrive } from "lucide-react";
+import { CirclePower } from "lucide-react";
+import { navItems } from "../../config/navItems.ts";
 
 type SidePanelProps = {
   setView: (viewType: ViewType) => void;
@@ -33,26 +34,12 @@ export function SidePanel({
       <button className={styles.hamburger} onClick={() => setIsOpen((prev) => !prev)}>☰</button>
       <div className={`${styles.content} ${isOpen ? styles.open : ''}`}>
         <div className={styles.spaceUsed}>Space used: {spaceUsed}</div>
-        <button onClick={() => {
-            setView("gallery");
+        {navItems.map((i) =>
+          <button key={i.view} onClick={() => {
+            setView(i.view);
             setIsOpen((prev) => !prev);
-            }}><Image/><div>Gallery</div></button>
-        <button onClick={() => {
-            setView("drive");
-            setIsOpen((prev) => !prev);
-            }}><Folder/><div>Drive</div></button>
-        <button onClick={() => {
-            setView("duplicates");
-            setIsOpen((prev) => !prev);
-            }}><StickyNotes/><div>Duplicates</div></button>
-        <button onClick={() => {
-            setView("storage");
-            setIsOpen((prev) => !prev);
-            }}><HardDrive/><div>Storage</div></button>
-        <button onClick={() => {
-            setView("trash");
-            setIsOpen((prev) => !prev);
-            }}><Trash2/><div>Bin</div></button>
+            }}><i.icon/><div>{i.label}</div></button>
+        )}
         <button className={styles.logoutButton} onClick={handleLogout}><CirclePower/><div>Logout</div></button>
       </div>
 

@@ -1,0 +1,48 @@
+
+.overlay {
+    position: fixed;
+    inset: 0px;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.panel {
+    position: fixed;
+    left: 0px;
+    right: 0px;
+    bottom: calc(var(--bottombar-height) + env(safe-area-inset-bottom, 0px));
+    z-index: 101;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-radius: var(--radius) var(--radius) 0px 0px;
+}
+
+.spaceUsed {
+    padding: 4px 12px 8px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.panelButton {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 0px 12px;
+    background: transparent;
+    border: none;
+    text-align: left;
+    color: var(--text);
+}
+
+.panelButton.active {
+    color: var(--accent);
+}
+
+.logoutButton {
+    color: var(--danger);
+}
