@@ -29,9 +29,10 @@ type ItemGridProps = {
   onCreateFolder?: () => void;
   onRename?: (item: { id: string, name: string }) => void;
   onMoveBulk?: (ids: string[]) => void;
+  trackViews?: boolean;
 };
 
-export function ItemGrid({ items, isLoading, onDelete, onDeleteBulk, sortBy, setSortBy, query, itemType, setItemType, typeOptions, onRestore, onRestoreBulk, onFolderOpen, onRename, onMoveBulk, onCreateFolder }: ItemGridProps) {
+export function ItemGrid({ items, isLoading, onDelete, onDeleteBulk, sortBy, setSortBy, query, itemType, setItemType, typeOptions, onRestore, onRestoreBulk, onFolderOpen, onRename, onMoveBulk, onCreateFolder, trackViews }: ItemGridProps) {
   const {isSelectMode, toggleSelectMode, selectedIds, toggleSelection, toggleSelectAll} = useSelection();
 
   const mediaItems = items.filter((f) => f.itemType !== "folder");
@@ -47,7 +48,7 @@ export function ItemGrid({ items, isLoading, onDelete, onDeleteBulk, sortBy, set
       onFolderOpen?.(u.id, u.visibleName);
       return;
     }
-    registerView({itemUUID: u.id});
+    if (trackViews) registerView({itemUUID: u.id});
     setLightBoxIndex(mediaItems.findIndex((m) => u.id === m.id));
   };
 
@@ -98,7 +99,7 @@ export function ItemGrid({ items, isLoading, onDelete, onDeleteBulk, sortBy, set
             </div>
         ))}
         {lightBoxIndex !== null && (
-          <LightBox items={mediaItems} lightBoxIndex={lightBoxIndex} setLightBoxIndex={setLightBoxIndex} onClose={closeLightBox} onDelete={onDelete} onRestore={onRestore}/>
+          <LightBox items={mediaItems} lightBoxIndex={lightBoxIndex} setLightBoxIndex={setLightBoxIndex} onClose={closeLightBox} onDelete={onDelete} onRestore={onRestore} trackViews={trackViews}/>
         )}
       </div> : (itemType !== 'all') ? <div className={styles.emptyType}>No {itemType}s here</div> 
       : (query !== '') ? <div className={styles.emptyType}>No search results</div>

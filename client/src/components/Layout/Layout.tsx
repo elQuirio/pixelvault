@@ -9,6 +9,7 @@ import { SidePanel } from "../SidePanel/SidePanel";
 import { Drive } from '../Drive/Drive';
 import { Duplicates } from '../Duplicates/Duplicates'; 
 import { Storage } from "../Storage/Storage";
+import { MobilePanel } from '../MobilePanel/MobilePanel'
 
 export type ViewType = "gallery" | "drive" | "trash" | "duplicates" | "storage";
 
@@ -34,6 +35,7 @@ export function Layout() {
     <div className={styles.layoutContainer}>
       <SidePanel setView={setView} spaceUsed={spaceUsed} getSpaceUsed={getSpaceUsed}/>
       <main className={styles.mainContainer}>{viewComponent}</main>
+      <MobilePanel view={view} setView={setView} spaceUsed={spaceUsed}/>
     </div>
   );
 }

@@ -14,9 +14,10 @@ type LightBoxTypes = {
   onDelete?: (ids: string[]) => void;
   onRestore?: (ids: string[]) => void;
   onClose: () => void;
+  trackViews?: boolean;
 };
 
-export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, onDelete, onRestore }: LightBoxTypes) {
+export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, onDelete, onRestore, trackViews }: LightBoxTypes) {
   const item = items[lightBoxIndex];
   const pointerDownRef = useRef<null | {x: number, y:number}>(null);
   const swipedRef = useRef<boolean>(false);
@@ -88,6 +89,7 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, onDe
   }, [onClose, setLightBoxIndex, lightBoxIndex]);
 
   useEffect(() => {
+    if (!trackViews) return;
     if (firstRef.current) {
       firstRef.current = false;
       return;
@@ -97,7 +99,7 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, onDe
 
     const timer = setTimeout(() => registerView({itemUUID: id}), 5000);
     return () => clearTimeout(timer);
-  }, [lightBoxIndex]);
+  }, [lightBoxIndex, trackViews]);
 
   if(!item) return null;
 

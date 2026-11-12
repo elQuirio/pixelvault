@@ -74,6 +74,7 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
         setItemType={setItemType}
         typeOptions={['video', 'image']}
         onRename={(item) => setModal({mode:'rename', item})}
+        trackViews={true}
       />
     </>
   );
