@@ -12,7 +12,8 @@ import { searchRoutes } from "./routes/search.js";
 import { authRoutes } from "./routes/auth.js";
 import { storageRoutes } from "./routes/storage.js";
 import { itemsRoutes } from "./routes/items.js";
-
+import { itemTagsRoutes } from './routes/itemsTags.js';
+import { tagsRoutes } from "./routes/tags.js";
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -82,6 +83,8 @@ export async function buildApp() {
 
   await app.register(async (api) => {
     await api.register(itemsRoutes);
+    await api.register(itemTagsRoutes);
+    await api.register(tagsRoutes);
     await api.register(searchRoutes);
     await api.register(authRoutes);
     await api.register(storageRoutes);

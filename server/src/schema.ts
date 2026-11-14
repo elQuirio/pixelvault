@@ -9,6 +9,7 @@ import {
   jsonb,
   AnyPgColumn,
   index,
+  uniqueIndex,
   vector
 } from "drizzle-orm/pg-core";
 
@@ -50,3 +51,27 @@ export const users = pgTable('users', {
     .defaultNow()
     .$onUpdate(() => new Date()),
 })
+
+export const tags = pgTable('tags', {
+  id: serial('id').primaryKey(),
+  tagUuid: uuid('tag_uuid').defaultRandom().notNull().unique(),
+  userId: integer('user_id').notNull().references((): AnyPgColumn => users.id, {onDelete: 'cascade'}),
+  tagName: text('tag_name').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  uniqueIndex("idx_unique_user_tag").on(table.userId, table.tagName),
+])
+
+
+export const itemTags = pgTable('item_tags', {
+  id: serial('id').primaryKey(),
+  tagId: integer('tag_id').notNull().references((): AnyPgColumn => tags.id, {onDelete: 'cascade'}),
+  itemId: integer('item_id').notNull().references((): AnyPgColumn => items.id, {onDelete: 'cascade'}),
+  source: text('source').notNull().default('manual'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  uniqueIndex("idx_unique_tag_item").on(table.itemId, table.tagId),
+  index('item_tags_tag').on(table.tagId),
+])
+
+
