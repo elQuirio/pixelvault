@@ -7,17 +7,20 @@ import type { Tag } from "../types/types.ts";
 
 
 export function useTags({itemId} : {itemId: string}) {
-    const [itemTags, setItemTags] = useState<Tag[] | null>(null);
+    const [itemTags, setItemTags] = useState<{tags: Tag[], loadedFor: string} | null>(null);
     const [userTags, setUserTags] = useState<Tag[] | null>(null);
 
     const { showToast } = useToast();
 
     useEffect(() => {
-        let ignore = false;
-        getItemTags({ itemId }).then((res) => {
-            if (!ignore) setItemTags(res);
-        });
-        return () => { ignore = true; };
+            let ignore = false;
+            getItemTags({ itemId }).then((res) => {
+                if (!ignore) setItemTags({tags: res, loadedFor: itemId});
+            }).catch((err) => {
+                console.error(err);
+                showToast('Error loading item tags', 'error');
+            });
+            return () => { ignore = true; };
     }, [itemId]);
 
 
@@ -32,9 +35,12 @@ export function useTags({itemId} : {itemId: string}) {
     }
 
     function addTag(tagName: string) {
-        addItemTag({itemId, tagName}).then((res) => setItemTags((prev) => { 
-            if (!prev) return [res];
-            else return prev.some((p) => p.tagId === res.tagId) ? prev : [...prev, res];
+        addItemTag({itemId, tagName}).then((res) => setItemTags((prev) => {
+            if (!prev) return {tags: [res], loadedFor: itemId};
+            else if (prev.loadedFor !== itemId) return prev;
+            else {
+                return prev.tags.some((p) => p.tagId === res.tagId) ? prev : {tags: [...prev.tags, res], loadedFor: prev.loadedFor};
+            };
         }
         )).then(() => loadUserTags())
         .catch((err)=> {
@@ -44,11 +50,14 @@ export function useTags({itemId} : {itemId: string}) {
     }
 
     function removeTag(tagId: string) {
-        removeItemTag({itemId, tagId}).then(() => setItemTags((prev) => { 
+        removeItemTag({itemId, tagId}).then(() => setItemTags((prev) => {
             if (!prev) return prev;
-            else return prev.filter((p) => p.tagId !== tagId);
+            else if (prev.loadedFor !== itemId) return prev;
+            else {
+                return {tags: prev.tags.filter((p) => p.tagId !== tagId), loadedFor: prev.loadedFor};
+            };
         }
-        )).catch((err)=> {
+        )).then(() => loadUserTags()).catch((err)=> {
             console.error(err);
             showToast('Error removing tag', 'error');
         });
@@ -58,8 +67,8 @@ export function useTags({itemId} : {itemId: string}) {
         loadUserTags();
     }, []);
 
+    const visibleTags = itemTags?.loadedFor === itemId ? itemTags.tags : null;
+    const loading = visibleTags === null;
 
-  const loading = itemTags === null;
-
-  return { itemTags, userTags, addTag, removeTag, loading };
+    return { itemTags: visibleTags, userTags, addTag, removeTag, loading };
 }

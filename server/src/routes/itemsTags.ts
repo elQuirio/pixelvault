@@ -2,7 +2,7 @@ import type { FastifyPluginCallback } from 'fastify';
 import { isUuid } from '../utility.js';
 import { db } from '../db.js';
 import { items, itemTags, tags } from '../schema.js';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, count } from 'drizzle-orm';
 
 
 export const itemTagsRoutes: FastifyPluginCallback = (app, _opts, done) => {
@@ -56,6 +56,12 @@ export const itemTagsRoutes: FastifyPluginCallback = (app, _opts, done) => {
     if (!tag) return reply.code(404).send({message: 'Tag not found'});
 
     await db.delete(itemTags).where(and(eq(itemTags.tagId, tag.tagId), eq(itemTags.itemId, item.itemId)));
+
+    const [tagCnt] = await db.select({totalTags: count()}).from(itemTags).where(eq(itemTags.tagId, tag.tagId));
+
+    if (tagCnt.totalTags === 0) {
+      await db.delete(tags).where(and(eq(tags.id, tag.tagId), eq(tags.userId, userId)));
+    }
     
     return reply.code(204).send();
   });
