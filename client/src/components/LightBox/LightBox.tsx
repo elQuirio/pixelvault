@@ -6,7 +6,8 @@ import { formatSize } from "../../helpers/helpers";
 import { useRef } from "react";
 import { downloadOne } from '../../api/download';
 import { registerView } from "../../api/items.ts";
-//import { TagEditor } from "../TagEditor/TagEditor.tsx";
+import { TagEditor } from "../TagEditor/TagEditor.tsx";
+
 
 type LightBoxTypes = {
   items: Item[];
@@ -124,8 +125,7 @@ export function LightBox({ items, lightBoxIndex, setLightBoxIndex, onClose, onDe
         </p>
 
         {!! item.metadata?.Make && <p>{String(item.metadata.Make)} {String(item.metadata?.Model)}</p>}
-        {//<TagEditor />
-        }
+        <TagEditor item={item}/>
       </div>
       {item.itemType === 'video' ? (<video key={item.id} className={styles.image} src={`${API_BASE}${item.url}`} controls autoPlay muted={true} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}></video>) : (<img key={item.id} className={styles.image} src={`${API_BASE}${item.url}`} alt={item.id} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}/>)}
       <div>

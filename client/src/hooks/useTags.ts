@@ -67,8 +67,8 @@ export function useTags({itemId} : {itemId: string}) {
         loadUserTags();
     }, []);
 
-    const visibleTags = itemTags?.loadedFor === itemId ? itemTags.tags : null;
-    const loading = visibleTags === null;
+    const visibleTags = itemTags?.loadedFor === itemId ? itemTags.tags : [];
+    const loading = itemTags?.tags === null;
 
     return { itemTags: visibleTags, userTags, addTag, removeTag, loading };
 }
