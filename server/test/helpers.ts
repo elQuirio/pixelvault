@@ -1,5 +1,5 @@
 import { db } from "../src/db.js";
-import { items, users } from "../src/schema.js";
+import { items, users, tags } from "../src/schema.js";
 import argon2 from "argon2";
 
 export async function seed() {
@@ -16,4 +16,10 @@ export async function createUser({name, email, password}: {name?: string, email?
     const [user] = await db.insert(users).values({ name: name ?? "randomUser", email: email ?? "randomEmail@test.com", passwordHash: await argon2.hash(password ?? 'randomPassword') }).returning({ id: users.id, name: users.name});
     
     return {userId: user.id, userName: user.name, userPassword: password ?? 'randomPassword'};
+}
+
+
+export async function createTag({userId, itemId, tagName}: {userId: number, itemId?: number, tagName: string }) {
+    const [tag] = await db.insert(tags).values({ userId: userId, tagName: tagName }).returning({ tagUuid: tags.tagUuid });
+    return {tagUuid: tag.tagUuid };
 }

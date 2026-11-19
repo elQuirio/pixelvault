@@ -57,3 +57,33 @@
   border-color: var(--accent);
   border-style: solid;
 }
+
+
+.suggestions {
+  display: flex;;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.suggestionTag {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+  padding: 0 8px;
+  font-size: 12px;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+}
+
+.suggestionTag:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
