@@ -3,6 +3,7 @@ import { isUuid } from '../utility.js';
 import { db } from '../db.js';
 import { items, itemTags, tags } from '../schema.js';
 import { eq, and, count } from 'drizzle-orm';
+import { getEmbedding } from '../utility.js';
 
 
 export const itemTagsRoutes: FastifyPluginCallback = (app, _opts, done) => {
@@ -34,7 +35,12 @@ export const itemTagsRoutes: FastifyPluginCallback = (app, _opts, done) => {
     if (!item) return reply.code(404).send({message: 'Item not found'});
 
     await db.insert(tags).values({userId, tagName: tagName}).onConflictDoNothing();
-    const [tgs] = await db.select({tagUuid: tags.tagUuid, tagId: tags.id, tagName: tags.tagName}).from(tags).where(and(eq(tags.userId, userId), eq(tags.tagName, tagName)));
+    const [tgs] = await db.select({tagUuid: tags.tagUuid, tagId: tags.id, tagName: tags.tagName, tagVector: tags.tagVector}).from(tags).where(and(eq(tags.userId, userId), eq(tags.tagName, tagName)));
+    
+    if (!tgs.tagVector) {
+      const emb = await getEmbedding({type: 'text', value: tagName});
+      await db.update(tags).set({tagVector: emb}).where(eq(tags.id,tgs.tagId));
+    }
 
     await db.insert(itemTags).values({tagId: tgs.tagId, itemId: item.itemId, source: 'manual'}).onConflictDoNothing();
 

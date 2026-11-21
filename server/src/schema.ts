@@ -57,6 +57,7 @@ export const tags = pgTable('tags', {
   tagUuid: uuid('tag_uuid').defaultRandom().notNull().unique(),
   userId: integer('user_id').notNull().references((): AnyPgColumn => users.id, {onDelete: 'cascade'}),
   tagName: text('tag_name').notNull(),
+  tagVector: vector("tag_vector", { dimensions: 768 }),
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => [
   uniqueIndex("idx_unique_user_tag").on(table.userId, table.tagName),
