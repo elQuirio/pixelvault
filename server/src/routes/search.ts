@@ -13,7 +13,8 @@ export const searchRoutes: FastifyPluginCallback = (app, _opts, done) => {
     const text = queryString?.trim();
 
     if (!text && tagList.length === 0) return reply.code(400).send({message: 'Missing mandatory data'});
-
+    if (tagList.some((t) => !isUuid(t))) return reply.code(400).send({ message: 'Invalid tag id' });
+    
     const embedding = text ? await getEmbedding({type: 'text', value: text}) : null;
     if (text && !embedding) return reply.code(503).send({message: 'Error calling text embedding service'});
 
@@ -22,7 +23,6 @@ export const searchRoutes: FastifyPluginCallback = (app, _opts, done) => {
     
     if (text) conditions.push(isNotNull(items.itemVector));
     if (tagList.length >0) {
-      if (tagList.some((t) => !isUuid(t))) return reply.code(400).send({ message: 'Invalid tag id' });
       for (const tagUuid of tagList) {
         conditions.push(exists(
           db.select().from(itemTags)

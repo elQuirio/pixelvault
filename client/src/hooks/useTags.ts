@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { useToast } from "../context/useToast.tsx";
 import { getItemTags, removeItemTag } from "../api/itemsTags.ts";
-import { getTags } from "../api/tags.ts";
 import { addItemTag } from "../api/itemsTags.ts";
 import type { Tag } from "../types/types.ts";
+import { useUserTags } from "./useUserTags.ts";
 
 
 export function useTags({itemId} : {itemId: string}) {
     const [itemTags, setItemTags] = useState<{tags: Tag[], loadedFor: string} | null>(null);
-    const [userTags, setUserTags] = useState<Tag[] | null>(null);
+    const { userTags, reloadUserTags } = useUserTags();
 
     const { showToast } = useToast();
 
@@ -24,16 +24,6 @@ export function useTags({itemId} : {itemId: string}) {
     }, [itemId]);
 
 
-    function loadUserTags() {
-        getTags().then((res) => {
-            setUserTags(res)
-        }).catch((err) => {
-            console.error(err);
-            showToast('Error loading user tags', 'error');
-        })
-
-    }
-
     function addTag(tagName: string) {
         addItemTag({itemId, tagName}).then((res) => setItemTags((prev) => {
             if (!prev) return {tags: [res], loadedFor: itemId};
@@ -42,7 +32,7 @@ export function useTags({itemId} : {itemId: string}) {
                 return prev.tags.some((p) => p.tagId === res.tagId) ? prev : {tags: [...prev.tags, res], loadedFor: prev.loadedFor};
             };
         }
-        )).then(() => loadUserTags())
+        )).then(() => reloadUserTags())
         .catch((err)=> {
             console.error(err);
             showToast('Error adding tag', 'error');
@@ -57,15 +47,11 @@ export function useTags({itemId} : {itemId: string}) {
                 return {tags: prev.tags.filter((p) => p.tagId !== tagId), loadedFor: prev.loadedFor};
             };
         }
-        )).then(() => loadUserTags()).catch((err)=> {
+        )).then(() => reloadUserTags()).catch((err)=> {
             console.error(err);
             showToast('Error removing tag', 'error');
         });
     }
-
-    useEffect(() => {
-        loadUserTags();
-    }, []);
 
     const visibleTags = itemTags?.loadedFor === itemId ? itemTags.tags : [];
     const loading = itemTags?.tags === null;
