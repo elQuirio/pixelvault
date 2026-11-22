@@ -24,7 +24,7 @@ export const itemTagsRoutes: FastifyPluginCallback = (app, _opts, done) => {
   app.post('/items/:id/tags', {preHandler: [app.authenticate]}, async (req, reply) => {
     const userId = req.user.id;
     const { id } = req.params as { id: string };
-    const { name } = req.body as { name?: string };
+    const { name } = (req.body ?? {}) as { name?: string };
     const tagName = name?.trim().toLowerCase();
 
     if (!id || !isUuid(id)) return reply.code(400).send({message: 'Missing mandatory id'});
