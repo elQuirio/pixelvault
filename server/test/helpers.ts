@@ -31,3 +31,8 @@ export async function createTag({userId, itemId, tagName}: {userId: number, item
     }
     return {tagId: tag.tagId, tagUuid: tag.tagUuid, tagName: tag.tagName};
 }
+
+export async function linkTag({tagId, itemId}: {tagId: number, itemId: number}) {
+    const [itemTag] = await db.insert(itemTags).values({ tagId, itemId }).returning({ itemTagId: itemTags.id });
+    return { itemTagId: itemTag.itemTagId };
+}

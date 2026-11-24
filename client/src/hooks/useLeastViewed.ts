@@ -10,7 +10,8 @@ export function useLeastViewed() {
 
   function loadLeastViewed() {
     getItems({sortBy: 'viewsAsc', type: ['image', 'video']}).then((res) => {
-      setLeastViewed(res.data.items.slice(0,50));
+      const count = Math.max(100, Math.ceil(res.data.items.length * 0.1));
+      setLeastViewed(res.data.items.slice(0,count));
     }).catch((err) => {
       console.error(err);
       showToast('Error loading least viewed items', 'error');
