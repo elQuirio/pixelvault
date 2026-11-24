@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { InputModal } from '../InputModal/InputModal.tsx';
 import { ConfirmModal } from '../ConfirmModal/ConfirmModal.tsx';
 import type { ItemType } from '../../types/types.ts';
+import { useUserTags } from '../../hooks/useUserTags.ts';
 
 type GalleryProps = {
   getSpaceUsed: () => void;
@@ -18,7 +19,8 @@ type GalleryProps = {
 export function Gallery({getSpaceUsed}: GalleryProps) {
   const [itemType, setItemType] = useState<ItemType | 'all'>('all');
   const {items, removeItems, sortBy, setSortBy, reload, patchItem, loading } = useItems({type: itemType === 'all' ? ['image', 'video'] : [itemType]});
-  const {query, setQuery, filtered, runSemanticSearch, isSemantic, isSemanticLoading} = useSearch(items);
+  const {query, setQuery, filtered, runSemanticSearch, isSemantic, isSemanticLoading, tags, addSearchTag, removeSearchTag, clearSearch} = useSearch(items);
+  const { userTags, reloadUserTags } = useUserTags();
   const [modal, setModal] = useState< {mode:'rename', item:{id: string, name: string}, } | {mode:'confirm', action:'soft', count: number, ids: string[]} | null > (null);
 
   const { showToast } = useToast();
@@ -59,7 +61,18 @@ export function Gallery({getSpaceUsed}: GalleryProps) {
   return (
     <>
       <UploadArea parentId={null} onComplete={() => { reload(); getSpaceUsed(); }}/>
-      <SearchBar value={query} setValue={setQuery} runSemanticSearch={runSemanticSearch} isSemantic={isSemantic} isSemanticLoading={isSemanticLoading}/>
+      <SearchBar  value={query} 
+                  setValue={setQuery} 
+                  runSemanticSearch={runSemanticSearch} 
+                  isSemantic={isSemantic} 
+                  isSemanticLoading={isSemanticLoading}
+                  tags={tags}
+                  userTags={userTags}
+                  addSearchTag={addSearchTag}
+                  removeSearchTag={removeSearchTag}
+                  clearSearch={clearSearch}
+                  onFocus={reloadUserTags}
+                  />
       {(modal?.mode === 'rename') && <InputModal initialValue={modal.item.name} mode={modal.mode} confirmBtnLabel={'Rename item'} onConfirm={handleConfirmRename} onClose={() => setModal(null)} />}
       {(modal?.mode === 'confirm') && <ConfirmModal mode={modal.action} itemCount={modal.count} onConfirm={() => handleDeleteConfirm(modal.ids)} onClose={() => setModal(null)} />}
       <ItemGrid

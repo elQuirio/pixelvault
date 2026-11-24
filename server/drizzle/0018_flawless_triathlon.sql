@@ -1,0 +1,1 @@
+ALTER TABLE "tags" ADD COLUMN "tag_vector" vector(768);

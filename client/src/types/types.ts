@@ -86,3 +86,8 @@ export type StorageDetails = {
   topFiveFolders: { id: string; name: string; size: number }[];
   duplicateSize: number;
 };
+
+export type Tag = {
+  tagId: string,
+  tagName: string,
+}

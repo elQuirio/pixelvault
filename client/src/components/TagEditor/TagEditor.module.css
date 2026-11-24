@@ -1,0 +1,89 @@
+.tagEditor {
+  display: flex;
+  margin-top: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  font-size: 13px;
+  padding: 0px 4px 0px 12px;
+  color: var(--text);
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.removeButton {
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 14px;
+  line-height: 0;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+}
+
+.removeButton:hover {
+  color: var(--text);
+  background: var(--border);
+}
+
+.tagInput {
+  width: 90px;
+  height: 24px;
+  padding: 0px 10px;
+  font-size: 13px;
+  color: var(--text);
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 999px;
+}
+
+.tagInput:focus {
+  outline: none;
+  border-color: var(--accent);
+  border-style: solid;
+}
+
+
+.suggestions {
+  display: flex;;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.suggestionTag {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+  padding: 0 8px;
+  font-size: 12px;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+}
+
+.suggestionTag:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}

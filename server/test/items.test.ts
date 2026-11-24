@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeEach, onTestFinished } from "vitest";
 import { db } from "../src/db.js";
-import { sql, inArray, eq } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { seed } from "./helpers.js";
 import { buildApp } from '../src/index.js';
-import { items } from "../src/schema.js";
 import { randomUUID } from "node:crypto";
 import { writeFile } from "node:fs/promises";
 import { safeUnlink } from "../src/utility.js";
