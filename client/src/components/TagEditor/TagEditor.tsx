@@ -27,10 +27,10 @@ export function TagEditor({item}: TagEditorProps) {
     }
 
     return  <><div className={styles.tagEditor}>{itemTags.map((i) => <div key={i.tagId} className={styles.tag}>{i.tagName}<button className={styles.removeButton} onClick={() => removeTag(i.tagId)}><X size={12} strokeWidth={3}/></button></div>)}
-                <input type='text' className={styles.tagInput} placeholder="+ add tag" value={draft} autoCapitalize='none' maxLength={50} onChange={(e) => setDraft(e.currentTarget.value)} style={{width: `${Math.max(draft.length, 8) + 3}ch`}} onKeyDown={(e) => handleAddTag(e)}/>
+                <input type='text' className={styles.tagInput} placeholder="+ add tag" value={draft} autoCapitalize='none' maxLength={50} onChange={(e) => setDraft(e.currentTarget.value)} onBlur={() => setDraft('')} style={{width: `${Math.max(draft.length, 8) + 3}ch`}} onKeyDown={(e) => handleAddTag(e)}/>
             </div>
             {suggestions && suggestions.length > 0 && <div className={styles.suggestions}>
-                                {suggestions.map((s) => <button key={s.tagId} className={styles.suggestionTag} onClick={() => {addTag(s.tagName); setDraft('')}}>
+                                {suggestions.map((s) => <button key={s.tagId} className={styles.suggestionTag} onMouseDown={(e) => {e.preventDefault(); addTag(s.tagName); setDraft('');}}>
                                                             {s.tagName}
                                                         <Plus size={12} strokeWidth={3}/>
                                                         </button>)}

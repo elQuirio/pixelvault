@@ -36,7 +36,7 @@ export const searchRoutes: FastifyPluginCallback = (app, _opts, done) => {
       }
     }
 
-    const rows = await db.select({id: items.id, 
+    const query = db.select({id: items.id, 
                                   fileUuid: items.fileUuid, 
                                   itemType: items.itemType, 
                                   originalName: items.originalName,
@@ -47,10 +47,11 @@ export const searchRoutes: FastifyPluginCallback = (app, _opts, done) => {
                                   viewCount: items.viewCount,
                                   lastViewedAt: items.lastViewedAt,
                                   })
-      .from(items)
-      .where(and(...conditions))
-      .orderBy(orderBy)
-      .limit(100);
+    .from(items)
+    .where(and(...conditions))
+    .orderBy(orderBy);
+
+    const rows = text ? await query.limit(100) : await query;
 
     return {data: { items: rows.map((r) => ({...toItemDto(r) })) }};
   })
