@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
 import { db } from "../db.js";
-import { items } from "../schema.js";
+import { items, itemTags, tags } from "../schema.js";
 import { eq, asc, desc, and, isNull, isNotNull, inArray, notExists, count, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import exifr from 'exifr';
@@ -336,6 +336,8 @@ export const itemsRoutes: FastifyPluginCallback = (app, _opts, done) => {
         await safeUnlink(join(ORIGINAL_DIR, `${delItem.uuid}.${delItem.ext}`));
         await safeUnlink(join(THUMBNAIL_DIR, `${delItem.uuid}.webp`));
     }
+
+    await db.delete(tags).where(and(eq(tags.userId, userId), notExists(db.select().from(itemTags).where(and(eq(itemTags.tagId, tags.id))))));
 
     return reply.code(204).send();
     })
